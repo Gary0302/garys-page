@@ -112,9 +112,10 @@ const translations: Translations = {
 
     // Notes
     "notes.title": "Notes",
-    "notes.subtitle": "Standalone pages and write-ups I want to share.",
+    "notes.subtitle": "Edit HTML files on GitHub — draft slots stay hidden until you paste your content.",
     "notes.backToPortfolio": "Portfolio",
-    "notes.empty": "No notes published yet.",
+    "notes.empty": "No published notes yet.",
+    "notes.download": "Download HTML",
   },
   zh: {
     // Profile
@@ -215,9 +216,10 @@ const translations: Translations = {
 
     // Notes
     "notes.title": "筆記",
-    "notes.subtitle": "獨立頁面與文章，方便分享給其他人。",
+    "notes.subtitle": "在 GitHub 編輯 HTML 即可 — 草稿 slot 貼上內容後才會顯示。",
     "notes.backToPortfolio": "Portfolio",
     "notes.empty": "目前尚無公開筆記。",
+    "notes.download": "下載 HTML",
   },
 }
 

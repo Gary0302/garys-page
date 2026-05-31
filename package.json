@@ -1,12 +1,13 @@
 {
-  "name": "my-v0-project",
+  "name": "garys-page",
   "version": "0.1.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "generate-slots": "node scripts/generate-slots.mjs"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.1",
