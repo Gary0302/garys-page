@@ -1,190 +1,108 @@
 <!DOCTYPE html>
-<html class="dark" lang="en"><head>
-<meta charset="utf-8"/>
-<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-<title>Portfolio Draft</title>
-<link href="data:image/x-icon;base64," rel="icon" type="image/x-icon"/>
-<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-<link href="https://fonts.googleapis.com" rel="preconnect"/>
-<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&amp;display=swap" rel="stylesheet"/>
-<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet"/>
-<script>
-      // Initialize theme before page renders to prevent flash
-      (function() {
-        const savedTheme = localStorage.getItem('theme');
-        if (!savedTheme || savedTheme === 'dark') {
-          document.documentElement.classList.add('dark');
-        } else {
-          document.documentElement.classList.remove('dark');
-        }
-      })();
-
-      tailwind.config = {
-        darkMode: "class",
-        theme: {
-          extend: {
-            colors: {
-              "primary": "#137fec",
-              "background-light": "#f6f7f8",
-              "background-dark": "#101922",
-            },
-            fontFamily: {
-              "display": ["Inter"]
-            },
-            borderRadius: {
-              "DEFAULT": "0.25rem",
-              "lg": "0.5rem",
-              "xl": "0.75rem",
-              "full": "9999px"
-            },
-          },
-        },
-      }
-    </script>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Notes system — personal cheat sheet</title>
+  <style>
+    :root { color-scheme: light dark; }
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      line-height: 1.6;
+      max-width: 42rem;
+      margin: 2rem auto;
+      padding: 0 1.25rem;
+      color: #1a1a1a;
+      background: #fafafa;
+    }
+    @media (prefers-color-scheme: dark) {
+      body { color: #e8e8e8; background: #111; }
+      code, pre { background: #222; }
+      a { color: #6eb5ff; }
+    }
+    h1 { font-size: 1.5rem; margin-bottom: 0.25rem; }
+    h2 { font-size: 1.1rem; margin-top: 1.75rem; border-bottom: 1px solid #ccc; padding-bottom: 0.25rem; }
+    @media (prefers-color-scheme: dark) { h2 { border-color: #333; } }
+    p, li { color: #444; }
+    @media (prefers-color-scheme: dark) { p, li { color: #bbb; } }
+    code { background: #eee; padding: 0.1em 0.35em; border-radius: 3px; font-size: 0.9em; }
+    pre { background: #eee; padding: 0.75rem 1rem; border-radius: 6px; overflow-x: auto; font-size: 0.85rem; }
+    .badge {
+      display: inline-block;
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      padding: 0.2em 0.5em;
+      border-radius: 4px;
+      background: #fef3c7;
+      color: #92400e;
+    }
+    @media (prefers-color-scheme: dark) {
+      .badge { background: #422006; color: #fcd34d; }
+    }
+    ol { padding-left: 1.25rem; }
+    ol li { margin-bottom: 0.5rem; }
+  </style>
 </head>
-<body class="bg-background-light dark:bg-background-dark font-display text-gray-800 dark:text-gray-200">
-<div class="flex flex-col min-h-screen">
-<header class="sticky top-0 z-10 w-full bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-sm border-b border-gray-200 dark:border-gray-800">
-<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-<div class="flex items-center justify-between h-16">
-<div class="flex items-center gap-4">
-<div class="w-8 h-8 text-primary">
-<svg fill="none" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
-<g clip-path="url(#clip0_6_319)">
-<path d="M8.57829 8.57829C5.52816 11.6284 3.451 15.5145 2.60947 19.7452C1.76794 23.9758 2.19984 28.361 3.85056 32.3462C5.50128 36.3314 8.29667 39.7376 11.8832 42.134C15.4698 44.5305 19.6865 45.8096 24 45.8096C28.3135 45.8096 32.5302 44.5305 36.1168 42.134C39.7033 39.7375 42.4987 36.3314 44.1494 32.3462C45.8002 28.361 46.2321 23.9758 45.3905 19.7452C44.549 15.5145 42.4718 11.6284 39.4217 8.57829L24 24L8.57829 8.57829Z" fill="currentColor"></path>
-</g>
-<defs>
-<clipPath id="clip0_6_319">
-<rect fill="white" height="48" width="48"></rect>
-</clipPath>
-</defs>
-</svg>
-</div>
-<h1 class="text-xl font-bold text-gray-900 dark:text-white">Portfolio</h1>
-</div>
-<nav class="hidden md:flex items-center space-x-6">
-<!-- <a class="text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-primary dark:hover:text-primary transition-colors" href="#">About</a> -->
-<a class="text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-primary dark:hover:text-primary transition-colors" href="#">Education</a>
-<a class="text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-primary dark:hover:text-primary transition-colors" href="#">Skills</a>
-<a class="text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-primary dark:hover:text-primary transition-colors" href="#">Publications</a>
-<a class="text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-primary dark:hover:text-primary transition-colors" href="#">Projects</a>
-<button id="theme-toggle" class="flex items-center justify-center w-10 h-10 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">
-<span class="material-symbols-outlined text-xl dark:hidden">dark_mode</span>
-<span class="material-symbols-outlined text-xl hidden dark:inline">light_mode</span>
-</button>
-</nav>
-</div>
-</div>
-</header>
-<main class="flex-grow">
-<div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
-<section class="flex flex-col md:flex-row items-center gap-8 md:gap-12" id="hero">
-<div class="w-40 h-40 rounded-full overflow-hidden flex-shrink-0 shadow-lg">
-<img alt="Ethan Carter" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCoi72EGMmYn7yHe2Gbl_MjRKo8J--okZyVl0ZrSkB5nK4aKRrLOlYVX2DXQDuTwnur5qKgzOIqg9YWOrwyk-Dr-szaT_CwxtpcdSwxywqUFqa-d2Y2Xo3YYPt35ZV27L0rOaWicFklzl7qyICzlMqaV01ACcEOEdfi9V3S7i-MaU4aHYj3Y6TPu77bK9pjDtncawB09Rb_iVFF3bjU-Wnl1fNXij_wfKkoT0j-rCBxYG0p0gL_2Og8JsUcAEuONd5UYgPmdxRprnM8"/>
-</div>
-<div class="text-center md:text-left">
-<h2 class="text-4xl font-bold text-gray-900 dark:text-white">Gary Yang</h2>
-<p class="mt-2 text-lg text-primary font-medium">Applied Mathematics & Data Science</p>
-<p class="mt-4 max-w-xl text-gray-600 dark:text-gray-400">
-                Applied Mathematics student with a passion for data science and cybersecurity. Experienced in mathematical modeling, programming, and creative problem-solving through various competitions and projects.
-              </p>
-<div class="mt-4 flex gap-4 justify-center md:justify-start">
-<a href="https://github.com/Gary0302" target="_blank" rel="noopener noreferrer" class="text-gray-600 dark:text-gray-300 hover:text-primary dark:hover:text-primary transition-colors">
-<svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-<path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
-</svg>
-</a>
-<a href="https://www.linkedin.com/in/fu-chun-yang-99974b24b/" target="_blank" rel="noopener noreferrer" class="text-gray-600 dark:text-gray-300 hover:text-primary dark:hover:text-primary transition-colors">
-<svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-<path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
-</svg>
-</a>
-</div>
-</div>
-</section>
-<div class="mt-16 space-y-12">
-<!-- <section id="about">
-<h3 class="text-2xl font-bold text-gray-900 dark:text-white mb-4 border-b border-gray-200 dark:border-gray-700 pb-2">About</h3>
-<p class="text-gray-600 dark:text-gray-400 leading-relaxed">
-                I am a highly motivated software engineer with a strong background in web development and cloud technologies. My expertise includes designing, developing, and deploying scalable and efficient applications. I am passionate about staying up-to-date with the latest industry trends and continuously improving my skills to deliver high-quality solutions.
-              </p>
-</section> -->
-<section id="education">
-<h3 class="text-2xl font-bold text-gray-900 dark:text-white mb-4 border-b border-gray-200 dark:border-gray-700 pb-2">Education</h3>
-<div>
-<h4 class="text-lg font-semibold text-gray-800 dark:text-gray-200">Bachelor of Science in Computer Science</h4>
-<p class="text-md text-gray-600 dark:text-gray-400">University of Technology</p>
-<p class="text-sm text-gray-500 dark:text-gray-500">2016 - 2020</p>
-</div>
-</section>
-<section id="skills">
-<h3 class="text-2xl font-bold text-gray-900 dark:text-white mb-4 border-b border-gray-200 dark:border-gray-700 pb-2">Skills</h3>
-<div class="flex flex-wrap gap-2">
-<span class="px-3 py-1 text-sm font-medium bg-primary/10 text-primary rounded-full">JavaScript</span>
-<span class="px-3 py-1 text-sm font-medium bg-primary/10 text-primary rounded-full">React</span>
-<span class="px-3 py-1 text-sm font-medium bg-primary/10 text-primary rounded-full">Node.js</span>
-<span class="px-3 py-1 text-sm font-medium bg-primary/10 text-primary rounded-full">Python</span>
-<span class="px-3 py-1 text-sm font-medium bg-primary/10 text-primary rounded-full">Django</span>
-<span class="px-3 py-1 text-sm font-medium bg-primary/10 text-primary rounded-full">AWS</span>
-<span class="px-3 py-1 text-sm font-medium bg-primary/10 text-primary rounded-full">Docker</span>
-<span class="px-3 py-1 text-sm font-medium bg-primary/10 text-primary rounded-full">SQL</span>
-<span class="px-3 py-1 text-sm font-medium bg-primary/10 text-primary rounded-full">Git</span>
-<span class="px-3 py-1 text-sm font-medium bg-primary/10 text-primary rounded-full">CI/CD</span>
-</div>
-</section>
-<section id="publications">
-<h3 class="text-2xl font-bold text-gray-900 dark:text-white mb-4 border-b border-gray-200 dark:border-gray-700 pb-2">Publications</h3>
-<div>
-<h4 class="text-lg font-semibold text-gray-800 dark:text-gray-200">Scalable Web Application Architectures</h4>
-<p class="text-md text-gray-600 dark:text-gray-400">Published in the Journal of Software Engineering</p>
-</div>
-</section>
-<section id="projects">
-<h3 class="text-2xl font-bold text-gray-900 dark:text-white mb-6 border-b border-gray-200 dark:border-gray-700 pb-2">Projects</h3>
-<div class="space-y-12">
-<div class="grid grid-cols-1 md:grid-cols-3 gap-8 items-center bg-gray-50 dark:bg-gray-800/50 p-6 rounded-lg">
-<div class="md:col-span-2">
-<p class="text-sm font-medium text-primary">Featured Project</p>
-<h4 class="text-xl font-bold text-gray-900 dark:text-white mt-1">E-commerce Platform</h4>
-<p class="mt-2 text-gray-600 dark:text-gray-400">
-                      Developed a full-featured e-commerce platform with user authentication, product management, and payment integration.
-                    </p>
-</div>
-<div class="w-full h-48 bg-cover bg-center rounded-lg shadow-md" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuCdpu2ggGLDcpsox9OGuUR0S8oenToYWIkVFqdKHfqxhZl79CDob80Os-N-Q3_s-_2G663r5jWCPkDQH-WQziMVO5_YtwV9TMQz1Pww9ju3LLuUk0DHFrUt-KUQIFgfwdpdcT4AegOnP8gu1BpYhhVyHLcpcLvwlTeqH4fJHp4-g9whtwhDnLe_Pi83N1OBfmoxQAQlN30fF4ZZFznidtme31kREHbm9PzqeZZh0zY3E97ysC9kYimsPzpayPekU287Utz8LAsiUS7T");'></div>
-</div>
-<div class="grid grid-cols-1 md:grid-cols-3 gap-8 items-center bg-gray-50 dark:bg-gray-800/50 p-6 rounded-lg">
-<div class="md:col-span-2">
-<p class="text-sm font-medium text-primary">Personal Project</p>
-<h4 class="text-xl font-bold text-gray-900 dark:text-white mt-1">Portfolio Website</h4>
-<p class="mt-2 text-gray-600 dark:text-gray-400">Designed and built a personal portfolio website to showcase my skills and projects.</p>
-</div>
-<div class="w-full h-48 bg-cover bg-center rounded-lg shadow-md" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuCZU7DhB2QbGuDje0Vomeqjst9OO7Ay5Wet7bwIkTf3MHcnrZTRnkASMOB8UX5ma3OIpTEjs_EUc7XG7FXUnH2-DHWsXZwub_oYdaBToIHnzFcny75oPnnPX1ePKOu7OiBGMo0lb8TPOf0kbN8tUaB2bETdbWMo1qwRW3I1vg3eviePSmACRD7-aG3nOa-H7cFAFn3CsFWK0d9ZdE-bOjQKz_blnHadvctwZo2c0GovRpeFCjZLnvmF2WJTaZQm1CTzX54I-kf-k-ox");'></div>
-</div>
-</div>
-</section>
-</div>
-</div>
-</main>
-<footer class="bg-background-light dark:bg-background-dark border-t border-gray-200 dark:border-gray-800">
-<div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8 text-center text-sm text-gray-500 dark:text-gray-400">
-<p>© 2025 Gary Yang</p>
-</div>
-</footer>
-</div>
-<script>
-// Theme toggle functionality
-const themeToggle = document.getElementById('theme-toggle');
-const htmlElement = document.documentElement;
+<body>
+  <!-- draft -->
+  <p class="badge">Hidden from /notes — GitHub only</p>
+  <h1>How to use the Notes system</h1>
+  <p>Personal reference for publishing standalone HTML pages on garys-page.</p>
 
-themeToggle.addEventListener('click', () => {
-  if (htmlElement.classList.contains('dark')) {
-    htmlElement.classList.remove('dark');
-    localStorage.setItem('theme', 'light');
-  } else {
-    htmlElement.classList.add('dark');
-    localStorage.setItem('theme', 'dark');
-  }
-});
-</script>
-</body></html>
+  <h2>How it works</h2>
+  <ul>
+    <li>Each note is a plain HTML file in <code>public/notes/</code>.</li>
+    <li>The site lists every <code>*.html</code> file <strong>except</strong> ones that contain <code>&lt;!-- draft --&gt;</code>.</li>
+    <li>Title on the list comes from the file’s <code>&lt;title&gt;</code> (or first <code>&lt;h1&gt;</code>).</li>
+    <li>Date on the list is the file’s last-modified time.</li>
+    <li>Live URL: <code>/notes/slot-01</code> → serves <code>/notes/slot-01.html</code>.</li>
+  </ul>
+
+  <h2>Publish a note</h2>
+  <ol>
+    <li>Pick an empty slot, e.g. <code>public/notes/slot-05.html</code>.</li>
+    <li>On GitHub: edit the file and replace the whole contents with your HTML.</li>
+    <li><strong>Remove</strong> the line <code>&lt;!-- draft --&gt;</code>.</li>
+    <li>Set <code>&lt;title&gt;Your title here&lt;/title&gt;</code>.</li>
+    <li>Commit → deploy. It appears on <code>/notes</code> automatically.</li>
+  </ol>
+
+  <h2>Hide a note (draft again)</h2>
+  <p>Add this anywhere in the HTML body (slots use it at the top of <code>&lt;body&gt;</code>):</p>
+  <pre>&lt;!-- draft --&gt;</pre>
+  <p>The page can still be opened by direct URL, but it won’t show on the public list.</p>
+
+  <h2>Reserved slots</h2>
+  <p><code>slot-01.html</code> … <code>slot-100.html</code> are pre-created drafts. Use the next free slot or generate more locally:</p>
+  <pre>pnpm generate-slots              # next 10 slots after the highest number
+pnpm generate-slots --count 50   # 50 new slots
+pnpm generate-slots --help</pre>
+
+  <h2>Images &amp; assets</h2>
+  <p>Put files under <code>public/notes/assets/</code> and reference them from your HTML:</p>
+  <pre>&lt;img src="/notes/assets/my-diagram.png" alt="..." /&gt;</pre>
+
+  <h2>Minimal publish template</h2>
+  <pre>&lt;!DOCTYPE html&gt;
+&lt;html lang="en"&gt;
+&lt;head&gt;
+  &lt;meta charset="utf-8" /&gt;
+  &lt;meta name="viewport" content="width=device-width, initial-scale=1.0" /&gt;
+  &lt;title&gt;My note title&lt;/title&gt;
+&lt;/head&gt;
+&lt;body&gt;
+  &lt;h1&gt;My note title&lt;/h1&gt;
+  &lt;p&gt;Your content here.&lt;/p&gt;
+&lt;/body&gt;
+&lt;/html&gt;</pre>
+
+  <h2>Quick links</h2>
+  <ul>
+    <li>Notes list: <code>/notes</code></li>
+    <li>Folder on GitHub: <code>public/notes/</code></li>
+    <li>This file: <code>public/notes/portfolio-draft.html</code> (always draft — for you only)</li>
+  </ul>
+</body>
+</html>
