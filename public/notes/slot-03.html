@@ -1,12 +1,1329 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-TW">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Slot 03</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SNN N! Ordering Space — 訓練框架</title>
+<style>
+  :root {
+    --bg: #0e0e10;
+    --bg2: #16161a;
+    --bg3: #1e1e24;
+    --border: rgba(255,255,255,0.08);
+    --border2: rgba(255,255,255,0.14);
+    --text: #e8e6df;
+    --text2: #9e9c94;
+    --text3: #6a6860;
+    --accent: #7c6af7;
+    --accent2: #5c9ef5;
+    --amber: #e8a030;
+    --teal: #2dcba0;
+    --coral: #e86050;
+    --green: #6ab840;
+    --purple: #a070f0;
+    --mono: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace;
+    --sans: 'Inter', system-ui, sans-serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    font-size: 15px;
+    line-height: 1.7;
+    padding: 0;
+  }
+
+  /* ── LAYOUT ── */
+  .layout {
+    display: grid;
+    grid-template-columns: 240px 1fr;
+    min-height: 100vh;
+  }
+
+  /* ── SIDEBAR ── */
+  .sidebar {
+    background: var(--bg2);
+    border-right: 1px solid var(--border);
+    padding: 2rem 0;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow-y: auto;
+  }
+
+  .sidebar-logo {
+    padding: 0 1.5rem 1.5rem;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 1.5rem;
+  }
+
+  .sidebar-logo .name {
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--accent);
+    display: block;
+  }
+
+  .sidebar-logo .version {
+    font-size: 11px;
+    color: var(--text3);
+    font-family: var(--mono);
+  }
+
+  .nav-section {
+    padding: 0 1rem 1.5rem;
+  }
+
+  .nav-label {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text3);
+    padding: 0 0.5rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .nav-item {
+    display: block;
+    padding: 0.4rem 0.5rem;
+    font-size: 13px;
+    color: var(--text2);
+    text-decoration: none;
+    border-radius: 6px;
+    transition: all 0.15s;
+    cursor: pointer;
+  }
+
+  .nav-item:hover { background: var(--bg3); color: var(--text); }
+  .nav-item.active { background: rgba(124,106,247,0.15); color: var(--accent); }
+
+  .nav-dot {
+    display: inline-block;
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    margin-right: 8px;
+    vertical-align: middle;
+    background: var(--text3);
+  }
+
+  .nav-item.active .nav-dot { background: var(--accent); }
+
+  /* ── MAIN ── */
+  .main {
+    padding: 3rem 4rem;
+    max-width: 900px;
+  }
+
+  /* ── SECTIONS ── */
+  .section {
+    margin-bottom: 4rem;
+    scroll-margin-top: 2rem;
+  }
+
+  .section-tag {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 0.5rem;
+  }
+
+  h1 {
+    font-size: 28px;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    color: var(--text);
+    margin-bottom: 0.75rem;
+  }
+
+  h2 {
+    font-size: 20px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    color: var(--text);
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  h3 {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text);
+    margin: 1.5rem 0 0.5rem;
+  }
+
+  p { color: var(--text2); margin-bottom: 1rem; }
+
+  /* ── DEFINITION CARD ── */
+  .def-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--accent);
+    border-radius: 0 8px 8px 0;
+    padding: 1rem 1.25rem;
+    margin-bottom: 1rem;
+  }
+
+  .def-card .term {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--accent);
+    font-family: var(--mono);
+    margin-bottom: 0.35rem;
+  }
+
+  .def-card .def {
+    font-size: 13.5px;
+    color: var(--text2);
+    line-height: 1.6;
+    margin: 0;
+  }
+
+  .def-card .math {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--amber);
+    margin-top: 0.4rem;
+    display: block;
+  }
+
+  /* ── CODE BLOCK ── */
+  .code-block {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+    margin: 1rem 0 1.5rem;
+  }
+
+  .code-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.5rem 1rem;
+    background: rgba(255,255,255,0.03);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .code-lang {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text3);
+  }
+
+  .code-title { font-size: 12px; color: var(--text3); }
+
+  pre {
+    padding: 1.25rem 1.5rem;
+    overflow-x: auto;
+    font-family: var(--mono);
+    font-size: 12.5px;
+    line-height: 1.65;
+  }
+
+  .kw  { color: #bd93f9; }
+  .fn  { color: #50fa7b; }
+  .cls { color: #8be9fd; }
+  .str { color: #f1fa8c; }
+  .num { color: #ff79c6; }
+  .cmt { color: #6272a4; font-style: italic; }
+  .var { color: var(--amber); }
+  .op  { color: #ff79c6; }
+  .dec { color: var(--teal); }
+
+  /* ── ARCHITECTURE DIAGRAM ── */
+  .arch-diagram {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 2rem;
+    margin: 1.5rem 0;
+  }
+
+  .arch-row {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    margin-bottom: 0;
+    position: relative;
+  }
+
+  .arch-box {
+    background: var(--bg3);
+    border: 1px solid var(--border2);
+    border-radius: 8px;
+    padding: 0.75rem 1rem;
+    min-width: 140px;
+    text-align: center;
+    position: relative;
+  }
+
+  .arch-box .box-label {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text3);
+    margin-bottom: 0.2rem;
+  }
+
+  .arch-box .box-name {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text);
+  }
+
+  .arch-box .box-type {
+    font-size: 11px;
+    font-family: var(--mono);
+    color: var(--text3);
+    margin-top: 0.2rem;
+  }
+
+  .arch-box.accent { border-color: var(--accent); background: rgba(124,106,247,0.08); }
+  .arch-box.amber  { border-color: var(--amber);  background: rgba(232,160,48,0.08); }
+  .arch-box.teal   { border-color: var(--teal);   background: rgba(45,203,160,0.08); }
+  .arch-box.coral  { border-color: var(--coral);  background: rgba(232,96,80,0.08);  }
+  .arch-box.green  { border-color: var(--green);  background: rgba(106,184,64,0.08); }
+
+  .arch-arrow {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    padding: 0 4px;
+    min-width: 30px;
+  }
+
+  .arch-arrow-line {
+    flex: 1;
+    height: 1px;
+    background: var(--border2);
+    position: relative;
+  }
+
+  .arch-arrow-line::after {
+    content: '';
+    position: absolute;
+    right: 0;
+    top: -4px;
+    border: 4px solid transparent;
+    border-left-color: var(--border2);
+  }
+
+  .arch-arrow-label {
+    position: absolute;
+    top: -16px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 10px;
+    color: var(--text3);
+    font-family: var(--mono);
+    white-space: nowrap;
+  }
+
+  .arch-section-label {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text3);
+    margin: 1.5rem 0 0.75rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .arch-section-label::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  /* ── ORDERING VISUAL ── */
+  .ordering-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin: 1.5rem 0;
+  }
+
+  .ordering-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1rem;
+    text-align: center;
+  }
+
+  .ordering-card .perm {
+    font-size: 22px;
+    font-weight: 700;
+    font-family: var(--mono);
+    letter-spacing: 0.1em;
+    margin-bottom: 0.4rem;
+  }
+
+  .ordering-card .interval-tree {
+    font-size: 11px;
+    font-family: var(--mono);
+    color: var(--text3);
+    line-height: 1.8;
+    text-align: left;
+    margin: 0.5rem 0;
+  }
+
+  .ordering-card .sim-badge {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 4px;
+    margin-top: 0.4rem;
+  }
+
+  .sim-high  { background: rgba(45,203,160,0.15); color: var(--teal);  border: 1px solid rgba(45,203,160,0.3); }
+  .sim-ref   { background: rgba(124,106,247,0.15); color: var(--accent); border: 1px solid rgba(124,106,247,0.3); }
+  .sim-low   { background: rgba(232,96,80,0.15); color: var(--coral); border: 1px solid rgba(232,96,80,0.3); }
+
+  /* ── SPIKE MATRIX VIZ ── */
+  .spike-matrix {
+    display: inline-block;
+    font-family: var(--mono);
+    font-size: 13px;
+    line-height: 1.9;
+  }
+
+  .spike-cell {
+    display: inline-block;
+    width: 22px;
+    text-align: center;
+  }
+
+  .spike-on  { color: var(--amber); }
+  .spike-off { color: var(--bg3); }
+
+  /* ── LOSS SECTION ── */
+  .loss-formula {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1.25rem 1.5rem;
+    margin: 1rem 0;
+    font-family: var(--mono);
+    font-size: 13px;
+    line-height: 2;
+    color: var(--text2);
+  }
+
+  .loss-formula .lf-var { color: var(--amber); }
+  .loss-formula .lf-op  { color: var(--accent2); }
+  .loss-formula .lf-fn  { color: var(--teal); }
+  .loss-formula .lf-cmt { color: var(--text3); font-style: italic; }
+
+  /* ── TIMELINE ── */
+  .weight-timeline {
+    display: flex;
+    align-items: flex-end;
+    gap: 8px;
+    height: 80px;
+    padding: 0 0 8px;
+    border-bottom: 1px solid var(--border);
+    margin: 1rem 0;
+  }
+
+  .wt-bar {
+    flex: 1;
+    background: var(--accent);
+    border-radius: 3px 3px 0 0;
+    position: relative;
+    transition: opacity 0.2s;
+  }
+
+  .wt-bar:hover { opacity: 0.8; }
+
+  .wt-label {
+    display: flex;
+    gap: 8px;
+    margin-top: 6px;
+  }
+
+  .wt-label-item {
+    flex: 1;
+    text-align: center;
+    font-size: 10px;
+    font-family: var(--mono);
+    color: var(--text3);
+  }
+
+  /* ── RPC TREE ── */
+  .rpc-tree {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 1.5rem;
+    margin: 1rem 0;
+    font-family: var(--mono);
+    font-size: 12.5px;
+    line-height: 2;
+  }
+
+  .rpc-level { padding-left: 1.5rem; }
+  .rpc-node  { color: var(--text2); }
+  .rpc-hi    { color: var(--amber); font-weight: 600; }
+  .rpc-coord { color: var(--teal); }
+  .rpc-cmt   { color: var(--text3); font-style: italic; }
+
+  /* ── INLINE BADGE ── */
+  .badge {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    padding: 2px 7px;
+    border-radius: 4px;
+    text-transform: uppercase;
+    vertical-align: middle;
+    margin: 0 2px;
+  }
+
+  .badge-accent { background: rgba(124,106,247,0.2); color: var(--accent); }
+  .badge-amber  { background: rgba(232,160,48,0.2);  color: var(--amber); }
+  .badge-teal   { background: rgba(45,203,160,0.2);  color: var(--teal); }
+  .badge-coral  { background: rgba(232,96,80,0.2);   color: var(--coral); }
+  .badge-green  { background: rgba(106,184,64,0.2);  color: var(--green); }
+
+  /* ── KEY INSIGHT BOX ── */
+  .insight {
+    background: rgba(124,106,247,0.06);
+    border: 1px solid rgba(124,106,247,0.2);
+    border-radius: 8px;
+    padding: 1rem 1.25rem;
+    margin: 1.25rem 0;
+  }
+
+  .insight-title {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 0.4rem;
+  }
+
+  .insight p { color: var(--text2); margin: 0; font-size: 13.5px; }
+
+  /* ── WARNING BOX ── */
+  .warning {
+    background: rgba(232,160,48,0.06);
+    border: 1px solid rgba(232,160,48,0.2);
+    border-radius: 8px;
+    padding: 1rem 1.25rem;
+    margin: 1.25rem 0;
+  }
+
+  .warning-title {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--amber);
+    margin-bottom: 0.4rem;
+  }
+
+  .warning p { color: var(--text2); margin: 0; font-size: 13.5px; }
+
+  /* ── TABLE ── */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 1rem 0 1.5rem;
+    font-size: 13px;
+  }
+
+  th {
+    text-align: left;
+    padding: 0.5rem 0.75rem;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text3);
+    border-bottom: 1px solid var(--border2);
+  }
+
+  td {
+    padding: 0.6rem 0.75rem;
+    color: var(--text2);
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+  }
+
+  tr:last-child td { border-bottom: none; }
+
+  td code, p code {
+    font-family: var(--mono);
+    font-size: 11.5px;
+    background: var(--bg3);
+    padding: 1px 5px;
+    border-radius: 3px;
+    color: var(--amber);
+  }
+
+  /* ── EXPERIMENTAL PLAN ── */
+  .exp-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin: 1rem 0;
+  }
+
+  .exp-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1rem;
+  }
+
+  .exp-card .exp-num {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text3);
+    margin-bottom: 0.3rem;
+  }
+
+  .exp-card .exp-title {
+    font-size: 13.5px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 0.4rem;
+  }
+
+  .exp-card .exp-desc {
+    font-size: 12px;
+    color: var(--text3);
+    line-height: 1.5;
+  }
+
+  /* ── SCROLL BEHAVIOR ── */
+  html { scroll-behavior: smooth; }
+
+  /* ── DIVIDER ── */
+  .divider {
+    height: 1px;
+    background: var(--border);
+    margin: 2.5rem 0;
+  }
+</style>
 </head>
 <body>
-  <!-- draft -->
-  <p>Draft slot 03 — replace this entire file on GitHub to publish.</p>
+
+<div class="layout">
+
+  <!-- SIDEBAR -->
+  <nav class="sidebar">
+    <div class="sidebar-logo">
+      <span class="name">SNN Framework</span>
+      <span class="version">N! Ordering Space · v0.1</span>
+    </div>
+
+    <div class="nav-section">
+      <div class="nav-label">概覽</div>
+      <a class="nav-item active" href="#overview"><span class="nav-dot"></span>研究動機</a>
+      <a class="nav-item" href="#definitions"><span class="nav-dot"></span>核心定義</a>
+    </div>
+
+    <div class="nav-section">
+      <div class="nav-label">架構</div>
+      <a class="nav-item" href="#pass1"><span class="nav-dot"></span>Pass 1 — SNN 編碼器</a>
+      <a class="nav-item" href="#spike-matrix"><span class="nav-dot"></span>Spike Matrix</a>
+      <a class="nav-item" href="#rpc"><span class="nav-dot"></span>遞迴比例切割</a>
+      <a class="nav-item" href="#pass2"><span class="nav-dot"></span>Pass 2 — 讀出層</a>
+    </div>
+
+    <div class="nav-section">
+      <div class="nav-label">訓練</div>
+      <a class="nav-item" href="#loss"><span class="nav-dot"></span>Loss 設計</a>
+      <a class="nav-item" href="#design-rationale"><span class="nav-dot"></span>設計邏輯</a>
+    </div>
+
+    <div class="nav-section">
+      <div class="nav-label">實驗</div>
+      <a class="nav-item" href="#experiments"><span class="nav-dot"></span>實驗計畫</a>
+      <a class="nav-item" href="#full-code"><span class="nav-dot"></span>完整程式碼</a>
+    </div>
+  </nav>
+
+  <!-- MAIN CONTENT -->
+  <main class="main">
+
+    <!-- ── OVERVIEW ── -->
+    <section class="section" id="overview">
+      <div class="section-tag">研究動機</div>
+      <h1>SNN N! Ordering Space</h1>
+      <p>Spiking Neural Network（脈衝神經網路）中，M 個 neuron 在 T 個時間步內的發放順序，構成一個 <strong style="color:var(--text)">M! 大小的排列空間</strong>。目前沒有任何研究成功將這個空間作為主要資訊載體加以利用。</p>
+
+      <div class="insight">
+        <div class="insight-title">核心主張</div>
+        <p>在 4 個 neuron 的 SNN 中，spike ordering「1423」與「4231」攜帶<em>完全不同</em>的資訊；而「1423」與「1432」因為前兩個 spike 相同，應在語意空間中<em>非常靠近</em>。這個距離結構，是這個框架想要學習並利用的。</p>
+      </div>
+
+      <p>本框架的設計目標是：讓 SNN 的訓練信號直接來自 ordering 結構，而非 firing rate 或 spike count 等傳統指標，從而真正開發 N! 空間的表達能力。</p>
+    </section>
+
+    <!-- ── DEFINITIONS ── -->
+    <section class="section" id="definitions">
+      <h2>核心定義</h2>
+
+      <div class="def-card">
+        <div class="term">SNN（Spiking Neural Network）</div>
+        <p class="def">脈衝神經網路。與傳統 ANN 不同，SNN 的 neuron 只在膜電位（membrane potential）超過閾值時發出離散的「spike」（脈衝），其餘時間保持靜默。資訊以 spike 的<em>時間</em>而非持續的激活值來編碼。</p>
+      </div>
+
+      <div class="def-card">
+        <div class="term">LIF（Leaky Integrate-and-Fire）</div>
+        <p class="def">最常見的 SNN neuron 模型。膜電位以速率 β（beta）衰減（leaky），並隨輸入電流積分（integrate）。當電位超過閾值時發放 spike，之後重置。</p>
+        <code class="math">mem[t] = β · mem[t-1] + input[t]  ;  spk = 1 if mem > threshold</code>
+      </div>
+
+      <div class="def-card">
+        <div class="term">State Leaky（狀態疊加漏積分）</div>
+        <p class="def">兩層串聯的 LIF neuron：第一層（β₁=0.9）的 spike 作為第二層（β₂=0.95）的輸入。這使得第二層的 spike 更平滑、更分散在時間軸上，讓 ordering 訊號更易於被學習，避免所有 neuron 在同一時間步集中發放。</p>
+        <code class="math">spk1, mem1 = lif1(x[t], mem1)  ;  spk2, mem2 = lif2(spk1, mem2)</code>
+      </div>
+
+      <div class="def-card">
+        <div class="term">Spike Matrix S</div>
+        <p class="def">Pass 1 的輸出。一個 M×T 的二值矩陣，每一行代表一個 neuron 在 T 個時間步中的 spike 記錄（0 或 1）。這是 ordering pattern 的原始表示，不壓縮、不可微分化。</p>
+        <code class="math">S ∈ {0,1}^(M×T)  ;  S[i,t] = 1 表示 neuron i 在時間步 t 發放</code>
+      </div>
+
+      <div class="def-card">
+        <div class="term">Spike Ordering（發放排列）</div>
+        <p class="def">從 Spike Matrix 中讀取每個 neuron 第一次發放的時間步，形成的排列。M 個 neuron 的所有可能排列共有 M! 種，構成本框架的核心表示空間。</p>
+        <code class="math">ordering = argsort([first_spike_time(n) for n in neurons])</code>
+      </div>
+
+      <div class="def-card">
+        <div class="term">RPC（Recursive Proportional Cutting，遞迴比例切割）</div>
+        <p class="def">將 spike ordering 映射到 [0,1] 區間上的座標系的方法。第一個 spike 的時間決定第一刀的切割比例，後續每個 spike 在剩餘子區間中繼續切割，遞迴進行。幾何上對應 M! 個頂點的 Ordering Simplex 中的一條路徑。這是一個<strong style="color:var(--text)">固定的、無參數的</strong>映射。</p>
+        <code class="math">coord(ordering) → [0,1]^(M-1)  ;  相似排列 → 座標近，不同排列 → 座標遠</code>
+      </div>
+
+      <div class="def-card">
+        <div class="term">Time-Weighted Loss（時間加權損失）</div>
+        <p class="def">對不同時間步的預測錯誤給予不同懲罰的損失函數。越早的 spike 的預測錯誤，懲罰越高（因為第一個 spike 攜帶最多資訊）。越晚的 spike 的錯誤，懲罰指數衰減至接近 0。</p>
+        <code class="math">w(t) = exp(-α·t)  ;  Loss = Σ_t w(t) · CE(ŷ_t, y_t)</code>
+      </div>
+
+      <div class="def-card">
+        <div class="term">N! Ordering Space（N! 排列空間）</div>
+        <p class="def">M 個 neuron 所有可能發放排列構成的空間，大小為 M!。本框架的核心假設是：這個空間擁有豐富的幾何結構（距離、相似性、拓撲），可以作為語意空間使用，且目前尚未有研究成功加以利用。</p>
+        <code class="math">|空間| = M!  ;  e.g. M=8 → 40,320 個獨立的排列座標</code>
+      </div>
+    </section>
+
+    <!-- ── PASS 1 ── -->
+    <section class="section" id="pass1">
+      <h2>Pass 1 — SNN 編碼器</h2>
+      <p>接受一個連續輸入向量 X，透過線性層投影後送入串聯的 State Leaky LIF，在 T 個時間步中產生 Spike Matrix。</p>
+
+      <div class="arch-diagram">
+        <div class="arch-section-label">Pass 1 資料流</div>
+        <div class="arch-row">
+          <div class="arch-box">
+            <div class="box-label">輸入</div>
+            <div class="box-name">X</div>
+            <div class="box-type">∈ ℝ^N</div>
+          </div>
+          <div class="arch-arrow">
+            <div class="arch-arrow-line" style="position:relative">
+              <span style="position:absolute;top:-16px;left:50%;transform:translateX(-50%);font-size:10px;color:var(--text3);white-space:nowrap;font-family:var(--mono)">nn.Linear(N→M)</span>
+            </div>
+          </div>
+          <div class="arch-box accent">
+            <div class="box-label">投影</div>
+            <div class="box-name">cur</div>
+            <div class="box-type">∈ ℝ^M</div>
+          </div>
+          <div class="arch-arrow">
+            <div class="arch-arrow-line" style="position:relative">
+              <span style="position:absolute;top:-16px;left:50%;transform:translateX(-50%);font-size:10px;color:var(--text3);white-space:nowrap;font-family:var(--mono)">×T 步</span>
+            </div>
+          </div>
+          <div class="arch-box amber">
+            <div class="box-label">State Leaky</div>
+            <div class="box-name">LIF₁→LIF₂</div>
+            <div class="box-type">β=0.9 / 0.95</div>
+          </div>
+          <div class="arch-arrow">
+            <div class="arch-arrow-line"></div>
+          </div>
+          <div class="arch-box teal">
+            <div class="box-label">輸出</div>
+            <div class="box-name">S</div>
+            <div class="box-type">∈ {0,1}^(M×T)</div>
+          </div>
+        </div>
+      </div>
+
+      <h3>State Leaky 的設計</h3>
+      <p>單層 LIF 的 spike 過於尖銳，容易導致所有 neuron 在同一時間步集中發放，使得 ordering 無法被有效區分。State Leaky 透過讓第一層的 spike 作為第二層的輸入，增加了時間延遲與平滑性：</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">python</span>
+          <span class="code-title">state_leaky_forward</span>
+        </div>
+        <pre><span class="cmt"># 初始化</span>
+<span class="var">lif1</span> = snn.<span class="cls">Leaky</span>(beta=<span class="num">0.9</span>)
+<span class="var">lif2</span> = snn.<span class="cls">Leaky</span>(beta=<span class="num">0.95</span>)
+<span class="var">mem1</span> = lif1.<span class="fn">init_leaky</span>()
+<span class="var">mem2</span> = lif2.<span class="fn">init_leaky</span>()
+
+<span class="var">spk2_rec</span> = []
+
+<span class="kw">for</span> t <span class="kw">in</span> <span class="fn">range</span>(T):
+    cur = self.<span class="fn">fc_in</span>(x)              <span class="cmt"># (batch, M)</span>
+    spk1, mem1 = lif1(cur,  mem1)    <span class="cmt"># 第一層：產生初始 spike</span>
+    spk2, mem2 = lif2(spk1, mem2)    <span class="cmt"># 第二層：平滑化，延遲 spike</span>
+    spk2_rec.<span class="fn">append</span>(spk2)
+
+<span class="cmt"># S ∈ {0,1}^(batch, M, T)</span>
+<span class="var">S</span> = torch.<span class="fn">stack</span>(spk2_rec, dim=<span class="op">-</span><span class="num">1</span>)</pre>
+      </div>
+
+      <div class="insight">
+        <div class="insight-title">為什麼 β₂ &gt; β₁</div>
+        <p>β 越大，膜電位衰減越慢，積分時間常數越長。LIF₂ 的 β=0.95 讓它對輸入更敏感但更「懶」於發放，天然地拉開了不同 neuron 第一次發放的時間間距，使得 ordering 的資訊量更豐富。</p>
+      </div>
+    </section>
+
+    <!-- ── SPIKE MATRIX ── -->
+    <section class="section" id="spike-matrix">
+      <h2>Spike Matrix 的表示</h2>
+      <p>S 是一個 M×T 的二值矩陣。每一行是一個 neuron 的時序 spike 記錄。我們<strong style="color:var(--text)">不壓縮</strong>這個矩陣，不對它做 argmax 或 softmax，直接保留完整資訊。</p>
+
+      <p>以 4 個 neuron、6 個時間步為例：</p>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Neuron</th>
+            <th>t=0</th><th>t=1</th><th>t=2</th><th>t=3</th><th>t=4</th><th>t=5</th>
+            <th>First spike at</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>N₁</code></td>
+            <td style="color:var(--amber);font-weight:600">1</td>
+            <td style="color:var(--text3)">0</td><td style="color:var(--text3)">0</td>
+            <td style="color:var(--amber)">1</td><td style="color:var(--text3)">0</td><td style="color:var(--text3)">0</td>
+            <td><code>t=0</code> → 排列位置 1</td>
+          </tr>
+          <tr>
+            <td><code>N₂</code></td>
+            <td style="color:var(--text3)">0</td><td style="color:var(--text3)">0</td>
+            <td style="color:var(--amber);font-weight:600">1</td>
+            <td style="color:var(--text3)">0</td><td style="color:var(--text3)">0</td><td style="color:var(--amber)">1</td>
+            <td><code>t=2</code> → 排列位置 3</td>
+          </tr>
+          <tr>
+            <td><code>N₃</code></td>
+            <td style="color:var(--text3)">0</td>
+            <td style="color:var(--amber);font-weight:600">1</td>
+            <td style="color:var(--text3)">0</td><td style="color:var(--text3)">0</td><td style="color:var(--text3)">0</td><td style="color:var(--amber)">1</td>
+            <td><code>t=1</code> → 排列位置 2</td>
+          </tr>
+          <tr>
+            <td><code>N₄</code></td>
+            <td style="color:var(--text3)">0</td><td style="color:var(--text3)">0</td><td style="color:var(--text3)">0</td>
+            <td style="color:var(--amber);font-weight:600">1</td>
+            <td style="color:var(--amber)">1</td><td style="color:var(--text3)">0</td>
+            <td><code>t=3</code> → 排列位置 4</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <p style="margin-top:0.5rem">這個 Spike Matrix 對應的 ordering 是：<span style="font-family:var(--mono);font-size:16px;color:var(--amber);font-weight:700">1 3 2 4</span>（按 first spike time 排序的 neuron 序號）。</p>
+    </section>
+
+    <!-- ── RPC ── -->
+    <section class="section" id="rpc">
+      <h2>遞迴比例切割（RPC）</h2>
+      <p>RPC 是一個<span class="badge badge-teal">固定映射</span><span class="badge badge-coral">無參數</span>，將 spike ordering 轉換為連續 embedding 空間中的座標。核心保證：幾何距離 = 語意距離。</p>
+
+      <h3>切割規則</h3>
+      <p>從區間 [0, 1] 開始，每個 spike 的發放時間決定在當前剩餘區間內的切割比例：</p>
+
+      <div class="ordering-grid">
+        <div class="ordering-card">
+          <div class="perm" style="color:var(--accent)">1423</div>
+          <div class="interval-tree">
+[0.00, 1.00]<br>
+ ├─ N1@t=0 → <span style="color:var(--amber)">cut: 0/4=0.00</span><br>
+ ├─ N4@t=1 → <span style="color:var(--amber)">cut: 1/3=0.33</span><br>
+ ├─ N2@t=2 → <span style="color:var(--amber)">cut: 2/2=1.00</span><br>
+ └─ N3@t=3 → <span style="color:var(--amber)">leaf</span>
+          </div>
+          <span class="sim-badge sim-ref">基準排列</span>
+        </div>
+
+        <div class="ordering-card">
+          <div class="perm" style="color:var(--teal)">1432</div>
+          <div class="interval-tree">
+[0.00, 1.00]<br>
+ ├─ N1@t=0 → <span style="color:var(--amber)">cut: 0/4=0.00</span><br>
+ ├─ N4@t=1 → <span style="color:var(--amber)">cut: 1/3=0.33</span><br>
+ ├─ N3@t=2 → <span style="color:var(--teal)">← 這裡分叉</span><br>
+ └─ N2@t=3 → <span style="color:var(--teal)">leaf</span>
+          </div>
+          <span class="sim-badge sim-high">前兩刀相同 → 近</span>
+        </div>
+
+        <div class="ordering-card">
+          <div class="perm" style="color:var(--coral)">4231</div>
+          <div class="interval-tree">
+[0.00, 1.00]<br>
+ ├─ N4@t=0 → <span style="color:var(--coral)">← 第一刀就不同</span><br>
+ ├─ N2@t=1 → …<br>
+ ├─ N3@t=2 → …<br>
+ └─ N1@t=3 → leaf
+          </div>
+          <span class="sim-badge sim-low">第一刀不同 → 遠</span>
+        </div>
+      </div>
+
+      <div class="insight">
+        <div class="insight-title">RPC 的幾何性質</div>
+        <p>RPC 建構的座標系天然實現了「越早的 spike 貢獻越大的距離」。1423 和 1432 在前兩刀（佔總距離的前 50%+）上完全相同，所以座標很近。4231 在第一刀就分叉，距離最遠。這與人類直覺對「相似排列」的理解完全吻合。</p>
+      </div>
+
+      <h3>RPC 的數學形式</h3>
+      <div class="rpc-tree">
+        <span class="rpc-node">給定 ordering π = [π₁, π₂, ..., π_M]，first_spike_time = [t₁, t₂, ..., t_M]</span><br><br>
+        <span class="rpc-node">coord₁ = t_{π₁} / T                    </span><span class="rpc-cmt">← 第一個 spike 的時間比例</span><br>
+        <span class="rpc-node">coord₂ = t_{π₂} / (T - t_{π₁})         </span><span class="rpc-cmt">← 在剩餘時間中的比例</span><br>
+        <span class="rpc-node">coord₃ = t_{π₃} / (T - t_{π₂})         </span><span class="rpc-cmt">← 遞迴進行</span><br>
+        <span class="rpc-node">...</span><br><br>
+        <span class="rpc-node">→ embedding = [coord₁, coord₂, ..., coord_{M-1}] ∈ [0,1]^(M-1)</span>
+      </div>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">python</span>
+          <span class="code-title">rpc_embedding（固定函數，無參數）</span>
+        </div>
+        <pre><span class="kw">def</span> <span class="fn">rpc_embedding</span>(spike_matrix: torch.Tensor, T: <span class="cls">int</span>) -> torch.Tensor:
+    <span class="str">"""
+    spike_matrix: (batch, M, T)  — Spike Matrix S
+    回傳:          (batch, M-1)   — RPC 座標向量
+    """</span>
+    batch, M, _ = spike_matrix.shape
+
+    <span class="cmt"># 取每個 neuron 的 first spike time（未發放的 neuron 給 T）</span>
+    has_spike = (spike_matrix > <span class="num">0</span>)
+    first_spike = torch.<span class="fn">where</span>(
+        has_spike.<span class="fn">any</span>(dim=<span class="op">-</span><span class="num">1</span>),
+        has_spike.<span class="fn">float</span>().<span class="fn">argmax</span>(dim=<span class="op">-</span><span class="num">1</span>),
+        torch.<span class="fn">full</span>((batch, M), T, dtype=torch.float)
+    )  <span class="cmt"># (batch, M)</span>
+
+    <span class="cmt"># 排序以得到 ordering（不影響梯度流，RPC 本身不需要）</span>
+    ordering = first_spike.<span class="fn">argsort</span>(dim=<span class="op">-</span><span class="num">1</span>)  <span class="cmt"># (batch, M)</span>
+
+    <span class="cmt"># 按 ordering 重排 first_spike_time</span>
+    sorted_times = torch.<span class="fn">gather</span>(first_spike, <span class="num">1</span>, ordering)  <span class="cmt"># (batch, M)</span>
+
+    <span class="cmt"># 遞迴切割：計算每個 spike 在剩餘時間中的比例</span>
+    coords = []
+    remaining = torch.<span class="fn">full</span>((batch,), T, dtype=torch.float)
+
+    <span class="kw">for</span> i <span class="kw">in</span> <span class="fn">range</span>(M <span class="op">-</span> <span class="num">1</span>):
+        t_i = sorted_times[:, i]
+        coord_i = t_i / (remaining + <span class="num">1e-8</span>)
+        coords.<span class="fn">append</span>(coord_i.<span class="fn">clamp</span>(<span class="num">0</span>, <span class="num">1</span>))
+        remaining = remaining <span class="op">-</span> t_i
+
+    <span class="kw">return</span> torch.<span class="fn">stack</span>(coords, dim=<span class="op">-</span><span class="num">1</span>)  <span class="cmt"># (batch, M-1)</span></pre>
+      </div>
+    </section>
+
+    <!-- ── PASS 2 ── -->
+    <section class="section" id="pass2">
+      <h2>Pass 2 — 讀出層</h2>
+      <p>Pass 2 負責從 RPC 座標向量讀出最終預測。本框架<strong style="color:var(--text)">刻意最小化 Pass 2 的參數數量</strong>，確保學習功勞歸屬清晰。</p>
+
+      <div class="warning">
+        <div class="warning-title">設計哲學：最小化可學習變因</div>
+        <p>W1, W2 若作為可學習矩陣，有兩個根本問題：(1) 線性映射無法保留排列空間的拓撲幾何；(2) Pass 2 可能繞過 ordering，直接從 spike density 等 spurious feature 學到答案，導致無法確認是 ordering 在起作用。RPC 是固定映射，所有歸納能力必須來自 Pass 1 的 SNN。</p>
+      </div>
+
+      <h3>Pass 2 的選項</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>方案</th><th>參數量</th><th>描述</th><th>建議階段</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="badge badge-teal">A</span> 固定相似度量</td>
+            <td>0</td>
+            <td>直接計算 RPC 座標間的歐氏距離或餘弦相似度，對應到 class label</td>
+            <td>Exp 1 — 最純粹</td>
+          </tr>
+          <tr>
+            <td><span class="badge badge-accent">B</span> 單層線性讀出</td>
+            <td>少量</td>
+            <td><code>nn.Linear(M-1, C)</code>，輸入 RPC 座標，輸出 class logits</td>
+            <td>Exp 2 — 主方案</td>
+          </tr>
+          <tr>
+            <td><span class="badge badge-amber">C</span> 固定分群中心</td>
+            <td>0</td>
+            <td>每個 class 的 RPC 座標聚類中心，以最近鄰分類</td>
+            <td>Exp 3 — 分析用</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">python</span>
+          <span class="code-title">pass2_readout（方案 B）</span>
+        </div>
+        <pre><span class="cmt"># rpc_coord: (batch, M-1)  — 來自固定 RPC 函數</span>
+<span class="var">self.readout</span> = nn.<span class="cls">Linear</span>(M <span class="op">-</span> <span class="num">1</span>, C)   <span class="cmt"># C = 類別數</span>
+
+<span class="kw">def</span> <span class="fn">forward</span>(self, spike_matrix):
+    rpc_coord = <span class="fn">rpc_embedding</span>(spike_matrix, self.T)  <span class="cmt"># 固定函數</span>
+    logits = self.<span class="fn">readout</span>(rpc_coord)                  <span class="cmt"># 唯一可學習部分</span>
+    <span class="kw">return</span> logits</pre>
+      </div>
+    </section>
+
+    <!-- ── LOSS ── -->
+    <section class="section" id="loss">
+      <h2>Loss 設計</h2>
+      <p>損失函數由兩個部分組成：標準分類 cross-entropy，以及時間加權懲罰（越早的 spike 預測錯誤懲罰越重）。</p>
+
+      <h3>時間加權的直覺</h3>
+      <p>Ordering 的語意主要由前幾個 spike 決定（類似於 RPC 中越早的切割權重越高）。若第一個 spike 預測錯了，代表整個 ordering 的方向就錯了。因此：</p>
+
+      <div style="margin: 1.5rem 0">
+        <div style="font-size:12px;color:var(--text3);margin-bottom:6px;font-family:var(--mono)">
+          懲罰權重 w(t) = exp(-α·t)，α = 0.5 時：
+        </div>
+        <div class="weight-timeline" id="wt-timeline"></div>
+        <div class="wt-label" id="wt-labels"></div>
+      </div>
+
+      <div class="loss-formula">
+        <span class="lf-var">L_total</span> = <span class="lf-var">L_CE</span>(y, ŷ) + λ · <span class="lf-var">L_tw</span><br><br>
+        <span class="lf-var">L_tw</span> = Σ<sub>t=0</sub><sup>T-1</sup> <span class="lf-fn">exp</span>(-α·t) · <span class="lf-fn">CE</span>(ŷ_t, y)<br><br>
+        <span class="lf-cmt"># 其中 ŷ_t 是在時間步 t 的 spike 預測，y 是 class label</span><br>
+        <span class="lf-cmt"># 如果 neuron 從未發放（no spike），懲罰為 0（已錯失機會）</span>
+      </div>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">python</span>
+          <span class="code-title">time_weighted_loss</span>
+        </div>
+        <pre><span class="kw">def</span> <span class="fn">time_weighted_loss</span>(
+    logits_per_t: torch.Tensor,  <span class="cmt"># (T, batch, C)</span>
+    target:       torch.Tensor,  <span class="cmt"># (batch,)</span>
+    alpha: <span class="cls">float</span> = <span class="num">0.5</span>,
+    lam:   <span class="cls">float</span> = <span class="num">1.0</span>
+) -> torch.Tensor:
+    T = logits_per_t.shape[<span class="num">0</span>]
+    t_idx = torch.<span class="fn">arange</span>(T, dtype=torch.float, device=target.device)
+
+    <span class="cmt"># 指數衰減權重，歸一化</span>
+    weights = torch.<span class="fn">exp</span>(<span class="op">-</span>alpha <span class="op">*</span> t_idx)
+    weights = weights / weights.<span class="fn">sum</span>()
+
+    <span class="cmt"># 加權求和</span>
+    loss_tw = torch.<span class="fn">stack</span>([
+        F.<span class="fn">cross_entropy</span>(logits_per_t[t], target) <span class="op">*</span> weights[t]
+        <span class="kw">for</span> t <span class="kw">in</span> <span class="fn">range</span>(T)
+    ]).<span class="fn">sum</span>()
+
+    <span class="kw">return</span> loss_tw <span class="op">*</span> lam</pre>
+      </div>
+    </section>
+
+    <!-- ── DESIGN RATIONALE ── -->
+    <section class="section" id="design-rationale">
+      <h2>設計邏輯</h2>
+      <p>這個框架的每一個選擇都對應一個明確的實驗邏輯。以下是核心決策與其理由：</p>
+
+      <table>
+        <thead>
+          <tr><th>決策</th><th>選擇</th><th>理由</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Pass 1 輸出</td>
+            <td>直接 Spike Matrix，不壓縮</td>
+            <td>保留完整 ordering 資訊；不引入 argmax/softmax 等不可微或失真的操作</td>
+          </tr>
+          <tr>
+            <td>Pass 2 映射</td>
+            <td>RPC（固定函數）</td>
+            <td>消除 W1/W2 作為可學習矩陣帶來的 spurious feature 風險；幾何距離直接對應語意距離</td>
+          </tr>
+          <tr>
+            <td>Neuron 模型</td>
+            <td>State Leaky（雙層 LIF）</td>
+            <td>拉開不同 neuron 的發放時間間距，讓 ordering 的資訊量最大化</td>
+          </tr>
+          <tr>
+            <td>Loss 設計</td>
+            <td>Time-weighted CE</td>
+            <td>讓訓練信號對應 ordering 的幾何重要性：越早的 spike 錯誤 → 越大的梯度</td>
+          </tr>
+          <tr>
+            <td>變因控制</td>
+            <td>最小化 Pass 2 參數</td>
+            <td>確保實驗結論歸因清晰：如果學得好，是 SNN 學會了 ordering，不是 Pass 2 補救了</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- ── EXPERIMENTS ── -->
+    <section class="section" id="experiments">
+      <h2>實驗計畫</h2>
+
+      <div class="exp-grid">
+        <div class="exp-card">
+          <div class="exp-num">Exp 1</div>
+          <div class="exp-title">Sanity Check：ordering 可分性</div>
+          <div class="exp-desc">在 toy dataset 上驗證 SNN 是否能學到不同 class 對應不同 ordering。Pass 2 用固定相似度量（零參數）。</div>
+        </div>
+        <div class="exp-card">
+          <div class="exp-num">Exp 2</div>
+          <div class="exp-title">RPC vs Linear Readout</div>
+          <div class="exp-desc">比較 RPC 固定映射 vs 可學習 W1 的性能。確認 ordering 幾何是否真的被利用，而非被 W 補救。</div>
+        </div>
+        <div class="exp-card">
+          <div class="exp-num">Exp 3</div>
+          <div class="exp-title">M 的 scaling</div>
+          <div class="exp-desc">測試 M=4（24種排列）到 M=8（40,320種排列）的性能曲線，確認 N! 空間的 scaling 是否有效。</div>
+        </div>
+        <div class="exp-card">
+          <div class="exp-num">Exp 4</div>
+          <div class="exp-title">Ordering 幾何可視化</div>
+          <div class="exp-desc">用 t-SNE 將 RPC 座標投影到 2D，確認不同 class 的 ordering 在空間中是否形成可分的群集。</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── FULL CODE ── -->
+    <section class="section" id="full-code">
+      <h2>完整框架程式碼</h2>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">python</span>
+          <span class="code-title">snn_ordering_framework.py</span>
+        </div>
+        <pre><span class="kw">import</span> torch
+<span class="kw">import</span> torch.nn <span class="kw">as</span> nn
+<span class="kw">import</span> torch.nn.functional <span class="kw">as</span> F
+<span class="kw">import</span> snntorch <span class="kw">as</span> snn
+
+<span class="cmt"># ─────────────────────────────────────────
+# 固定函數（無參數）：Spike Matrix → RPC 座標
+# ─────────────────────────────────────────</span>
+
+<span class="kw">def</span> <span class="fn">rpc_embedding</span>(S: torch.Tensor, T: <span class="cls">int</span>) -> torch.Tensor:
+    <span class="str">"""
+    S    : (batch, M, T)  — Spike Matrix，來自 Pass 1
+    T    : int            — 時間步數
+    回傳  : (batch, M-1)   — RPC 連續座標向量
+    """</span>
+    batch, M, _ = S.shape
+
+    <span class="cmt"># 計算每個 neuron 的 first spike time</span>
+    has_spike  = (S > <span class="num">0</span>)
+    first_time = torch.<span class="fn">where</span>(
+        has_spike.<span class="fn">any</span>(dim=<span class="op">-</span><span class="num">1</span>),
+        has_spike.<span class="fn">float</span>().<span class="fn">argmax</span>(dim=<span class="op">-</span><span class="num">1</span>),
+        torch.<span class="fn">full</span>((batch, M), float(T))
+    )  <span class="cmt"># (batch, M)</span>
+
+    <span class="cmt"># 按 first spike time 排序，得到 ordering</span>
+    ordering     = first_time.<span class="fn">argsort</span>(dim=<span class="op">-</span><span class="num">1</span>)       <span class="cmt"># (batch, M)</span>
+    sorted_times = torch.<span class="fn">gather</span>(first_time, <span class="num">1</span>, ordering)  <span class="cmt"># (batch, M)</span>
+
+    <span class="cmt"># 遞迴切割：每個 spike 在剩餘時間中的比例</span>
+    coords    = []
+    remaining = torch.<span class="fn">full</span>((batch,), float(T), device=S.device)
+
+    <span class="kw">for</span> i <span class="kw">in</span> <span class="fn">range</span>(M <span class="op">-</span> <span class="num">1</span>):
+        t_i     = sorted_times[:, i]
+        coord_i = (t_i / (remaining + <span class="num">1e-8</span>)).<span class="fn">clamp</span>(<span class="num">0</span>, <span class="num">1</span>)
+        coords.<span class="fn">append</span>(coord_i)
+        remaining = (remaining <span class="op">-</span> t_i).<span class="fn">clamp</span>(min=<span class="num">0</span>)
+
+    <span class="kw">return</span> torch.<span class="fn">stack</span>(coords, dim=<span class="op">-</span><span class="num">1</span>)  <span class="cmt"># (batch, M-1)</span>
+
+
+<span class="cmt"># ─────────────────────────────────────────
+# Time-Weighted Loss
+# ─────────────────────────────────────────</span>
+
+<span class="kw">def</span> <span class="fn">time_weighted_loss</span>(
+    logits_t: torch.Tensor,  <span class="cmt"># (T, batch, C)</span>
+    target:   torch.Tensor,  <span class="cmt"># (batch,)</span>
+    alpha: <span class="cls">float</span> = <span class="num">0.5</span>,
+    lam:   <span class="cls">float</span> = <span class="num">1.0</span>
+) -> torch.Tensor:
+    T  = logits_t.shape[<span class="num">0</span>]
+    w  = torch.<span class="fn">exp</span>(<span class="op">-</span>alpha <span class="op">*</span> torch.<span class="fn">arange</span>(T, dtype=torch.float, device=target.device))
+    w  = w / w.<span class="fn">sum</span>()
+    losses = torch.<span class="fn">stack</span>([F.<span class="fn">cross_entropy</span>(logits_t[t], target) <span class="op">*</span> w[t] <span class="kw">for</span> t <span class="kw">in</span> <span class="fn">range</span>(T)])
+    <span class="kw">return</span> losses.<span class="fn">sum</span>() <span class="op">*</span> lam
+
+
+<span class="cmt"># ─────────────────────────────────────────
+# 主模型
+# ─────────────────────────────────────────</span>
+
+<span class="kw">class</span> <span class="cls">SNNOrderingFramework</span>(nn.Module):
+    <span class="kw">def</span> <span class="fn">__init__</span>(self, N: <span class="cls">int</span>, M: <span class="cls">int</span>, C: <span class="cls">int</span>, T: <span class="cls">int</span>,
+                 beta1=<span class="num">0.9</span>, beta2=<span class="num">0.95</span>):
+        <span class="str">"""
+        N : 輸入維度
+        M : SNN neuron 數量（ordering 的 M in M!）
+        C : 類別數
+        T : 時間步數
+        """</span>
+        <span class="fn">super</span>().__init__()
+        self.T = T
+        self.M = M
+
+        <span class="cmt"># Pass 1：輸入投影 + State Leaky</span>
+        self.fc_in = nn.<span class="cls">Linear</span>(N, M)
+        self.lif1  = snn.<span class="cls">Leaky</span>(beta=beta1)
+        self.lif2  = snn.<span class="cls">Leaky</span>(beta=beta2)
+
+        <span class="cmt"># Pass 2：單層線性讀出（唯一可學習部分）</span>
+        self.readout = nn.<span class="cls">Linear</span>(M <span class="op">-</span> <span class="num">1</span>, C)
+
+    <span class="kw">def</span> <span class="fn">forward</span>(self, x: torch.Tensor):
+        <span class="str">"""
+        x : (batch, N)
+        回傳 : logits (batch, C)，spike_matrix (batch, M, T)
+        """</span>
+        batch = x.shape[<span class="num">0</span>]
+        mem1  = self.lif1.<span class="fn">init_leaky</span>()
+        mem2  = self.lif2.<span class="fn">init_leaky</span>()
+        spk_rec = []
+
+        <span class="cmt"># ── Pass 1：SNN 前向，收集 Spike Matrix ──</span>
+        <span class="kw">for</span> _ <span class="kw">in</span> <span class="fn">range</span>(self.T):
+            cur         = self.<span class="fn">fc_in</span>(x)
+            spk1, mem1  = self.lif1(cur,  mem1)
+            spk2, mem2  = self.lif2(spk1, mem2)
+            spk_rec.<span class="fn">append</span>(spk2)
+
+        S = torch.<span class="fn">stack</span>(spk_rec, dim=<span class="op">-</span><span class="num">1</span>)  <span class="cmt"># (batch, M, T)</span>
+
+        <span class="cmt"># ── RPC（固定函數）→ 連續 ordering 座標 ──</span>
+        rpc_coord = <span class="fn">rpc_embedding</span>(S, self.T)  <span class="cmt"># (batch, M-1)</span>
+
+        <span class="cmt"># ── Pass 2：線性讀出 ──</span>
+        logits = self.<span class="fn">readout</span>(rpc_coord)  <span class="cmt"># (batch, C)</span>
+
+        <span class="kw">return</span> logits, S
+
+
+<span class="cmt"># ─────────────────────────────────────────
+# 訓練迴圈（示意）
+# ─────────────────────────────────────────</span>
+
+<span class="kw">def</span> <span class="fn">train_step</span>(model, x, y, optimizer, alpha=<span class="num">0.5</span>, lam=<span class="num">1.0</span>):
+    optimizer.<span class="fn">zero_grad</span>()
+    logits, S = model(x)
+
+    <span class="cmt"># 主 loss：分類</span>
+    loss_ce = F.<span class="fn">cross_entropy</span>(logits, y)
+
+    <span class="cmt"># 輔助：時間加權（需要 per-timestep logits，此處示意）</span>
+    <span class="cmt"># 實作時可在 forward 中額外儲存 per-t 的 readout logits</span>
+
+    loss = loss_ce  <span class="cmt"># + time_weighted_loss(logits_t, y, alpha, lam)</span>
+    loss.<span class="fn">backward</span>()
+    optimizer.<span class="fn">step</span>()
+    <span class="kw">return</span> loss.item()</pre>
+      </div>
+    </section>
+
+    <div class="divider"></div>
+    <p style="font-size:12px;color:var(--text3);text-align:center;padding-bottom:3rem">
+      SNN N! Ordering Space Framework · 初版架構文件 · 2026
+    </p>
+
+  </main>
+</div>
+
+<script>
+  // Weight timeline visualization
+  const alpha = 0.5;
+  const T = 8;
+  const weights = Array.from({length: T}, (_, t) => Math.exp(-alpha * t));
+  const maxW = Math.max(...weights);
+
+  const timeline = document.getElementById('wt-timeline');
+  const labels   = document.getElementById('wt-labels');
+
+  weights.forEach((w, t) => {
+    const bar = document.createElement('div');
+    bar.className = 'wt-bar';
+    bar.style.height = (w / maxW * 100) + '%';
+    bar.style.opacity = 0.3 + 0.7 * (w / maxW);
+    bar.title = `t=${t}, w=${w.toFixed(3)}`;
+    timeline.appendChild(bar);
+
+    const lbl = document.createElement('div');
+    lbl.className = 'wt-label-item';
+    lbl.textContent = `t=${t}`;
+    labels.appendChild(lbl);
+  });
+
+  // Sidebar active state
+  const sections = document.querySelectorAll('.section');
+  const navItems = document.querySelectorAll('.nav-item');
+
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        navItems.forEach(n => n.classList.remove('active'));
+        const active = document.querySelector(`.nav-item[href="#${e.target.id}"]`);
+        if (active) active.classList.add('active');
+      }
+    });
+  }, { threshold: 0.3 });
+
+  sections.forEach(s => observer.observe(s));
+</script>
+
 </body>
 </html>
