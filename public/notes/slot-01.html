@@ -1,12 +1,343 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Slot 01</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The MLP Guider Hypothesis: A Unified Geometric Framework for Transformer Reasoning</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
+  onload="renderMathInElement(document.body, {delimiters:[
+    {left:'$$',right:'$$',display:true},
+    {left:'$',right:'$',display:false}
+  ]})"></script>
+<style>
+*, *::before, *::after { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body {
+  font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI Variable Display",
+               "Segoe UI", Helvetica, Arial, sans-serif;
+  font-size: 16px;
+  line-height: 1.5;
+  color: rgb(55, 53, 47);
+  background: #fff;
+  margin: 2em auto;
+  max-width: 900px;
+  padding: 0 2rem;
+  white-space: pre-wrap;
+}
+h1.page-title {
+  font-size: 2.5rem; font-weight: 700; margin-top: 0; margin-bottom: 0.75em;
+  letter-spacing: -0.01em; line-height: 1.2;
+}
+h1 { font-size: 1.875rem; font-weight: 600; margin-top: 1.875rem; margin-bottom: 0;
+     letter-spacing: -0.01em; line-height: 1.2; }
+h2 { font-size: 1.5rem; font-weight: 600; margin-top: 1.5rem; margin-bottom: 0;
+     letter-spacing: -0.01em; line-height: 1.2; }
+h3 { font-size: 1.25rem; font-weight: 600; margin-top: 1.25rem; margin-bottom: 0;
+     letter-spacing: -0.01em; line-height: 1.2; }
+p { margin-top: 0.5em; margin-bottom: 0.5em; }
+code {
+  background: rgba(135,131,120,0.15); border-radius: 3px; padding: 0.2em 0.4em;
+  font-family: "SFMono-Regular", Menlo, Consolas, "PT Mono", Courier, monospace;
+  font-size: 85%; color: #eb5757;
+}
+.code {
+  background: rgba(135,131,120,0.15); border-radius: 3px; padding: 1.5em 1em;
+  font-family: "SFMono-Regular", Menlo, Consolas, "PT Mono", Courier, monospace;
+  font-size: 85%; tab-size: 2; white-space: pre-wrap; word-break: break-all;
+}
+.code > code { background: none; padding: 0; font-size: 100%; color: inherit; }
+blockquote {
+  font-size: 1em; margin: 1em 0; padding-left: 1em;
+  border-left: 3px solid rgb(55,53,47);
+}
+.callout {
+  border-radius: 10px; padding: 1rem;
+  background: rgba(241,241,239,1); margin: 0.5em 0;
+}
+.callout p { margin: 0; }
+hr {
+  background: transparent; display: block; width: 100%; height: 1px;
+  border: none; border-bottom: 1px solid rgba(55,53,47,0.09);
+}
+table { border-collapse: collapse; border-left: none; border-right: none; width: 100%; }
+th, td {
+  border: 1px solid rgba(55,53,47,0.09); font-weight: normal;
+  padding: 0.25em 0.5em; line-height: 1.5; min-height: 1.5em; text-align: left;
+}
+th { color: rgba(55,53,47,0.6); }
+ol, ul { margin: 0; margin-block-start: 0.6em; margin-block-end: 0.6em; }
+ul > li { list-style: disc; }
+ul { padding-inline-start: 1.7em; }
+ul > li { padding-left: 0.1em; }
+ol { padding-inline-start: 1.6em; }
+ol > li { padding-left: 0.2em; }
+.highlight-gray   { color: rgba(125,122,117,1); }
+.highlight-blue   { color: rgba(56,125,201,1); }
+.highlight-red    { color: rgba(207,81,72,1); }
+.highlight-teal   { color: rgba(80,148,110,1); }
+.highlight-purple { color: rgba(154,107,180,1); }
+.column-list { display: flex; gap: 46px; }
+.column { min-width: 0; overflow: hidden; }
+.column > *:first-child { margin-top: 0; }
+figure { margin: 1.25em 0; page-break-inside: avoid; }
+figcaption { opacity: 0.5; font-size: 85%; margin-top: 0.5em; }
+img { max-width: 100%; }
+</style>
 </head>
 <body>
-  <!-- draft -->
-  <p>Draft slot 01 — replace this entire file on GitHub to publish.</p>
+<article>
+<header>
+<h1 class="page-title">The MLP Guider Hypothesis: A Unified Geometric Framework for Transformer Reasoning</h1>
+<p class="page-description">Semantic manifolds, attention navigation, the nature of reasoning, and the geometric effect of RL — a complete framework with experimental validation from Exp A and Exp-LL</p>
+</header>
+<div class="page-body">
+
+<h1>I. Definitions</h1>
+
+<p>The following terms appear throughout this report and are defined from first principles.</p>
+
+<ul>
+<li><strong>Transformer</strong>: The core architecture of mainstream large language models (GPT, Claude, Qwen, etc.). Composed of stacked layers, each containing an Attention mechanism and an MLP.</li>
+<li><strong>Residual Stream</strong>: The accumulated vector representation of a token as it passes through all layers. Each layer's output is added on top of the previous one, not replacing it.</li>
+<li><strong>Hidden State</strong>: The current state of the residual stream at a given layer — a high-dimensional vector (2048 dimensions for Qwen2.5-3B) encoding the model's current understanding of the token.</li>
+<li><strong>MLP (Multi-Layer Perceptron)</strong>: One of two sub-modules in each Transformer layer (the other being Attention). It receives the current hidden state and outputs an update vector added back to the residual stream. The central object of this hypothesis.</li>
+<li><strong>Attention</strong>: The mechanism that lets each token attend to other tokens in the sequence, weighting and aggregating their information based on relevance.</li>
+<li><strong>MoE (Mixture of Experts)</strong>: A sparse Transformer architecture where the MLP is split into many expert networks, with only a few activated per token. A router decides which experts are activated.</li>
+<li><strong>lm_head (Language Model Head)</strong>: The linear projection matrix after the final layer, mapping the hidden state to logits over the vocabulary. Each row corresponds to a token's direction vector in hidden state space.</li>
+<li><strong>Logit</strong>: The raw score the model assigns to each token before conversion to a probability.</li>
+<li><strong>Cosine Similarity</strong>: Measures how close two vectors are in direction, ranging from $-1$ (opposite) to $+1$ (identical direction), with $0$ meaning perpendicular.</li>
+<li><strong>Semantic Manifold</strong>: The geometric principle that meaningful semantic information occupies a low-dimensional surface (manifold) within the high-dimensional hidden state space. Learning is understood as learning to navigate this manifold.</li>
+<li><strong>Attractor Basin</strong>: Borrowed from physics: a region in the loss landscape where gradient flow converges to a local minimum. Correct answers and incorrect answers can each form separate attractors.</li>
+<li><strong>Saddle Point</strong>: A point that is a local maximum in one direction and a local minimum in another. In this hypothesis: a position along the residual stream trajectory where curvature is near zero and the system is most sensitive to the next step taken.</li>
+<li><strong>Logit Lens</strong>: An analysis technique that projects the hidden state at each layer through lm_head to observe what the model would output if it stopped at that layer.</li>
+<li><strong>RL (Reinforcement Learning)</strong>: A training method that scores model outputs and adjusts parameters to improve those scores. Includes RLHF, GRPO, and similar approaches.</li>
+</ul>
+
+<hr>
+
+<h1>II. The Core Hypothesis Framework</h1>
+
+<h2>2.1 Foundation: The Semantic Manifold Hypothesis</h2>
+
+<p>All LLMs are learning to operate on low-dimensional semantic manifolds embedded in high-dimensional space. Although a hidden state is a 2048-dimensional vector, meaningful semantic information lives on a lower-dimensional surface. Every layer moves along this surface, trying to reach the region where the correct answer resides. Capability is not about larger dimensionality — it is about learning more precise paths along the manifold.</p>
+
+<h2>2.2 Navigation Layer: Attention ≈ MoE Router (Abstract Equivalence)</h2>
+
+<p>At the abstract level, Attention and MoE Router do the same thing: use a query to find the most relevant keys in some space, then aggregate the corresponding values. The difference is only in granularity and softness:</p>
+
+<div class="column-list">
+<div class="column" style="width:50%">
+<p><strong>Attention</strong><br>Soft navigation in the token dimension. The current token's hidden state serves as a query; it finds relevance across other tokens (keys) and fuses their information (values). Continuous weighting — all tokens participate.</p>
+</div>
+<div class="column" style="width:50%">
+<p><strong>MoE Router</strong><br>Hard navigation in the expert dimension. The current token's hidden state determines which experts to activate. Discrete top-k selection — most experts are bypassed.</p>
+</div>
+</div>
+
+<h2>2.3 MLP as a Trained Guider</h2>
+
+<p>This is the core of the hypothesis. The update equation for each Transformer layer is:</p>
+
+$$h_{\text{out}} = h_{\text{in}} + \text{Attention}(h_{\text{in}}) + \text{MLP}(h_{\text{in}})$$
+
+<p>Isolating the MLP's contribution:</p>
+
+$$\Delta h = \text{MLP}(h_{\text{in}})$$
+
+<p>This $\Delta h$ is the MLP's pure contribution vector — it has both a direction and a magnitude. <strong>The hypothesis claims: the direction of $\Delta h$ geometrically points toward the embedding direction of the correct answer.</strong> Measured with cosine similarity:</p>
+
+$$\text{gap} = \cos\text{sim}(\Delta h,\, v_{\text{correct}}) - \overline{\cos\text{sim}(\Delta h,\, v_{\text{wrong}})}$$
+
+<p>Hypothesis prediction: $\text{gap} > 0$, most pronounced in the key layers.</p>
+
+<h2>2.4 The Nature of Reasoning: Iterative Refinement on the Residual Stream</h2>
+
+<blockquote>🎯 <strong>Core claim</strong>: Generating each reasoning token = one attention computation = one update to the hidden state on the residual stream = one step closer toward the key associated with the correct answer direction.</blockquote>
+
+<p>Chain-of-Thought (CoT) does not make the model "think" — it executes additional projection steps on the residual stream, each moving the hidden state closer to the correct answer's subspace, until the EOS token's logit crosses a threshold. This explains why "think step by step" or "think longer" improves accuracy: it gives the residual stream more chances to converge.</p>
+
+<h2>2.5 Critical Token and Saddle Point</h2>
+
+<p>Existing literature defines critical tokens as "tokens with the highest contribution to the final answer," identified post-hoc via attention or gradient attribution. This captures correlation, not causation. This hypothesis proposes a revised definition:</p>
+
+<div class="callout">
+<p>💡 <strong>Revised definition</strong>: A critical token is the token at position $t+1$ <em>after</em> a saddle point — it determines which attractor basin the residual stream trajectory enters, and thereby determines where the entire reasoning chain converges.</p>
+</div>
+
+<p>A saddle point is where the curvature of the residual stream trajectory is near zero: the system is maximally sensitive to the direction taken at the next step. Geometric analogy: standing at the top of a saddle, you slide left into one valley or right into another. The critical token is the one that decides left or right.</p>
+
+<p>This explains three phenomena: (1) CoT chains that begin with a wrong step are almost always entirely wrong — the trajectory entered the wrong basin; (2) Self-consistency works — multiple samples near the saddle point, with majority voting against local minima; (3) A false premise in the prompt corrupts the entire answer — the trajectory is pushed into the wrong basin before even reaching the saddle point.</p>
+
+<h2>2.6 The Geometric Effect of RL: $x(x-3) \to 5x(x-3)$</h2>
+
+<p>What does reinforcement learning actually do to the model? An analogy:</p>
+
+$$\text{Before RL: } f(x) = x(x-3) \quad \text{(zeros at } x=0 \text{ and } x=3\text{; capability boundary unchanged)}$$
+$$\text{After RL: } f(x) = 5x(x-3) \quad \text{(zeros unchanged; gradient magnitude amplified 5×)}$$
+
+<div class="column-list">
+<div class="column" style="width:50%">
+<p><strong>What RL does</strong><br>Amplifies the gradient magnitude of the loss landscape. Makes trajectories near saddle points more stable. Makes it more likely that critical tokens select the correct direction.</p>
+</div>
+<div class="column" style="width:50%">
+<p><strong>What RL does not do</strong><br>It does not move the zeros (capability boundary unchanged). The base model's semantic manifold already determines the upper bound of capability — RL cannot exceed it, only reach it more reliably.</p>
+</div>
+</div>
+
+<div class="callout">
+<p>💡 <strong>Capability ceiling hypothesis</strong>: For any fixed context, the correct answer token for position $n+1$ always has a nonzero softmax probability — it is always present in the logit list. RL only shifts its probability from $p$ to $p' > p$. The capability boundary is set by the base model's semantic manifold; RL cannot create new manifold, only pave roads to what already exists. RL and Best-of-N are equivalent operations at the single-step level — one amortized at training time, one paid at inference time.</p>
+</div>
+
+<p>Over-optimization: when the landscape becomes too steep, the model loses its ability to explore near saddle points — the mechanism behind reward hacking and mode collapse.</p>
+
+<hr>
+
+<h1>III. Exp A: Geometric Directionality of the MLP Guider</h1>
+
+<h2>3.1 Research Question</h2>
+
+<p>Does the MLP output vector $\Delta h$ geometrically point toward the correct answer's direction?</p>
+
+<h2>3.2 Experimental Design</h2>
+
+<p>Model: Qwen2.5-3B. Dataset: TriviaQA (factual QA with unambiguous correct answers). For each sample and each layer:</p>
+
+<div class="code"><code>Δh[layer] = MLP_output[layer][-1, :]      # last token position only
+v_correct  = lm_head.weight[correct_token_id]
+v_wrong_k  = lm_head.weight[wrong_token_id_k]  # 10 random wrong answers
+gap = cos_sim(Δh, v_correct) − mean_k(cos_sim(Δh, v_wrong_k))</code></div>
+
+<p>Key metrics: $\text{gap} > 0$ and positive-gap sample rate $> 50\%$. The hypothesis predicts both hold in the key layers with significant deviation from the null.</p>
+
+<h2>3.3 Results</h2>
+
+<table>
+<thead>
+<tr><th>Region</th><th>Layers</th><th>Mean gap</th><th>Positive rate</th><th>Interpretation</th></tr>
+</thead>
+<tbody>
+<tr><td>Early</td><td>L0–3</td><td>$+0.001$</td><td>≈ 51%</td><td>Near-random; MLP performing feature extraction</td></tr>
+<tr><td>Middle</td><td>L4–29</td><td>$-0.002$</td><td>≈ 47%</td><td>Slightly negative; MLP understanding the question, temporarily away from answer direction</td></tr>
+<tr><td>Transition</td><td>L28–29</td><td>$-0.010$</td><td>≈ 35%</td><td>Trough — suspected saddle point region</td></tr>
+<tr><td><strong>Guider Core</strong></td><td><strong>L31–32</strong></td><td>$\mathbf{+0.033}$</td><td><strong>80%</strong></td><td>Hypothesis supported ✓</td></tr>
+<tr><td>Terminal</td><td>L33–35</td><td>$-0.019$</td><td>≈ 37%</td><td>Direction reversal — separate mechanism (see Exp-LL)</td></tr>
+</tbody>
+</table>
+
+<h2>3.4 Key Findings</h2>
+
+<p>The original prediction was "deeper layers have larger gap, last four layers strongest." The actual result reveals a clear Guider peak at L31–32 followed by reversal. The gap of 0.033 is modest in cosine similarity terms, but 80% of samples show a positive gap — against a null expectation of 50%, the deviation exceeds 6 standard deviations. This is not noise.</p>
+
+<p>The mildly negative gap in the middle layers (L4–29) is not a counterexample: those layers are performing semantic understanding, which requires temporarily moving away from the answer direction — a necessary part of the model's division of labor. The terminal reversal (L33–35) is explained by Exp-LL.</p>
+
+<hr>
+
+<h1>IV. Exp-LL: Logit Lens — Two-Mechanism Separation</h1>
+
+<h2>4.1 Research Question</h2>
+
+<p>Exp A found that $\Delta h$ reverses direction in L33–35, yet $p_{\text{correct}}$ should continue improving. How do we resolve this contradiction?</p>
+
+<h2>4.2 Experimental Design (Logit Lens)</h2>
+
+<p>Project each layer's hidden state through lm_head and record three metrics:</p>
+
+<ul>
+<li><strong>$p_{\text{correct}}$</strong>: Post-softmax probability of the correct answer token. The probability of selecting the correct answer if the model were to output at this layer.</li>
+<li><strong>$\text{logit\_gap}$</strong>: The correct answer's logit minus the mean logit across all tokens. Measures how prominent the correct answer is in logit space.</li>
+<li><strong>rank</strong>: The rank of the correct answer token by probability. rank = 1 is best; lower is always better.</li>
+</ul>
+
+<h2>4.3 Results</h2>
+
+<table>
+<thead>
+<tr><th>Layer</th><th>$p_{\text{correct}}$</th><th>logit_gap</th><th>rank</th><th>Mechanism</th></tr>
+</thead>
+<tbody>
+<tr><td>L28</td><td>0.011</td><td>5.22</td><td>19,059</td><td>Understanding phase</td></tr>
+<tr><td>L29</td><td>0.015</td><td>5.89</td><td>14,756</td><td>Understanding phase</td></tr>
+<tr><td>L30</td><td>0.029</td><td>6.69</td><td>9,380</td><td>Transition</td></tr>
+<tr><td>L31</td><td>0.104</td><td>9.82</td><td>5,783</td><td>Direction setting begins</td></tr>
+<tr><td><strong>L32</strong></td><td>0.135</td><td><strong>11.91 ← logit_gap peak</strong></td><td>3,909</td><td><strong>Direction setting complete</strong></td></tr>
+<tr><td>L33</td><td>0.145</td><td>11.31</td><td>1,393</td><td>Distribution sharpening begins</td></tr>
+<tr><td>L34</td><td>0.195</td><td>9.74</td><td>337</td><td>Distribution sharpening</td></tr>
+<tr><td><strong>L35</strong></td><td><strong>0.207 ← $p_{\text{correct}}$ peak</strong></td><td>8.67</td><td><strong>155</strong></td><td><strong>Distribution sharpening complete</strong></td></tr>
+</tbody>
+</table>
+
+<h2>4.4 Core Finding: The Two Peaks Do Not Coincide</h2>
+
+<blockquote>🔑 <strong>Key observation</strong>: logit_gap peaks at L32 (11.91) then declines. $p_{\text{correct}}$ and rank continue improving after L32, only reaching their best at L35. This means what happens after L32 is not continued pushing in the correct-answer direction — it is compressing the overall distribution to be sharper, eliminating probability mass from other tokens and amplifying the correct answer's relative advantage.</blockquote>
+
+<p>Two geometrically distinct operations are revealed:</p>
+
+<div class="column-list">
+<div class="column" style="width:50%">
+<p><strong>Operation 1: Direction Setting — L31–32</strong><br>$\Delta h$ strongly aligned with $v_{\text{correct}}$. Rotates the residual stream's main direction toward the correct answer's subspace. logit_gap peaks at 11.91. "I know which direction the answer lies."</p>
+</div>
+<div class="column" style="width:50%">
+<p><strong>Operation 2: Distribution Sharpening — L33–35</strong><br>$\Delta h$ direction reverses, but eliminates probability mass from competing candidates. rank drops from 3,909 to 155; $p_{\text{correct}}$ rises from 0.135 to 0.207. "I am making this answer unambiguous."</p>
+</div>
+</div>
+
+<div class="callout">
+<p>✅ <strong>Resolving the Exp A contradiction</strong>: The terminal reversal in Exp A (negative gap at L33–35) does not falsify the hypothesis. L33–35 MLPs are performing Distribution Sharpening, not Direction Setting — their $\Delta h$ does not point toward the correct answer, but toward "the direction that eliminates other candidates." This is geometrically opposite, yet causes $p_{\text{correct}}$ to continue rising.</p>
+</div>
+
+<p>Analogy: Direction Setting is pointing the telescope at the target; Distribution Sharpening is adjusting the focus until the image is sharp. Both are necessary, but they are entirely different geometric operations occurring in different layers.</p>
+
+<hr>
+
+<h1>V. Synthesis: Complete Layer-by-Layer Division of Labor</h1>
+
+<p>Combining Exp A and Exp-LL, the complete division of labor across Qwen2.5-3B (36 layers total):</p>
+
+<table>
+<thead>
+<tr><th>Layers</th><th>Role</th><th>Key metric</th></tr>
+</thead>
+<tbody>
+<tr><td>L0–3</td><td>Feature extraction: tokenization-level processing, near-random direction</td><td>gap ≈ +0.001</td></tr>
+<tr><td>L4–29</td><td>Semantic understanding: unfolding the question's meaning, temporarily away from answer (expected)</td><td>gap ≈ −0.002</td></tr>
+<tr><td>L28–29</td><td>Suspected saddle point: gap trough, preparing to switch tasks</td><td>gap = −0.010, 35% positive</td></tr>
+<tr><td>L30</td><td>Transition: $p_{\text{correct}}$ begins rising from 0.011 to 0.029</td><td>—</td></tr>
+<tr><td><strong>L31–32</strong></td><td><strong>Direction Setting</strong>: $\Delta h$ strongly aligned with $v_{\text{correct}}$</td><td>gap = +0.033, 80% positive, logit_gap peak 11.91</td></tr>
+<tr><td><strong>L33–35</strong></td><td><strong>Distribution Sharpening</strong>: eliminating noise, compressing distribution</td><td>rank 3,909 → 155; $p_{\text{correct}}$ 0.135 → 0.207</td></tr>
+</tbody>
+</table>
+
+<div class="callout">
+<p>📌 <strong>Revised hypothesis (Exp A + Exp-LL integrated)</strong>: The MLP Guider operates in two stages: <strong>Direction Setting</strong> (L31–32) and <strong>Distribution Sharpening</strong> (L33–35). The former rotates the residual stream's direction; the latter compresses the distribution's variance without changing the main direction. Together they determine the final $P(\text{correct token})$.</p>
+</div>
+
+<hr>
+
+<h1>VI. Failure Modes</h1>
+
+<ul>
+<li><strong>Hallucination</strong>: The correct answer's key is absent from context. The residual stream cannot reach the correct attractor basin and converges to a local minimum that is geometrically stable but semantically wrong. The model has not failed to converge — it has converged to the wrong place.</li>
+<li><strong>Confidently wrong CoT</strong>: The critical token after the saddle point selects the wrong direction, entering the wrong attractor basin. All subsequent reasoning tokens continue converging inside the wrong basin, reinforcing an incorrect direction — while the model remains highly confident.</li>
+<li><strong>Over-RL</strong>: The landscape becomes too steep ($x(x-3) \to 1000x(x-3)$). Saddle points become so sharp that the model loses its ability to explore near them, always taking the same path. This is the mechanism behind reward hacking, mode collapse, and catastrophic failure on out-of-distribution inputs.</li>
+</ul>
+
+<hr>
+
+<h1>VII. Open Questions</h1>
+
+<ol>
+<li><strong>Exp-SP (Saddle Point Confirmation)</strong>: Is the L28–29 gap trough a genuine saddle point? Perturb hidden states at L28–29 with small noise and measure whether the final output changes more than at other layers (perturbation sensitivity test). If confirmed, critical tokens most likely appear at L30 and beyond.</li>
+<li><strong>Exp-BYP (Bypass L33–35)</strong>: If L33–35 is skipped and the L32 hidden state is fed directly to lm_head, does accuracy rise or fall? Prediction: accuracy drops, rank distribution broadens — confirming Distribution Sharpening is not optional.</li>
+<li><strong>Exp B (MoE Router Ablation)</strong>: Requires a MoE model (e.g., Qwen1.5-MoE-A2.7B). Prediction: forcing the deactivation of router-selected experts degrades performance far more than deactivating an equal number of randomly chosen experts.</li>
+</ol>
+
+<div class="callout">
+<p>⚠️ <strong>Claims requiring formalization</strong>: (1) The "capability ceiling" is currently defined as "the boundary of the base model's semantic manifold" — this boundary is not directly measurable in practice, making the claim technically unfalsifiable without a more operational definition. (2) The saddle point is currently approximated by the entropy proxy (position of peak output distribution entropy); Exp-SP aims to establish a more rigorous geometric definition.</p>
+</div>
+
+</div>
+</article>
 </body>
 </html>
