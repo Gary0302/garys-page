@@ -17,8 +17,7 @@ const translations: Translations = {
     "profile.name1": "Gary Yang",
     "profile.name2": "(Fu-Chun Yang)",
     "profile.title": "APPLIED MATHEMATICS & DATA SCIENCE",
-    "profile.bio":
-      "Applied Mathematics student with a passion for data science and cybersecurity. Experienced in mathematical modeling, programming, and creative problem-solving through various competitions and projects.",
+    "profile.bio": "Applied Mathematics student at UC Santa Cruz with a passion for data science and AI research. Published in ICML 2025 Workshop on cross-model semantic communication. Experienced in full-stack development, mathematical modeling, and cybersecurity. I leverage analytical thinking and programming expertise to build innovative solutions—from award-winning hackathon projects to research bridging theoretical AI concepts with practical applications.",
     "profile.more": "More about Me",
 
     // Section titles
@@ -34,7 +33,7 @@ const translations: Translations = {
 
     // Education
     "education.ucsc": "University of California, Santa Cruz",
-    "education.ucsc.details": "Applied Mathematics (2024-2028 planned)",
+    "education.ucsc.details": "B.S. in Applied Mathematics (2024-2028 planned)",
     "education.highschool": "Affiliated Senior High School of NKNU",
     "education.highschool.details": "Kaohsiung, TW (2021-2024)",
 
@@ -84,13 +83,15 @@ const translations: Translations = {
     "publication.newinml.title": "Direct Semantic Communication Between Large Language Models via Vector Translation",
     "publication.newinml.details": "FuChun Yang, Jason Eshraghian",
     "publication.newinml.description": "Forwarding the semantics of the first model to a second model",
-    "publication.newinml.url": "View Publication",
+    "publication.newinml.url": "View Publication on ArXiv",
 
     // Achievements
     "achievement.music": "2023 National Music Competition Choir Category - Excellence Award",
     "achievement.leadership": "2023 Rotary Youth Leadership Awards Seminar",
     "achievement.folk": "2022 National Folk Song Competition Choir Category - Excellence Award",
     "achievement.ai": "2022 FUN AI Winter Camp (NCKU, Tsing Hua University)",
+    "achievement.cruzhacks": "2025 CruzHacks - Best Use of MongoDB",
+    "achievement.publication": "Published research in 2025 ICML Workshop and accepted",
 
     // Inventions
     "invention.fan": "USB desktop fan (4th Grade)",
@@ -108,14 +109,19 @@ const translations: Translations = {
 
     // Language toggle
     "language.toggle": "繁體中文",
+
+    // Notes
+    "notes.title": "Notes",
+    "notes.subtitle": "Standalone pages and write-ups I want to share.",
+    "notes.backToPortfolio": "Portfolio",
+    "notes.empty": "No notes published yet.",
   },
   zh: {
     // Profile
     "profile.name1": "楊富鈞",
     "profile.name2": "Gary Yang",
     "profile.title": "應用數學與數據科學",
-    "profile.bio":
-      "我目前主修應用數學，熱衷於數據科學和網絡安全，通過各種競賽和項目，在數學建模、程式設計、專案澗溝以及管理和創意解決問題方面積累了豐富經驗",
+    "profile.bio": "加州大學聖克魯茲分校應用數學系學生，專注於資料科學與機器學習研究。曾於 ICML 2025 Workshop 發表跨模型語義通訊研究論文。具備全端開發、數學建模及資訊安全專業認證（CompTIA Security+、APCS Level IV）。技術涵蓋 Python、JavaScript、React、FastAPI 及 MongoDB。曾獲 CruzHacks 2025 最佳 MongoDB 使用獎，並擔任程式設計教學助理，熱衷於將數學理論應用於解決實際問題。",
     "profile.more": "了解更多",
 
     // Section titles
@@ -131,7 +137,7 @@ const translations: Translations = {
 
     // Education
     "education.ucsc": "加州大學聖克魯茲分校",
-    "education.ucsc.details": "應用數學 (2025-2028 預計)",
+    "education.ucsc.details": "應用數學系 學士 (2024-2028 預計)",
     "education.highschool": "國立高雄師範大學附屬高級中學",
     "education.highschool.details": "高雄, 台灣 (2021-2024)",
 
@@ -187,6 +193,8 @@ const translations: Translations = {
     "achievement.leadership": "2023 扶輪青少年領袖獎研討會",
     "achievement.folk": "2022 全國學生鄉土歌謠比賽 (台語) - 優等獎 (合唱類)",
     "achievement.ai": "2022 FUN AI 冬令營 (成功大學, 清華大學, Google exploreCSR)",
+    "achievement.cruzhacks": "2025 CruzHacks - 最佳 MongoDB 使用獎",
+    "achievement.publication": "於 2025 ICML workshop 發表論文並被接受(accepted)",
 
     // Inventions
     "invention.fan": "USB 桌面風扇 (四年級)",
@@ -204,6 +212,12 @@ const translations: Translations = {
 
     // Language toggle
     "language.toggle": "English",
+
+    // Notes
+    "notes.title": "筆記",
+    "notes.subtitle": "獨立頁面與文章，方便分享給其他人。",
+    "notes.backToPortfolio": "Portfolio",
+    "notes.empty": "目前尚無公開筆記。",
   },
 }
 

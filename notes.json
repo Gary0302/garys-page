@@ -1,0 +1,24 @@
+{
+  "notes": [
+    {
+      "slug": "portfolio-draft",
+      "title": "Portfolio Draft",
+      "titleZh": "Portfolio 草稿",
+      "description": "Early portfolio layout experiment.",
+      "descriptionZh": "Portfolio 版面早期草稿。",
+      "date": "2025-04-29",
+      "visible": true,
+      "tags": ["draft", "portfolio"]
+    },
+    {
+      "slug": "slot-01",
+      "title": "Reserved Slot 01",
+      "titleZh": "保留位置 01",
+      "description": "Empty slot — set visible to true and edit the HTML when ready.",
+      "descriptionZh": "空白位置 — 準備好時將 visible 改為 true 並編輯 HTML。",
+      "date": "2025-05-30",
+      "visible": false,
+      "tags": []
+    }
+  ]
+}

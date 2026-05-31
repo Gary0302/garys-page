@@ -13,6 +13,7 @@ interface GitHubRepo {
   stargazers_count: number
   forks_count: number
   language: string | null
+  fork: boolean
 }
 
 interface GitHubProjectsProps {
@@ -77,11 +78,11 @@ export function GitHubProjects({ username, limit = 3 }: GitHubProjectsProps) {
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
       {repos.map((repo) => (
-        <div key={repo.id} className="bg-gray-800 rounded-lg p-5 flex flex-col h-full">
-          <h3 className="font-medium text-lg mb-2">{repo.name}</h3>
-          <p className="text-gray-400 text-sm flex-grow mb-4">{repo.description || "No description available"}</p>
+        <div key={repo.id} className="bg-gray-50 dark:bg-gray-800/50 rounded-lg p-5 flex flex-col h-full border border-gray-200 dark:border-gray-700">
+          <h3 className="font-medium text-lg mb-2 text-gray-900 dark:text-white">{repo.name}</h3>
+          <p className="text-gray-600 dark:text-gray-400 text-sm flex-grow mb-4">{repo.description || "No description available"}</p>
           <div className="flex items-center justify-between mt-auto">
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-4 text-gray-600 dark:text-gray-400">
               {repo.language && (
                 <span className="text-xs flex items-center gap-1">
                   <span className="w-2 h-2 rounded-full bg-blue-500"></span>
@@ -97,7 +98,7 @@ export function GitHubProjects({ username, limit = 3 }: GitHubProjectsProps) {
                 {repo.forks_count}
               </span>
             </div>
-            <Button variant="ghost" size="sm" className="p-0" asChild>
+            <Button variant="ghost" size="sm" className="p-0 text-primary hover:text-primary/80" asChild>
               <a href={repo.html_url} target="_blank" rel="noopener noreferrer">
                 <ExternalLink className="w-4 h-4" />
               </a>
