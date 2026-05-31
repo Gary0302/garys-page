@@ -1,12 +1,343 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-Hant">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Slot 02</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MLP Guider 假說：Transformer 推理機制的統一幾何框架</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
+  onload="renderMathInElement(document.body, {delimiters:[
+    {left:'$$',right:'$$',display:true},
+    {left:'$',right:'$',display:false}
+  ]})"></script>
+<style>
+*, *::before, *::after { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body {
+  font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI Variable Display",
+               "Segoe UI", Helvetica, Arial, sans-serif;
+  font-size: 16px;
+  line-height: 1.5;
+  color: rgb(55, 53, 47);
+  background: #fff;
+  margin: 2em auto;
+  max-width: 900px;
+  padding: 0 2rem;
+  white-space: pre-wrap;
+}
+h1.page-title {
+  font-size: 2.5rem; font-weight: 700; margin-top: 0; margin-bottom: 0.75em;
+  letter-spacing: -0.01em; line-height: 1.2;
+}
+h1 { font-size: 1.875rem; font-weight: 600; margin-top: 1.875rem; margin-bottom: 0;
+     letter-spacing: -0.01em; line-height: 1.2; }
+h2 { font-size: 1.5rem; font-weight: 600; margin-top: 1.5rem; margin-bottom: 0;
+     letter-spacing: -0.01em; line-height: 1.2; }
+h3 { font-size: 1.25rem; font-weight: 600; margin-top: 1.25rem; margin-bottom: 0;
+     letter-spacing: -0.01em; line-height: 1.2; }
+p { margin-top: 0.5em; margin-bottom: 0.5em; }
+code {
+  background: rgba(135,131,120,0.15); border-radius: 3px; padding: 0.2em 0.4em;
+  font-family: "SFMono-Regular", Menlo, Consolas, "PT Mono", Courier, monospace;
+  font-size: 85%; color: #eb5757;
+}
+.code {
+  background: rgba(135,131,120,0.15); border-radius: 3px; padding: 1.5em 1em;
+  font-family: "SFMono-Regular", Menlo, Consolas, "PT Mono", Courier, monospace;
+  font-size: 85%; tab-size: 2; white-space: pre-wrap; word-break: break-all;
+}
+.code > code { background: none; padding: 0; font-size: 100%; color: inherit; }
+blockquote {
+  font-size: 1em; margin: 1em 0; padding-left: 1em;
+  border-left: 3px solid rgb(55,53,47);
+}
+.callout {
+  border-radius: 10px; padding: 1rem;
+  background: rgba(241,241,239,1); margin: 0.5em 0;
+}
+.callout p { margin: 0; }
+hr {
+  background: transparent; display: block; width: 100%; height: 1px;
+  border: none; border-bottom: 1px solid rgba(55,53,47,0.09);
+}
+table { border-collapse: collapse; border-left: none; border-right: none; width: 100%; }
+th, td {
+  border: 1px solid rgba(55,53,47,0.09); font-weight: normal;
+  padding: 0.25em 0.5em; line-height: 1.5; min-height: 1.5em; text-align: left;
+}
+th { color: rgba(55,53,47,0.6); }
+ol, ul { margin: 0; margin-block-start: 0.6em; margin-block-end: 0.6em; }
+ul > li { list-style: disc; }
+ul { padding-inline-start: 1.7em; }
+ul > li { padding-left: 0.1em; }
+ol { padding-inline-start: 1.6em; }
+ol > li { padding-left: 0.2em; }
+.highlight-gray   { color: rgba(125,122,117,1); }
+.highlight-blue   { color: rgba(56,125,201,1); }
+.highlight-red    { color: rgba(207,81,72,1); }
+.highlight-teal   { color: rgba(80,148,110,1); }
+.highlight-purple { color: rgba(154,107,180,1); }
+.column-list { display: flex; gap: 46px; }
+.column { min-width: 0; overflow: hidden; }
+.column > *:first-child { margin-top: 0; }
+figure { margin: 1.25em 0; page-break-inside: avoid; }
+figcaption { opacity: 0.5; font-size: 85%; margin-top: 0.5em; }
+img { max-width: 100%; }
+</style>
 </head>
 <body>
-  <!-- draft -->
-  <p>Draft slot 02 — replace this entire file on GitHub to publish.</p>
+<article>
+<header>
+<h1 class="page-title">MLP Guider 假說：Transformer 推理機制的統一幾何框架</h1>
+<p class="page-description">從語義流形、Attention 導航、Reasoning 本質到 RL 幾何效果的完整框架，附 Exp A 與 Exp-LL 實驗驗證</p>
+</header>
+<div class="page-body">
+
+<h1>一、名詞定義</h1>
+
+<p>以下術語在報告中反覆出現，全部從第一原理定義，不預設任何背景知識。</p>
+
+<ul>
+<li><strong>Transformer</strong>：目前主流大型語言模型（GPT、Claude、Qwen 等）的核心架構。由多個「層」堆疊而成，每層包含 Attention 機制與 MLP。</li>
+<li><strong>Residual Stream（殘差流）</strong>：每個 token 通過所有層時累積的向量表示。每一層的輸出不是「替換」前一層，而是「疊加」上去。</li>
+<li><strong>Hidden State（隱藏狀態）</strong>：Residual stream 在某一層的當前狀態，是一個高維向量（Qwen2.5-3B 為 2048 維），編碼了 model 目前對該 token 的理解。</li>
+<li><strong>MLP（多層感知機）</strong>：Transformer 每層的兩個子模組之一（另一個是 Attention）。接收當前 hidden state，輸出一個「更新向量」加回 residual stream。本假說的核心即關於 MLP 在做什麼。</li>
+<li><strong>Attention</strong>：讓每個 token 可以「看到」序列中其他 token 資訊，並根據相關性加權融合的機制。</li>
+<li><strong>MoE（Mixture of Experts）</strong>：稀疏化的 Transformer 架構。把 MLP 拆成多個「專家」，每次只激活少數幾個。Router 負責決定哪些專家被激活。</li>
+<li><strong>lm_head（語言模型頭）</strong>：Transformer 最後一層之後的線性投影矩陣，把 hidden state 轉換成 logit（詞彙表大小維）。每一行對應一個 token 在 hidden state 空間裡的方向向量。</li>
+<li><strong>Logit</strong>：model 對每個 token 的原始分數，尚未轉換成機率。</li>
+<li><strong>Cosine Similarity（餘弦相似度）</strong>：量測兩向量方向的接近程度，範圍 $-1$ 到 $+1$。$+1$ 代表完全同向，$0$ 代表垂直，$-1$ 代表完全相反。</li>
+<li><strong>語義流形（Semantic Manifold）</strong>：有意義的語義資訊實際上分佈在高維空間中一個低維曲面（流形）上。model 的學習可以理解為「學習在這個流形上操作」。</li>
+<li><strong>Attractor Basin（吸引子盆地）</strong>：在 loss landscape 上，「往下坡走就會到達的低點」。正確答案是一個 attractor，錯誤答案也可以是另一個 attractor。</li>
+<li><strong>Saddle Point（鞍點）</strong>：在某方向是極大值、另一方向是極小值的點。在本假說中，指 residual stream 軌跡上曲率接近零、對下一步最敏感的位置。</li>
+<li><strong>Logit Lens</strong>：把每一層的 hidden state 直接用 lm_head 投影成 logit，追蹤答案在哪一層形成的分析技術。</li>
+<li><strong>RL（強化學習）</strong>：給 model 的輸出打分，讓 model 調整參數提高分數的訓練方法。</li>
+</ul>
+
+<hr>
+
+<h1>二、核心假說框架</h1>
+
+<h2>2.1 基礎層：語義流形假說</h2>
+
+<p>所有 LLM 都是在學習：在高維空間中，低維語義流形上的操作。具體而言，hidden state 雖然是 2048 維向量，但有意義的語義資訊活在一個低維曲面上。model 的每一層都在這個曲面上移動，試圖走向「正確答案所在的區域」。能力不是靠更大的維度，而是靠更精準地學習流形上的路徑。</p>
+
+<h2>2.2 導航層：Attention ≈ MoE Router（抽象等價）</h2>
+
+<p>Attention 與 MoE Router 在抽象層面做的是同一件事：用 query 在一個空間裡找最相關的 key，aggregate 對應的 value。差別只在 granularity 與 softness：</p>
+
+<div class="column-list">
+<div class="column" style="width:50%">
+<p><strong>Attention</strong><br>在 token 維度做軟性導航。用當前 token 的 hidden state 作為 query，找其他 token 的相關性（key），加權融合資訊（value）。連續加權，全部 token 都參與。</p>
+</div>
+<div class="column" style="width:50%">
+<p><strong>MoE Router</strong><br>在 expert 維度做離散導航。用當前 token 的 hidden state 決定激活哪些 expert，讓這些 expert 處理計算。Hard top-k 選取，大多數 expert 不被激活。</p>
+</div>
+</div>
+
+<h2>2.3 MLP 作為訓練好的 Guider</h2>
+
+<p>這是假說的核心，也是實驗驗證的主要對象。Transformer 每層的更新公式為：</p>
+
+$$h_{\text{out}} = h_{\text{in}} + \text{Attention}(h_{\text{in}}) + \text{MLP}(h_{\text{in}})$$
+
+<p>把 MLP 的貢獻單獨拆出來：</p>
+
+$$\Delta h = \text{MLP}(h_{\text{in}})$$
+
+<p>這個 $\Delta h$ 是 MLP 對 residual stream 的「純貢獻向量」，有方向與大小。<strong>假說說：$\Delta h$ 的方向在幾何上指向正確答案的 embedding 方向。</strong>用 cosine similarity 量測：</p>
+
+$$\text{gap} = \cos\text{sim}(\Delta h,\, v_{\text{correct}}) - \overline{\cos\text{sim}(\Delta h,\, v_{\text{wrong}})}$$
+
+<p>假說預測：$\text{gap} > 0$，且在關鍵層最顯著。</p>
+
+<h2>2.4 Reasoning 的本質：Residual Stream 上的 Iterative Refinement</h2>
+
+<blockquote>🎯 <strong>核心主張</strong>：每一個 reasoning token 的生成 = 一次 attention 計算 = hidden state 在 residual stream 上的一次更新 = 往「正確答案方向的 key」再靠近一步。</blockquote>
+
+<p>CoT（Chain-of-Thought）不是讓 model「思考」，而是在 residual stream 上多執行幾步投影操作，每次讓 hidden state 更靠近正確答案所在的 subspace，直到 EOS token 的 logit 超過閾值。這解釋了為什麼「think step by step」或「think longer」能提升準確率——給 residual stream 更多次收斂的機會。</p>
+
+<h2>2.5 Critical Token 與 Saddle Point</h2>
+
+<p>現有文獻把 critical token 定義為「對最終答案貢獻最大的 token」（用 attention 或 gradient attribution 事後找出），但這是 correlation 而非 causation。本假說提出修正定義：</p>
+
+<div class="callout">
+<p>💡 <strong>修正定義</strong>：Critical token 是在 <strong>saddle point 之後的 $t+1$ 位置</strong>的 token——它決定 residual stream 的軌跡進入哪個 attractor basin，進而決定整個推理鏈的收斂方向。</p>
+</div>
+
+<p>Saddle point 是 residual stream 軌跡上曲率接近零的位置，系統對下一步的選擇在此最敏感。幾何類比：站在馬鞍的最高點，往左下山到一個山谷，往右下山到另一個山谷；critical token 就是決定往左還是往右的那個 token。</p>
+
+<p>這解釋了三個現象：（1）CoT 第一步錯了往往全錯——進了錯的 basin；（2）Self-consistency 有效——多次採樣在 saddle point 附近，majority vote 對抗 local minimum；（3）Prompt 裡加錯誤前提會讓 model 全錯——還沒到 saddle point 就被推進錯的方向。</p>
+
+<h2>2.6 RL 的幾何效果：$x(x-3) \to 5x(x-3)$</h2>
+
+<p>強化學習對 model 做了什麼？用數學類比說明：</p>
+
+$$\text{RL 前：} f(x) = x(x-3) \quad \text{（零點在 } x=0 \text{ 和 } x=3\text{，能力邊界不變）}$$
+$$\text{RL 後：} f(x) = 5x(x-3) \quad \text{（零點不變，gradient 放大了 5 倍）}$$
+
+<div class="column-list">
+<div class="column" style="width:50%">
+<p><strong>RL 做的事</strong><br>放大 loss landscape 的 gradient magnitude。讓 saddle point 附近的軌跡更穩定，critical token 更容易選到正確方向。</p>
+</div>
+<div class="column" style="width:50%">
+<p><strong>RL 不做的事</strong><br>不改變能力的邊界（零點不變）。Base model 的語義流形已決定潛力上限，RL 無法超越它——只能更有效地走到那裡。</p>
+</div>
+</div>
+
+<div class="callout">
+<p>💡 <strong>潛力上限假說</strong>：在完全相同的 context 下，對 $n+1$ 這個 token 來說，正確答案永遠在 logit list 裡（softmax 機率 $> 0$）。RL 做的只是把正確答案機率從 $p$ 推到 $p' > p$。能力邊界由 base model 的語義流形決定，RL 無法創造新流形，只能鋪路走到已有的地方。RL 與 Best-of-N 在 single-step 層面是等價操作，差別只是 training time vs inference time。</p>
+</div>
+
+<p>RL 過度訓練的幾何意義：landscape 變得過陡，model 在 saddle point 附近失去探索能力，對應 reward hacking 或 mode collapse 現象。</p>
+
+<hr>
+
+<h1>三、Exp A：MLP Guider 的幾何方向性驗證</h1>
+
+<h2>3.1 實驗問題</h2>
+
+<p>MLP 的輸出向量 $\Delta h$ 是否真的在幾何上指向正確答案的方向？</p>
+
+<h2>3.2 實驗設計</h2>
+
+<p>使用 Qwen2.5-3B，資料集為 TriviaQA（有明確正確答案的事實問答）。對每個樣本的每一層：</p>
+
+<div class="code"><code>Δh[layer] = MLP_output[layer][-1, :]   # 只取最後一個 token 的 hidden state
+v_correct = lm_head.weight[correct_token_id]
+v_wrong_k = lm_head.weight[wrong_token_id_k]  # 隨機抽 10 個
+gap = cos_sim(Δh, v_correct) − mean_k(cos_sim(Δh, v_wrong_k))</code></div>
+
+<p>核心指標：$\text{gap} > 0$ 且正向樣本比例 $> 50\%$。假說預測在關鍵層兩者都成立且偏離顯著。</p>
+
+<h2>3.3 結果</h2>
+
+<table>
+<thead>
+<tr><th>區域</th><th>層數</th><th>平均 gap</th><th>正向比例</th><th>解讀</th></tr>
+</thead>
+<tbody>
+<tr><td>早期</td><td>L0–3</td><td>$+0.001$</td><td>≈ 51%</td><td>接近隨機，MLP 在做特徵提取</td></tr>
+<tr><td>中期</td><td>L4–29</td><td>$-0.002$</td><td>≈ 47%</td><td>輕微負向——MLP 在理解問題，暫時遠離答案</td></tr>
+<tr><td>過渡</td><td>L28–29</td><td>$-0.010$</td><td>≈ 35%</td><td>最低谷——疑似 saddle point 區域</td></tr>
+<tr><td><strong>Guider 核心</strong></td><td><strong>L31–32</strong></td><td>$\mathbf{+0.033}$</td><td><strong>80%</strong></td><td>假說獲得支持 ✓</td></tr>
+<tr><td>末端</td><td>L33–35</td><td>$-0.019$</td><td>≈ 37%</td><td>方向反轉——另一個機制（見 Exp-LL）</td></tr>
+</tbody>
+</table>
+
+<h2>3.4 關鍵發現</h2>
+
+<p>原本預測「越深的層 gap 越大，最後四層最強」。實際結果是有一個明確的 Guider 峰值區（L31–32），之後反轉。L31–32 的 gap = 0.033 在 cosine similarity 尺度上看起來不大，但 80% 的樣本都呈正向 gap——虛無假說下期望值為 50%，偏離幅度超過 6 個標準差，不是噪音。</p>
+
+<p>中期（L4–29）的輕微負 gap 不是反例：這幾層的 MLP 在做語義理解，需要暫時遠離答案方向，是 model 正常分工的一部分。末端（L33–35）的反轉由 Exp-LL 解釋。</p>
+
+<hr>
+
+<h1>四、Exp-LL：Logit Lens 雙機制分離</h1>
+
+<h2>4.1 實驗問題</h2>
+
+<p>Exp A 發現末端層（L33–35）的 $\Delta h$ 方向反轉了，但 $p_{\text{correct}}$ 應該持續改善才對。這個矛盾怎麼解釋？</p>
+
+<h2>4.2 實驗設計（Logit Lens）</h2>
+
+<p>在每一層把 hidden state 直接用 lm_head 投影出來，記錄三個指標：</p>
+
+<ul>
+<li><strong>$p_{\text{correct}}$</strong>：正確答案 token 的機率值（softmax 後）。如果在這層就停下來輸出，選到正確答案的機率。</li>
+<li><strong>$\text{logit\_gap}$</strong>：正確答案的 logit 減掉所有 token 的平均 logit。代表正確答案在 logit 空間裡有多突出。</li>
+<li><strong>$\text{rank}$</strong>：正確答案 token 按機率排第幾名。rank = 1 最好，數字越小越好。</li>
+</ul>
+
+<h2>4.3 結果</h2>
+
+<table>
+<thead>
+<tr><th>層</th><th>$p_{\text{correct}}$</th><th>$\text{logit\_gap}$</th><th>rank</th><th>機制</th></tr>
+</thead>
+<tbody>
+<tr><td>L28</td><td>0.011</td><td>5.22</td><td>19,059</td><td>理解問題階段</td></tr>
+<tr><td>L29</td><td>0.015</td><td>5.89</td><td>14,756</td><td>理解問題階段</td></tr>
+<tr><td>L30</td><td>0.029</td><td>6.69</td><td>9,380</td><td>過渡</td></tr>
+<tr><td>L31</td><td>0.104</td><td>9.82</td><td>5,783</td><td>方向設定開始</td></tr>
+<tr><td><strong>L32</strong></td><td>0.135</td><td><strong>11.91 ← logit_gap 峰值</strong></td><td>3,909</td><td><strong>方向設定完成</strong></td></tr>
+<tr><td>L33</td><td>0.145</td><td>11.31</td><td>1,393</td><td>分佈收斂開始</td></tr>
+<tr><td>L34</td><td>0.195</td><td>9.74</td><td>337</td><td>分佈收斂中</td></tr>
+<tr><td><strong>L35</strong></td><td><strong>0.207 ← $p_{\text{correct}}$ 峰值</strong></td><td>8.67</td><td><strong>155</strong></td><td><strong>分佈收斂完成</strong></td></tr>
+</tbody>
+</table>
+
+<h2>4.4 核心發現：兩個峰值不在同一層</h2>
+
+<blockquote>🔑 <strong>關鍵觀察</strong>：logit_gap 在 L32 達到峰值（11.91），然後開始下降。$p_{\text{correct}}$ 和 rank 在 L32 之後繼續改善，到 L35 才達到最好。這說明 L32 之後發生的事，不是繼續往正確答案方向推，而是把整體分佈壓縮得更尖銳——消除其他 token 的機率質量，讓正確答案的相對優勢放大。</blockquote>
+
+<p>這分離出兩個不同性質的幾何操作：</p>
+
+<div class="column-list">
+<div class="column" style="width:50%">
+<p><strong>操作一：方向設定（Direction Setting）L31–32</strong><br>$\Delta h$ 強烈指向 $v_{\text{correct}}$，把 residual stream 的主方向轉向正確答案的 subspace。logit_gap 達到峰值 11.91。「我知道答案的方向在哪裡。」</p>
+</div>
+<div class="column" style="width:50%">
+<p><strong>操作二：分佈收斂（Distribution Sharpening）L33–35</strong><br>$\Delta h$ 方向反轉，但在消除其他候選的機率質量。rank 從 3909 → 155，$p_{\text{correct}}$ 從 0.135 → 0.207。「我要把這個答案說清楚。」</p>
+</div>
+</div>
+
+<div class="callout">
+<p>✅ <strong>解開 Exp A 的矛盾</strong>：Exp A 的末端反轉（L33–35 的 gap 為負）不是假說錯了。L33–35 的 MLP 在做「分佈收斂」而非「方向設定」——它的 $\Delta h$ 不指向正確答案，而是指向「消除其他候選答案的方向」。這在幾何上是反向的，但在結果上讓 $p_{\text{correct}}$ 持續上升。</p>
+</div>
+
+<p>類比：方向設定像是把望遠鏡對準目標，分佈收斂像是調整焦距讓影像銳利。兩件事都必要，但是完全不同的幾何操作，發生在不同的層。</p>
+
+<hr>
+
+<h1>五、整合：完整的層次分工圖景</h1>
+
+<p>把 Exp A 和 Exp-LL 整合，Qwen2.5-3B（共 36 層）的完整分工如下：</p>
+
+<table>
+<thead>
+<tr><th>層</th><th>角色</th><th>關鍵指標</th></tr>
+</thead>
+<tbody>
+<tr><td>L0–3</td><td>特徵提取：tokenization 層面處理，方向接近隨機</td><td>gap ≈ +0.001</td></tr>
+<tr><td>L4–29</td><td>語義理解：展開問題意思，暫時遠離答案方向（正常分工）</td><td>gap ≈ −0.002</td></tr>
+<tr><td>L28–29</td><td>疑似 Saddle Point：gap 最低谷，準備切換任務</td><td>gap = −0.010，35% 正向</td></tr>
+<tr><td>L30</td><td>過渡層：$p_{\text{correct}}$ 從 0.011 開始跳升至 0.029</td><td>—</td></tr>
+<tr><td><strong>L31–32</strong></td><td><strong>方向設定（Direction Setting）</strong>：$\Delta h$ 強烈指向 $v_{\text{correct}}$</td><td>gap = +0.033，80% 正向，logit_gap 峰值 11.91</td></tr>
+<tr><td><strong>L33–35</strong></td><td><strong>分佈收斂（Distribution Sharpening）</strong>：消除雜訊，壓縮分佈</td><td>rank 3909 → 155，$p_{\text{correct}}$ 0.135 → 0.207</td></tr>
+</tbody>
+</table>
+
+<div class="callout">
+<p>📌 <strong>修正後的假說（Exp A + Exp-LL 整合版）</strong>：MLP Guider 的功能分兩個階段：<strong>Direction Setting</strong>（方向設定，L31–32）和 <strong>Distribution Sharpening</strong>（分佈收斂，L33–35）。前者改變 residual stream 的方向，後者在不改變主方向的情況下壓縮分佈的散度。兩者共同決定最終的 $P(\text{correct token})$。</p>
+</div>
+
+<hr>
+
+<h1>六、Failure Modes</h1>
+
+<ul>
+<li><strong>Hallucination（幻覺）</strong>：正確答案的 key 不在 context 裡，residual stream 無法找到正確的 attractor basin，收斂到「看起來穩定但語義上是錯的」local minimum。不是沒有收斂，而是收斂到了錯的地方。</li>
+<li><strong>CoT 自信說錯</strong>：Critical token 在 saddle point 之後選錯了方向，進入錯的 attractor basin。之後所有 reasoning token 都在那個錯的 basin 裡繼續收斂，整條推理鏈加強一個錯誤方向，model 還表現得很有信心。</li>
+<li><strong>Over-RL（過度強化學習）</strong>：RL 把 landscape 放大得太多（$x(x-3) \to 1000x(x-3)$），saddle point 附近過於陡峭，model 失去探索能力，永遠走同一條路。對應 reward hacking、mode collapse，在訓練分佈外的問題上完全失敗。</li>
+</ul>
+
+<hr>
+
+<h1>七、待驗證的開放問題</h1>
+
+<ol>
+<li><strong>Exp-SP（Saddle Point 確認）</strong>：L28–29 的 gap 最低谷是否真的是 saddle point？在 L28–29 的 hidden state 加小噪音，看 final output 的變化是否比其他層更敏感（perturbation sensitivity）。如果是，代表 critical token 確實最可能出現在 L30 之後。</li>
+<li><strong>Exp-BYP（Bypass L33–35）</strong>：如果跳過 L33–35 直接接 lm_head，accuracy 是上升還是下降？預測：accuracy 下降，rank 分佈更散——確認 Distribution Sharpening 不是可有可無的步驟。</li>
+<li><strong>Exp B（MoE Router Ablation）</strong>：需要切換到 MoE model（如 Qwen1.5-MoE-A2.7B）。假說預測：強制關閉 router 選定的 expert，degradation 應遠大於關閉等量隨機 expert。</li>
+</ol>
+
+<div class="callout">
+<p>⚠️ <strong>待形式化的弱點</strong>：（1）「潛力上限」目前定義為「base model 語義流形的邊界」，但在實踐上無法直接量測，需要更精確的可操作定義。（2）Saddle point 目前以 entropy proxy（output distribution entropy 最高的位置）作為替代量測，不是嚴格的幾何定義，Exp-SP 的目標之一是找到更好的操作定義。</p>
+</div>
+
+</div>
+</article>
 </body>
 </html>
