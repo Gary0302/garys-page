@@ -1,18 +1,19 @@
 # AI 手勢四格拍貼機 — 相框合成修正說明
 
-本文檔記錄 `gesture-booth` 專案中，相框格子對齊、半透明霧化、橢圓裁切等問題的最終修正方案，並附上完整可複製的程式碼。
+本文件記錄 `gesture-booth` 專案中，相框格子對齊、半透明霧化、橢圓裁切等問題的最終修正方案，附上完整可複製的程式碼。
 
 ---
 
 ## 目錄
 
-1. [問題背景](#問題背景)
-2. [最終解法](#最終解法)
-3. [專案結構](#專案結構)
-4. [相框設定說明](#相框設定說明)
-5. [核心函式](#核心函式)
-6. [完整程式碼](#完整程式碼)
-7. [本地執行](#本地執行)
+- [問題背景](#問題背景)
+- [最終解法](#最終解法)
+- [專案結構](#專案結構)
+- [相框設定說明](#相框設定說明)
+- [核心函式一覽](#核心函式一覽)
+- [完整程式碼](#完整程式碼)
+- [本地執行](#本地執行)
+- [新增相框指南](#新增相框指南)
 
 ---
 
@@ -20,43 +21,45 @@
 
 ### 原始問題
 
-1. **格子座標不準**：`frameOptions.boxes` 為手估比例，與 PNG 相框上的洞位不一致，照片偏位或超出格子。
-2. **銀色金屬為橢圓洞**：使用矩形裁切無法貼合橢圓形洞口。
-3. **半透明霧化**：部分相框洞為半透明像素（alpha ≈ 130–210），相框疊在照片上會產生白色/灰色霧感。
-4. **不透明占位格**：白色 Seoul、天使羽翼等相框洞為不透明白/米色，會完全蓋住底下照片。
+1. **格子座標不準** — `frameOptions.boxes` 為手估比例，與 PNG 上的洞位不一致，照片偏位或超出格子。
+2. **銀色金屬為橢圓洞** — 使用矩形裁切無法貼合橢圓形洞口。
+3. **半透明霧化** — 部分相框洞為半透明像素（alpha 約 130–210），相框疊在照片上產生白灰色霧感。
+4. **不透明占位格** — 白色 Seoul、天使羽翼等相框洞為不透明白色／米色，會完全蓋住底下的照片。
 
 ### 曾嘗試但放棄的做法
 
 | 做法 | 問題 |
-|------|------|
+| --- | --- |
 | `photoLayer: "above"`（先相框、後照片） | 照片蓋住相框裝飾，只剩照片 |
 | `globalCompositeOperation: "copy"` | 清除相框像素，背景變空白 |
-| 僅先照片後相框（不挖洞） | 半透明洞霧化；不透明洞看不到照片 |
+| 先照片後相框（不挖洞） | 半透明洞霧化；不透明洞看不到照片 |
 
 ---
 
 ## 最終解法
 
-### 統一合成流程（所有相框）
+### 統一合成流程
+
+所有相框都使用同一套流程：
 
 ```
-① 鋪背景色（僅銀色金屬需要黑色底）
-② 畫入四格照片（依形狀裁切：圓角矩形 or 橢圓）
-③ 畫入相框 PNG（格子洞內占位像素已挖空為透明）
+1. 鋪背景色（僅銀色金屬需要黑色底）
+2. 畫入四格照片（依形狀裁切：圓角矩形 or 橢圓）
+3. 畫入相框 PNG（格子洞內占位像素已挖空為透明）
 ```
 
 ### 相框挖洞（`buildFrameWithPunchedHoles`）
 
-在相框 PNG 疊上去之前，掃描每個 `boxes` 區域內的像素，若判定為「洞占位像素」則將 alpha 設為 0：
+在相框 PNG 疊上去之前，掃描每個 `boxes` 區域的像素，符合下列條件則將 alpha 設為 0（挖空）：
 
 - 已透明（`a < 20`）
 - 半透明（`a < 245`）→ 消除霧感
-- 不透明白/米色占位（`avg > 236` 且色差小）→ 白色 Seoul、天使羽翼
+- 不透明白／米色占位（亮度 > 236，色差 < 18）→ 白色 Seoul、天使羽翼
 - 不透明粉色占位 → 粉光愛心、粉紅 Music
 
-**不透明裝飾**（金屬邊框、愛心、翅膀等）不在上述條件內，保留顯示。
+相框裝飾像素（金屬邊框、愛心、翅膀等）不符合上述條件，保留顯示。
 
-### 照片裁切
+### 照片裁切方式
 
 - **矩形格**：離屏 canvas + 圓角矩形 `destination-in` 遮罩
 - **橢圓格**（銀色金屬）：離屏 canvas + 橢圓 `destination-in` 遮罩
@@ -67,51 +70,54 @@
 
 ```
 gesture-booth/
-├── index.html          # 頁面結構
-├── style.css           # 樣式
-├── script.js           # 主邏輯（手勢偵測 + 合成）
-├── frames/             # 相框 PNG（9 款）
-│   ├── flash-night.png
-│   ├── black-digital.png
-│   ├── silver-meta.png
-│   ├── pixel-star.png
-│   ├── pink-music.png
-│   ├── pink-heart.png
-│   ├── white-seoul.png
-│   ├── angel-wing.png
-│   └── full-black.png
-└── PHOTOBOOTH-FRAME-FIX.md   # 本文件
+├── index.html
+├── style.css
+├── script.js
+└── frames/
+    ├── flash-night.png
+    ├── black-digital.png
+    ├── silver-meta.png
+    ├── pixel-star.png
+    ├── pink-music.png
+    ├── pink-heart.png
+    ├── white-seoul.png
+    ├── angel-wing.png
+    └── full-black.png
 ```
 
 ---
 
 ## 相框設定說明
 
-### 矩形格（多數相框）
+### 矩形格（大多數相框）
 
-```javascript
+`boxes` 中每個物件使用比例座標（0 到 1），`x/y` 為左上角，`w/h` 為寬高：
+
+```js
 {
   label: "Flash Night",
   src: "/frames/flash-night.png",
   boxes: [
-    { x: 0.147, y: 0.156, w: 0.332, h: 0.336 },  // 第 1 格（比例座標 0~1）
-    { x: 0.522, y: 0.155, w: 0.332, h: 0.336 },  // 第 2 格
-    { x: 0.147, y: 0.516, w: 0.332, h: 0.339 },  // 第 3 格
-    { x: 0.522, y: 0.516, w: 0.332, h: 0.339 }   // 第 4 格
+    { x: 0.147, y: 0.156, w: 0.332, h: 0.336 }, // 格 1（左上）
+    { x: 0.522, y: 0.155, w: 0.332, h: 0.336 }, // 格 2（右上）
+    { x: 0.147, y: 0.516, w: 0.332, h: 0.339 }, // 格 3（左下）
+    { x: 0.522, y: 0.516, w: 0.332, h: 0.339 }  // 格 4（右下）
   ]
 }
 ```
 
 ### 橢圓格（銀色金屬）
 
-```javascript
+使用 `cx/cy`（中心）和 `rx/ry`（半徑），並加上 `clipShape: "ellipse"` 與 `background`：
+
+```js
 {
   label: "銀色金屬",
   src: "/frames/silver-meta.png",
   clipShape: "ellipse",
   background: "#000000",
   boxes: [
-    { cx: 0.289, cy: 0.339, rx: 0.188, ry: 0.123 },  // 中心 + 半徑
+    { cx: 0.289, cy: 0.339, rx: 0.188, ry: 0.123 },
     { cx: 0.714, cy: 0.339, rx: 0.188, ry: 0.123 },
     { cx: 0.289, cy: 0.636, rx: 0.187, ry: 0.123 },
     { cx: 0.712, cy: 0.636, rx: 0.189, ry: 0.123 }
@@ -119,34 +125,34 @@ gesture-booth/
 }
 ```
 
-### 各相框 boxes 最終值
+### 各相框 boxes 最終座標
 
-| 相框 | 格子類型 | 備注 |
-|------|----------|------|
-| Flash Night | 2×2 矩形 | 透明洞 |
-| 黑灰 Y2K | 2×2 矩形 | 透明洞 |
-| 銀色金屬 | 2×2 橢圓 | 半透明洞 + 黑色背景 |
-| Pixel Star | 2×2 矩形 | 半透明洞 |
-| 粉紅 Music | 直排四格 | 不透明粉格 |
-| 粉光愛心 | 直排四格 | 半透明洞 |
-| 白色 Seoul | 直排四格 | 不透明白格 |
-| 天使羽翼 | 直排四格 | 不透明米色格 |
-| 全黑 Y2K | 直排四格 | 半透明白格 |
+| 相框 | 格子類型 | 洞的性質 |
+| --- | --- | --- |
+| Flash Night | 2×2 矩形 | 透明 |
+| 黑灰 Y2K | 2×2 矩形 | 透明 |
+| 銀色金屬 | 2×2 橢圓 | 半透明 |
+| Pixel Star | 2×2 矩形 | 半透明 |
+| 粉紅 Music | 直排四格 | 不透明粉色 |
+| 粉光愛心 | 直排四格 | 半透明 |
+| 白色 Seoul | 直排四格 | 不透明白色 |
+| 天使羽翼 | 直排四格 | 不透明米色 |
+| 全黑 Y2K | 直排四格 | 半透明白色 |
 
 ---
 
-## 核心函式
+## 核心函式一覽
 
 | 函式 | 用途 |
-|------|------|
+| --- | --- |
 | `drawFinalPhoto()` | 合成入口：背景 → 照片 → 挖洞相框 |
-| `buildFrameWithPunchedHoles()` | 將相框 PNG 格子洞挖空 |
-| `isHolePixel()` | 判斷像素是否為洞占位 |
+| `buildFrameWithPunchedHoles()` | 將相框 PNG 格子洞挖空為透明 |
+| `isHolePixel(r, g, b, a)` | 判斷像素是否為洞占位 |
 | `drawPhotosIntoFrame()` | 依 boxes 畫入四格照片 |
-| `drawPhotoInRect()` | 圓角矩形裁切 |
-| `drawPhotoInEllipse()` | 橢圓裁切 |
-| `getBoxMetrics()` | 統一矩形/橢圓座標換算 |
-| `drawImageCover()` | 等比填滿（object-fit: cover） |
+| `drawPhotoInRect()` | 圓角矩形裁切並畫入 |
+| `drawPhotoInEllipse()` | 橢圓裁切並畫入 |
+| `getBoxMetrics()` | 矩形／橢圓座標統一換算 |
+| `drawImageCover()` | 等比填滿（cover 模式） |
 
 ---
 
@@ -191,17 +197,14 @@ gesture-booth/
 
     <section class="editor">
       <h2>照片編輯</h2>
-
       <div class="control-group">
         <h3>濾鏡</h3>
         <div id="filterControls" class="option-row"></div>
       </div>
-
       <div class="control-group">
         <h3>特效</h3>
         <div id="effectControls" class="option-row"></div>
       </div>
-
       <div class="control-group">
         <h3>相框樣式</h3>
         <div id="frameControls" class="option-row"></div>
@@ -251,9 +254,7 @@ body {
   text-align: center;
 }
 
-.hero {
-  margin-bottom: 16px;
-}
+.hero { margin-bottom: 16px; }
 
 .eyebrow {
   margin: 0 0 6px;
@@ -262,20 +263,9 @@ body {
   color: #666;
 }
 
-h1 {
-  margin: 0 0 8px;
-  font-size: 28px;
-}
-
-h2 {
-  margin-top: 28px;
-  margin-bottom: 12px;
-}
-
-h3 {
-  margin: 16px 0 8px;
-  font-size: 15px;
-}
+h1 { margin: 0 0 8px; font-size: 28px; }
+h2 { margin-top: 28px; margin-bottom: 12px; }
+h3 { margin: 16px 0 8px; font-size: 15px; }
 
 .subtitle {
   margin-top: 0;
@@ -310,10 +300,7 @@ video {
   transition: opacity 0.15s ease;
   z-index: 2;
 }
-
-.flash.active {
-  opacity: 0.92;
-}
+.flash.active { opacity: 0.92; }
 
 .countdown {
   position: absolute;
@@ -353,10 +340,7 @@ button {
   font-size: 15px;
   cursor: pointer;
 }
-
-button:hover {
-  opacity: 0.85;
-}
+button:hover { opacity: 0.85; }
 
 .option-row button {
   background: var(--option);
@@ -364,7 +348,6 @@ button:hover {
   padding: 10px 14px;
   font-size: 14px;
 }
-
 .option-row button.active {
   background: var(--button-active);
   color: white;
@@ -378,13 +361,8 @@ button:hover {
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
 }
 
-.control-group {
-  margin-bottom: 14px;
-}
-
-.preview {
-  margin-top: 18px;
-}
+.control-group { margin-bottom: 14px; }
+.preview { margin-top: 18px; }
 
 #resultCanvas {
   width: 100%;
@@ -397,7 +375,9 @@ button:hover {
 
 ### script.js
 
-```javascript
+> 以下為完整 `script.js`，直接複製貼上即可使用。
+
+```js
 import {
   HandLandmarker,
   FilesetResolver
@@ -1309,33 +1289,56 @@ drawFinalPhoto().catch((error) => {
 
 ## 本地執行
 
-在專案目錄啟動 HTTP 伺服器（需要相機權限，建議用 localhost）：
-
 ```bash
 cd gesture-booth
 python3 -m http.server 8080
 ```
 
-瀏覽器開啟：http://localhost:8080
+開啟瀏覽器：`http://localhost:8080`
 
 ### 操作步驟
 
 1. 點「開啟相機」，允許相機權限
 2. 依序比 1、2、3、4 根手指各拍一格
-3. 選擇濾鏡、特效、相框樣式
-4. 在「成品預覽」確認合成結果
-5. 點「下載照片」儲存 PNG
+3. 選濾鏡、特效、相框
+4. 點「下載照片」儲存 PNG
 
 ---
 
 ## 新增相框指南
 
 1. 將 PNG 放入 `frames/` 目錄
-2. 在 `frameOptions` 新增一項，設定 `label`、`src`、`boxes`
-3. 若洞為橢圓形，加上 `clipShape: "ellipse"` 並用 `cx/cy/rx/ry`
-4. 若背景非透明（如銀色金屬），加上 `background: "#000000"`
-5. 用 Python 或影像工具量測 PNG 上洞的位置，填入比例座標
+2. 在 `frameOptions` 加一個新項目：
+
+```js
+myFrame: {
+  label: "我的相框",
+  src: "/frames/my-frame.png",
+  // 橢圓洞加這行：clipShape: "ellipse",
+  // 需要背景色加這行：background: "#000000",
+  boxes: [
+    { x: 0.15, y: 0.10, w: 0.70, h: 0.20 }, // 格 1
+    { x: 0.15, y: 0.35, w: 0.70, h: 0.20 }, // 格 2
+    { x: 0.15, y: 0.58, w: 0.70, h: 0.20 }, // 格 3
+    { x: 0.15, y: 0.78, w: 0.70, h: 0.20 }  // 格 4
+  ]
+}
+```
+
+3. 用 Python + Pillow 量測洞的比例座標：
+
+```python
+from PIL import Image
+
+img = Image.open("frames/my-frame.png").convert("RGBA")
+w, h = img.size
+p = img.load()
+
+# 在洞的中心點採樣，確認 rgba 值
+x, y = int(w * 0.5), int(h * 0.2)
+print(p[x, y])  # (r, g, b, a)
+```
 
 ---
 
-*文件產生日期：2026-06-01*
+*最後更新：2026-06-01*
