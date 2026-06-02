@@ -1304,6 +1304,28 @@ drawFinalPhoto().catch((error) => {
   statusText.textContent = "初始相框載入失敗，請檢查 frames 檔案";
 });
 ```
+
+---
+
+## 本地執行
+
+在專案目錄啟動 HTTP 伺服器（需要相機權限，建議用 localhost）：
+
+```bash
+cd gesture-booth
+python3 -m http.server 8080
+```
+
+瀏覽器開啟：http://localhost:8080
+
+### 操作步驟
+
+1. 點「開啟相機」，允許相機權限
+2. 依序比 1、2、3、4 根手指各拍一格
+3. 選擇濾鏡、特效、相框樣式
+4. 在「成品預覽」確認合成結果
+5. 點「下載照片」儲存 PNG
+
 ---
 
 ## 新增相框指南
