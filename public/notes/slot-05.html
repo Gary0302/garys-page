@@ -1,75 +1,158 @@
-# AI 手勢四格拍貼機 — 相框合成修正說明
-
-本文件記錄 `gesture-booth` 專案中，相框格子對齊、半透明霧化、橢圓裁切等問題的最終修正方案，附上完整可複製的程式碼。
-
----
-
-## 目錄
-
-- [問題背景](#問題背景)
-- [最終解法](#最終解法)
-- [專案結構](#專案結構)
-- [相框設定說明](#相框設定說明)
-- [核心函式一覽](#核心函式一覽)
-- [完整程式碼](#完整程式碼)
-- [本地執行](#本地執行)
-- [新增相框指南](#新增相框指南)
-
----
-
-## 問題背景
-
-### 原始問題
-
-1. **格子座標不準** — `frameOptions.boxes` 為手估比例，與 PNG 上的洞位不一致，照片偏位或超出格子。
-2. **銀色金屬為橢圓洞** — 使用矩形裁切無法貼合橢圓形洞口。
-3. **半透明霧化** — 部分相框洞為半透明像素（alpha 約 130–210），相框疊在照片上產生白灰色霧感。
-4. **不透明占位格** — 白色 Seoul、天使羽翼等相框洞為不透明白色／米色，會完全蓋住底下的照片。
-
-### 曾嘗試但放棄的做法
-
-| 做法 | 問題 |
-| --- | --- |
-| `photoLayer: "above"`（先相框、後照片） | 照片蓋住相框裝飾，只剩照片 |
-| `globalCompositeOperation: "copy"` | 清除相框像素，背景變空白 |
-| 先照片後相框（不挖洞） | 半透明洞霧化；不透明洞看不到照片 |
-
----
-
-## 最終解法
-
-### 統一合成流程
-
-所有相框都使用同一套流程：
-
-```
-1. 鋪背景色（僅銀色金屬需要黑色底）
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI 手勢四格拍貼機 — 相框合成修正說明</title>
+<style>
+  :root {
+    --bg: #0e0e10;
+    --bg2: #16161a;
+    --bg3: #1e1e24;
+    --border: rgba(255,255,255,0.08);
+    --text: #e8e6df;
+    --text2: #9e9c94;
+    --text3: #6a6860;
+    --accent: #7c6af7;
+    --teal: #2dcba0;
+    --mono: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace;
+    --sans: 'Inter', system-ui, sans-serif;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    font-size: 15px;
+    line-height: 1.7;
+  }
+  .main {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 3rem 2rem 4rem;
+  }
+  h1 { font-size: 2rem; margin: 0 0 1rem; letter-spacing: -0.02em; }
+  h2 {
+    font-size: 1.35rem;
+    margin: 2.5rem 0 1rem;
+    padding-bottom: 0.4rem;
+    border-bottom: 1px solid var(--border);
+  }
+  h3 { font-size: 1.05rem; margin: 1.75rem 0 0.75rem; color: var(--teal); }
+  p, li { color: var(--text2); }
+  strong { color: var(--text); }
+  a { color: var(--accent); }
+  hr { border: none; border-top: 1px solid var(--border); margin: 2rem 0; }
+  code {
+    font-family: var(--mono);
+    font-size: 0.88em;
+    background: var(--bg3);
+    padding: 0.15em 0.4em;
+    border-radius: 4px;
+  }
+  pre {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1rem 1.25rem;
+    overflow-x: auto;
+    margin: 1rem 0 1.5rem;
+  }
+  pre code {
+    background: none;
+    padding: 0;
+    font-size: 0.82rem;
+    line-height: 1.6;
+    color: #d4d2cb;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 1rem 0 1.5rem;
+    font-size: 0.92rem;
+  }
+  th, td {
+    border: 1px solid var(--border);
+    padding: 0.55rem 0.75rem;
+    text-align: left;
+  }
+  th { background: var(--bg2); color: var(--text); }
+  ul, ol { padding-left: 1.4rem; }
+  li { margin-bottom: 0.35rem; }
+</style>
+</head>
+<body>
+<main class="main">
+<h1>AI 手勢四格拍貼機 — 相框合成修正說明</h1>
+<p>本文件記錄 <code>gesture-booth</code> 專案中，相框格子對齊、半透明霧化、橢圓裁切等問題的最終修正方案，附上完整可複製的程式碼。</p>
+<hr>
+<h2>目錄</h2>
+<ul>
+<li><a href="#%E5%95%8F%E9%A1%8C%E8%83%8C%E6%99%AF">問題背景</a></li>
+<li><a href="#%E6%9C%80%E7%B5%82%E8%A7%A3%E6%B3%95">最終解法</a></li>
+<li><a href="#%E5%B0%88%E6%A1%88%E7%B5%90%E6%A7%8B">專案結構</a></li>
+<li><a href="#%E7%9B%B8%E6%A1%86%E8%A8%AD%E5%AE%9A%E8%AA%AA%E6%98%8E">相框設定說明</a></li>
+<li><a href="#%E6%A0%B8%E5%BF%83%E5%87%BD%E5%BC%8F%E4%B8%80%E8%A6%BD">核心函式一覽</a></li>
+<li><a href="#%E5%AE%8C%E6%95%B4%E7%A8%8B%E5%BC%8F%E7%A2%BC">完整程式碼</a></li>
+<li><a href="#%E6%9C%AC%E5%9C%B0%E5%9F%B7%E8%A1%8C">本地執行</a></li>
+<li><a href="#%E6%96%B0%E5%A2%9E%E7%9B%B8%E6%A1%86%E6%8C%87%E5%8D%97">新增相框指南</a></li>
+</ul>
+<hr>
+<h2>問題背景</h2>
+<h3>原始問題</h3>
+<ol>
+<li><strong>格子座標不準</strong> — <code>frameOptions.boxes</code> 為手估比例，與 PNG 上的洞位不一致，照片偏位或超出格子。</li>
+<li><strong>銀色金屬為橢圓洞</strong> — 使用矩形裁切無法貼合橢圓形洞口。</li>
+<li><strong>半透明霧化</strong> — 部分相框洞為半透明像素（alpha 約 130–210），相框疊在照片上產生白灰色霧感。</li>
+<li><strong>不透明占位格</strong> — 白色 Seoul、天使羽翼等相框洞為不透明白色／米色，會完全蓋住底下的照片。</li>
+</ol>
+<h3>曾嘗試但放棄的做法</h3>
+<table>
+<thead>
+<tr>
+<th>做法</th>
+<th>問題</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>photoLayer: &quot;above&quot;</code>（先相框、後照片）</td>
+<td>照片蓋住相框裝飾，只剩照片</td>
+</tr>
+<tr>
+<td><code>globalCompositeOperation: &quot;copy&quot;</code></td>
+<td>清除相框像素，背景變空白</td>
+</tr>
+<tr>
+<td>先照片後相框（不挖洞）</td>
+<td>半透明洞霧化；不透明洞看不到照片</td>
+</tr>
+</tbody></table>
+<hr>
+<h2>最終解法</h2>
+<h3>統一合成流程</h3>
+<p>所有相框都使用同一套流程：</p>
+<pre><code>1. 鋪背景色（僅銀色金屬需要黑色底）
 2. 畫入四格照片（依形狀裁切：圓角矩形 or 橢圓）
 3. 畫入相框 PNG（格子洞內占位像素已挖空為透明）
-```
-
-### 相框挖洞（`buildFrameWithPunchedHoles`）
-
-在相框 PNG 疊上去之前，掃描每個 `boxes` 區域的像素，符合下列條件則將 alpha 設為 0（挖空）：
-
-- 已透明（`a < 20`）
-- 半透明（`a < 245`）→ 消除霧感
-- 不透明白／米色占位（亮度 > 236，色差 < 18）→ 白色 Seoul、天使羽翼
-- 不透明粉色占位 → 粉光愛心、粉紅 Music
-
-相框裝飾像素（金屬邊框、愛心、翅膀等）不符合上述條件，保留顯示。
-
-### 照片裁切方式
-
-- **矩形格**：離屏 canvas + 圓角矩形 `destination-in` 遮罩
-- **橢圓格**（銀色金屬）：離屏 canvas + 橢圓 `destination-in` 遮罩
-
----
-
-## 專案結構
-
-```
-gesture-booth/
+</code></pre>
+<h3>相框挖洞（<code>buildFrameWithPunchedHoles</code>）</h3>
+<p>在相框 PNG 疊上去之前，掃描每個 <code>boxes</code> 區域的像素，符合下列條件則將 alpha 設為 0（挖空）：</p>
+<ul>
+<li>已透明（<code>a &lt; 20</code>）</li>
+<li>半透明（<code>a &lt; 245</code>）→ 消除霧感</li>
+<li>不透明白／米色占位（亮度 &gt; 236，色差 &lt; 18）→ 白色 Seoul、天使羽翼</li>
+<li>不透明粉色占位 → 粉光愛心、粉紅 Music</li>
+</ul>
+<p>相框裝飾像素（金屬邊框、愛心、翅膀等）不符合上述條件，保留顯示。</p>
+<h3>照片裁切方式</h3>
+<ul>
+<li><strong>矩形格</strong>：離屏 canvas + 圓角矩形 <code>destination-in</code> 遮罩</li>
+<li><strong>橢圓格</strong>（銀色金屬）：離屏 canvas + 橢圓 <code>destination-in</code> 遮罩</li>
+</ul>
+<hr>
+<h2>專案結構</h2>
+<pre><code>gesture-booth/
 ├── index.html
 ├── style.css
 ├── script.js
@@ -83,20 +166,14 @@ gesture-booth/
     ├── white-seoul.png
     ├── angel-wing.png
     └── full-black.png
-```
-
----
-
-## 相框設定說明
-
-### 矩形格（大多數相框）
-
-`boxes` 中每個物件使用比例座標（0 到 1），`x/y` 為左上角，`w/h` 為寬高：
-
-```js
-{
-  label: "Flash Night",
-  src: "/frames/flash-night.png",
+</code></pre>
+<hr>
+<h2>相框設定說明</h2>
+<h3>矩形格（大多數相框）</h3>
+<p><code>boxes</code> 中每個物件使用比例座標（0 到 1），<code>x/y</code> 為左上角，<code>w/h</code> 為寬高：</p>
+<pre><code class="language-js">{
+  label: &quot;Flash Night&quot;,
+  src: &quot;/frames/flash-night.png&quot;,
   boxes: [
     { x: 0.147, y: 0.156, w: 0.332, h: 0.336 }, // 格 1（左上）
     { x: 0.522, y: 0.155, w: 0.332, h: 0.336 }, // 格 2（右上）
@@ -104,18 +181,14 @@ gesture-booth/
     { x: 0.522, y: 0.516, w: 0.332, h: 0.339 }  // 格 4（右下）
   ]
 }
-```
-
-### 橢圓格（銀色金屬）
-
-使用 `cx/cy`（中心）和 `rx/ry`（半徑），並加上 `clipShape: "ellipse"` 與 `background`：
-
-```js
-{
-  label: "銀色金屬",
-  src: "/frames/silver-meta.png",
-  clipShape: "ellipse",
-  background: "#000000",
+</code></pre>
+<h3>橢圓格（銀色金屬）</h3>
+<p>使用 <code>cx/cy</code>（中心）和 <code>rx/ry</code>（半徑），並加上 <code>clipShape: &quot;ellipse&quot;</code> 與 <code>background</code>：</p>
+<pre><code class="language-js">{
+  label: &quot;銀色金屬&quot;,
+  src: &quot;/frames/silver-meta.png&quot;,
+  clipShape: &quot;ellipse&quot;,
+  background: &quot;#000000&quot;,
   boxes: [
     { cx: 0.289, cy: 0.339, rx: 0.188, ry: 0.123 },
     { cx: 0.714, cy: 0.339, rx: 0.188, ry: 0.123 },
@@ -123,109 +196,169 @@ gesture-booth/
     { cx: 0.712, cy: 0.636, rx: 0.189, ry: 0.123 }
   ]
 }
-```
-
-### 各相框 boxes 最終座標
-
-| 相框 | 格子類型 | 洞的性質 |
-| --- | --- | --- |
-| Flash Night | 2×2 矩形 | 透明 |
-| 黑灰 Y2K | 2×2 矩形 | 透明 |
-| 銀色金屬 | 2×2 橢圓 | 半透明 |
-| Pixel Star | 2×2 矩形 | 半透明 |
-| 粉紅 Music | 直排四格 | 不透明粉色 |
-| 粉光愛心 | 直排四格 | 半透明 |
-| 白色 Seoul | 直排四格 | 不透明白色 |
-| 天使羽翼 | 直排四格 | 不透明米色 |
-| 全黑 Y2K | 直排四格 | 半透明白色 |
-
----
-
-## 核心函式一覽
-
-| 函式 | 用途 |
-| --- | --- |
-| `drawFinalPhoto()` | 合成入口：背景 → 照片 → 挖洞相框 |
-| `buildFrameWithPunchedHoles()` | 將相框 PNG 格子洞挖空為透明 |
-| `isHolePixel(r, g, b, a)` | 判斷像素是否為洞占位 |
-| `drawPhotosIntoFrame()` | 依 boxes 畫入四格照片 |
-| `drawPhotoInRect()` | 圓角矩形裁切並畫入 |
-| `drawPhotoInEllipse()` | 橢圓裁切並畫入 |
-| `getBoxMetrics()` | 矩形／橢圓座標統一換算 |
-| `drawImageCover()` | 等比填滿（cover 模式） |
-
----
-
-## 完整程式碼
-
-### index.html
-
-```html
-<!DOCTYPE html>
-<html lang="zh-Hant">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>AI 手勢四格拍貼機</title>
-  <link rel="stylesheet" href="style.css" />
-</head>
-<body>
-  <main class="app">
-    <header class="hero">
-      <p class="eyebrow">AI GESTURE PHOTOBOOTH</p>
-      <h1>AI 手勢四格拍貼機</h1>
-      <p class="subtitle">
+</code></pre>
+<h3>各相框 boxes 最終座標</h3>
+<table>
+<thead>
+<tr>
+<th>相框</th>
+<th>格子類型</th>
+<th>洞的性質</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Flash Night</td>
+<td>2×2 矩形</td>
+<td>透明</td>
+</tr>
+<tr>
+<td>黑灰 Y2K</td>
+<td>2×2 矩形</td>
+<td>透明</td>
+</tr>
+<tr>
+<td>銀色金屬</td>
+<td>2×2 橢圓</td>
+<td>半透明</td>
+</tr>
+<tr>
+<td>Pixel Star</td>
+<td>2×2 矩形</td>
+<td>半透明</td>
+</tr>
+<tr>
+<td>粉紅 Music</td>
+<td>直排四格</td>
+<td>不透明粉色</td>
+</tr>
+<tr>
+<td>粉光愛心</td>
+<td>直排四格</td>
+<td>半透明</td>
+</tr>
+<tr>
+<td>白色 Seoul</td>
+<td>直排四格</td>
+<td>不透明白色</td>
+</tr>
+<tr>
+<td>天使羽翼</td>
+<td>直排四格</td>
+<td>不透明米色</td>
+</tr>
+<tr>
+<td>全黑 Y2K</td>
+<td>直排四格</td>
+<td>半透明白色</td>
+</tr>
+</tbody></table>
+<hr>
+<h2>核心函式一覽</h2>
+<table>
+<thead>
+<tr>
+<th>函式</th>
+<th>用途</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>drawFinalPhoto()</code></td>
+<td>合成入口：背景 → 照片 → 挖洞相框</td>
+</tr>
+<tr>
+<td><code>buildFrameWithPunchedHoles()</code></td>
+<td>將相框 PNG 格子洞挖空為透明</td>
+</tr>
+<tr>
+<td><code>isHolePixel(r, g, b, a)</code></td>
+<td>判斷像素是否為洞占位</td>
+</tr>
+<tr>
+<td><code>drawPhotosIntoFrame()</code></td>
+<td>依 boxes 畫入四格照片</td>
+</tr>
+<tr>
+<td><code>drawPhotoInRect()</code></td>
+<td>圓角矩形裁切並畫入</td>
+</tr>
+<tr>
+<td><code>drawPhotoInEllipse()</code></td>
+<td>橢圓裁切並畫入</td>
+</tr>
+<tr>
+<td><code>getBoxMetrics()</code></td>
+<td>矩形／橢圓座標統一換算</td>
+</tr>
+<tr>
+<td><code>drawImageCover()</code></td>
+<td>等比填滿（cover 模式）</td>
+</tr>
+</tbody></table>
+<hr>
+<h2>完整程式碼</h2>
+<h3>index.html</h3>
+<pre><code class="language-html">&lt;!DOCTYPE html&gt;
+&lt;html lang=&quot;zh-Hant&quot;&gt;
+&lt;head&gt;
+  &lt;meta charset=&quot;UTF-8&quot; /&gt;
+  &lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0&quot; /&gt;
+  &lt;title&gt;AI 手勢四格拍貼機&lt;/title&gt;
+  &lt;link rel=&quot;stylesheet&quot; href=&quot;style.css&quot; /&gt;
+&lt;/head&gt;
+&lt;body&gt;
+  &lt;main class=&quot;app&quot;&gt;
+    &lt;header class=&quot;hero&quot;&gt;
+      &lt;p class=&quot;eyebrow&quot;&gt;AI GESTURE PHOTOBOOTH&lt;/p&gt;
+      &lt;h1&gt;AI 手勢四格拍貼機&lt;/h1&gt;
+      &lt;p class=&quot;subtitle&quot;&gt;
         比 1 / 2 / 3 / 4 根手指依序拍照，拍完後再選濾鏡、特效、相框。
-      </p>
-    </header>
+      &lt;/p&gt;
+    &lt;/header&gt;
 
-    <section class="camera-card">
-      <video id="video" autoplay playsinline muted></video>
-      <div id="flash" class="flash"></div>
-      <div id="countdown" class="countdown"></div>
-    </section>
+    &lt;section class=&quot;camera-card&quot;&gt;
+      &lt;video id=&quot;video&quot; autoplay playsinline muted&gt;&lt;/video&gt;
+      &lt;div id=&quot;flash&quot; class=&quot;flash&quot;&gt;&lt;/div&gt;
+      &lt;div id=&quot;countdown&quot; class=&quot;countdown&quot;&gt;&lt;/div&gt;
+    &lt;/section&gt;
 
-    <p id="status" class="status">請按下「開啟相機」</p>
-    <p id="gestureText" class="gesture">目前手勢：尚未偵測</p>
+    &lt;p id=&quot;status&quot; class=&quot;status&quot;&gt;請按下「開啟相機」&lt;/p&gt;
+    &lt;p id=&quot;gestureText&quot; class=&quot;gesture&quot;&gt;目前手勢：尚未偵測&lt;/p&gt;
 
-    <div class="buttons">
-      <button id="startBtn">開啟相機</button>
-      <button id="resetBtn">重新拍攝</button>
-      <button id="flashBtn">閃光燈：開</button>
-      <button id="downloadBtn">下載照片</button>
-    </div>
+    &lt;div class=&quot;buttons&quot;&gt;
+      &lt;button id=&quot;startBtn&quot;&gt;開啟相機&lt;/button&gt;
+      &lt;button id=&quot;resetBtn&quot;&gt;重新拍攝&lt;/button&gt;
+      &lt;button id=&quot;flashBtn&quot;&gt;閃光燈：開&lt;/button&gt;
+      &lt;button id=&quot;downloadBtn&quot;&gt;下載照片&lt;/button&gt;
+    &lt;/div&gt;
 
-    <section class="editor">
-      <h2>照片編輯</h2>
-      <div class="control-group">
-        <h3>濾鏡</h3>
-        <div id="filterControls" class="option-row"></div>
-      </div>
-      <div class="control-group">
-        <h3>特效</h3>
-        <div id="effectControls" class="option-row"></div>
-      </div>
-      <div class="control-group">
-        <h3>相框樣式</h3>
-        <div id="frameControls" class="option-row"></div>
-      </div>
-    </section>
+    &lt;section class=&quot;editor&quot;&gt;
+      &lt;h2&gt;照片編輯&lt;/h2&gt;
+      &lt;div class=&quot;control-group&quot;&gt;
+        &lt;h3&gt;濾鏡&lt;/h3&gt;
+        &lt;div id=&quot;filterControls&quot; class=&quot;option-row&quot;&gt;&lt;/div&gt;
+      &lt;/div&gt;
+      &lt;div class=&quot;control-group&quot;&gt;
+        &lt;h3&gt;特效&lt;/h3&gt;
+        &lt;div id=&quot;effectControls&quot; class=&quot;option-row&quot;&gt;&lt;/div&gt;
+      &lt;/div&gt;
+      &lt;div class=&quot;control-group&quot;&gt;
+        &lt;h3&gt;相框樣式&lt;/h3&gt;
+        &lt;div id=&quot;frameControls&quot; class=&quot;option-row&quot;&gt;&lt;/div&gt;
+      &lt;/div&gt;
+    &lt;/section&gt;
 
-    <section class="preview">
-      <h2>成品預覽</h2>
-      <canvas id="resultCanvas"></canvas>
-    </section>
-  </main>
+    &lt;section class=&quot;preview&quot;&gt;
+      &lt;h2&gt;成品預覽&lt;/h2&gt;
+      &lt;canvas id=&quot;resultCanvas&quot;&gt;&lt;/canvas&gt;
+    &lt;/section&gt;
+  &lt;/main&gt;
 
-  <script type="module" src="script.js"></script>
-</body>
-</html>
-```
-
-### style.css
-
-```css
-* {
+  &lt;script type=&quot;module&quot; src=&quot;script.js&quot;&gt;&lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+</code></pre>
+<h3>style.css</h3>
+<pre><code class="language-css">* {
   box-sizing: border-box;
 }
 
@@ -242,7 +375,7 @@ gesture-booth/
 
 body {
   margin: 0;
-  font-family: Arial, "Noto Sans TC", sans-serif;
+  font-family: Arial, &quot;Noto Sans TC&quot;, sans-serif;
   background: var(--bg);
   color: var(--text);
 }
@@ -371,35 +504,33 @@ button:hover { opacity: 0.85; }
   border-radius: 18px;
   box-shadow: 0 10px 24px var(--shadow);
 }
-```
-
-### script.js
-
-> 以下為完整 `script.js`，直接複製貼上即可使用。
-
-```js
-import {
+</code></pre>
+<h3>script.js</h3>
+<blockquote>
+<p>以下為完整 <code>script.js</code>，直接複製貼上即可使用。</p>
+</blockquote>
+<pre><code class="language-js">import {
   HandLandmarker,
   FilesetResolver
-} from "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14";
+} from &quot;https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14&quot;;
 
-const video = document.getElementById("video");
-const startBtn = document.getElementById("startBtn");
-const resetBtn = document.getElementById("resetBtn");
-const flashBtn = document.getElementById("flashBtn");
-const downloadBtn = document.getElementById("downloadBtn");
+const video = document.getElementById(&quot;video&quot;);
+const startBtn = document.getElementById(&quot;startBtn&quot;);
+const resetBtn = document.getElementById(&quot;resetBtn&quot;);
+const flashBtn = document.getElementById(&quot;flashBtn&quot;);
+const downloadBtn = document.getElementById(&quot;downloadBtn&quot;);
 
-const statusText = document.getElementById("status");
-const gestureText = document.getElementById("gestureText");
-const countdownText = document.getElementById("countdown");
-const flash = document.getElementById("flash");
+const statusText = document.getElementById(&quot;status&quot;);
+const gestureText = document.getElementById(&quot;gestureText&quot;);
+const countdownText = document.getElementById(&quot;countdown&quot;);
+const flash = document.getElementById(&quot;flash&quot;);
 
-const resultCanvas = document.getElementById("resultCanvas");
-const resultCtx = resultCanvas.getContext("2d");
+const resultCanvas = document.getElementById(&quot;resultCanvas&quot;);
+const resultCtx = resultCanvas.getContext(&quot;2d&quot;);
 
-const filterControls = document.getElementById("filterControls");
-const effectControls = document.getElementById("effectControls");
-const frameControls = document.getElementById("frameControls");
+const filterControls = document.getElementById(&quot;filterControls&quot;);
+const effectControls = document.getElementById(&quot;effectControls&quot;);
+const frameControls = document.getElementById(&quot;frameControls&quot;);
 
 let handLandmarker = null;
 let isCameraOn = false;
@@ -418,51 +549,51 @@ const stableTime = 350;
 
 let flashEnabled = true;
 
-let selectedFilter = "original";
-let selectedEffect = "none";
-let selectedFrame = "flashNight";
+let selectedFilter = &quot;original&quot;;
+let selectedEffect = &quot;none&quot;;
+let selectedFrame = &quot;flashNight&quot;;
 
 const frameImageCache = {};
 const punchedFrameCache = {};
 
 const filterOptions = {
   original: {
-    label: "原圖",
-    value: "none"
+    label: &quot;原圖&quot;,
+    value: &quot;none&quot;
   },
   japanese: {
-    label: "日系清透",
-    value: "brightness(120%) contrast(84%) saturate(78%)"
+    label: &quot;日系清透&quot;,
+    value: &quot;brightness(120%) contrast(84%) saturate(78%)&quot;
   },
   creamy: {
-    label: "韓系奶油",
-    value: "brightness(118%) contrast(94%) saturate(104%)"
+    label: &quot;韓系奶油&quot;,
+    value: &quot;brightness(118%) contrast(94%) saturate(104%)&quot;
   },
   vintage: {
-    label: "復古底片",
-    value: "sepia(72%) brightness(108%) contrast(112%) saturate(84%)"
+    label: &quot;復古底片&quot;,
+    value: &quot;sepia(72%) brightness(108%) contrast(112%) saturate(84%)&quot;
   },
   vivid: {
-    label: "高對比鮮豔",
-    value: "contrast(150%) saturate(165%) brightness(104%)"
+    label: &quot;高對比鮮豔&quot;,
+    value: &quot;contrast(150%) saturate(165%) brightness(104%)&quot;
   },
   blackwhite: {
-    label: "黑白拍貼",
-    value: "grayscale(100%) contrast(150%) brightness(106%)"
+    label: &quot;黑白拍貼&quot;,
+    value: &quot;grayscale(100%) contrast(150%) brightness(106%)&quot;
   }
 };
 
 const effectOptions = {
-  none: "無特效",
-  blur: "模糊",
-  mosaic: "馬賽克",
-  convex: "凸透鏡"
+  none: &quot;無特效&quot;,
+  blur: &quot;模糊&quot;,
+  mosaic: &quot;馬賽克&quot;,
+  convex: &quot;凸透鏡&quot;
 };
 
 const frameOptions = {
   pinkMusic: {
-    label: "粉紅 Music",
-    src: "/frames/pink-music.png",
+    label: &quot;粉紅 Music&quot;,
+    src: &quot;/frames/pink-music.png&quot;,
     boxes: [
       { x: 0.273, y: 0.054, w: 0.452, h: 0.196 },
       { x: 0.273, y: 0.276, w: 0.452, h: 0.197 },
@@ -472,8 +603,8 @@ const frameOptions = {
   },
 
   whiteSeoul: {
-    label: "白色 Seoul",
-    src: "/frames/white-seoul.png",
+    label: &quot;白色 Seoul&quot;,
+    src: &quot;/frames/white-seoul.png&quot;,
     boxes: [
       { x: 0.247, y: 0.060, w: 0.570, h: 0.182 },
       { x: 0.198, y: 0.264, w: 0.618, h: 0.185 },
@@ -483,8 +614,8 @@ const frameOptions = {
   },
 
   angelWing: {
-    label: "天使羽翼",
-    src: "/frames/angel-wing.png",
+    label: &quot;天使羽翼&quot;,
+    src: &quot;/frames/angel-wing.png&quot;,
     boxes: [
       { x: 0.183, y: 0.076, w: 0.633, h: 0.189 },
       { x: 0.183, y: 0.271, w: 0.632, h: 0.190 },
@@ -494,8 +625,8 @@ const frameOptions = {
   },
 
   pinkHeart: {
-    label: "粉光愛心",
-    src: "/frames/pink-heart.png",
+    label: &quot;粉光愛心&quot;,
+    src: &quot;/frames/pink-heart.png&quot;,
     boxes: [
       { x: 0.303, y: 0.059, w: 0.396, h: 0.172 },
       { x: 0.299, y: 0.261, w: 0.405, h: 0.178 },
@@ -505,8 +636,8 @@ const frameOptions = {
   },
 
   fullBlack: {
-    label: "全黑 Y2K",
-    src: "/frames/full-black.png",
+    label: &quot;全黑 Y2K&quot;,
+    src: &quot;/frames/full-black.png&quot;,
     boxes: [
       { x: 0.240, y: 0.106, w: 0.525, h: 0.178 },
       { x: 0.239, y: 0.306, w: 0.518, h: 0.175 },
@@ -516,8 +647,8 @@ const frameOptions = {
   },
 
   blackDigital: {
-    label: "黑灰 Y2K",
-    src: "/frames/black-digital.png",
+    label: &quot;黑灰 Y2K&quot;,
+    src: &quot;/frames/black-digital.png&quot;,
     boxes: [
       { x: 0.138, y: 0.154, w: 0.345, h: 0.330 },
       { x: 0.515, y: 0.154, w: 0.348, h: 0.330 },
@@ -527,8 +658,8 @@ const frameOptions = {
   },
 
   flashNight: {
-    label: "Flash Night",
-    src: "/frames/flash-night.png",
+    label: &quot;Flash Night&quot;,
+    src: &quot;/frames/flash-night.png&quot;,
     boxes: [
       { x: 0.147, y: 0.156, w: 0.332, h: 0.336 },
       { x: 0.522, y: 0.155, w: 0.332, h: 0.336 },
@@ -538,8 +669,8 @@ const frameOptions = {
   },
 
   pixelStar: {
-    label: "Pixel Star",
-    src: "/frames/pixel-star.png",
+    label: &quot;Pixel Star&quot;,
+    src: &quot;/frames/pixel-star.png&quot;,
     boxes: [
       { x: 0.125, y: 0.153, w: 0.349, h: 0.321 },
       { x: 0.527, y: 0.153, w: 0.344, h: 0.322 },
@@ -549,10 +680,10 @@ const frameOptions = {
   },
 
   silverMeta: {
-    label: "銀色金屬",
-    src: "/frames/silver-meta.png",
-    clipShape: "ellipse",
-    background: "#000000",
+    label: &quot;銀色金屬&quot;,
+    src: &quot;/frames/silver-meta.png&quot;,
+    clipShape: &quot;ellipse&quot;,
+    background: &quot;#000000&quot;,
     boxes: [
       { cx: 0.289, cy: 0.339, rx: 0.188, ry: 0.123 },
       { cx: 0.714, cy: 0.339, rx: 0.188, ry: 0.123 },
@@ -562,53 +693,53 @@ const frameOptions = {
   }
 };
 
-startBtn.addEventListener("click", async () => {
+startBtn.addEventListener(&quot;click&quot;, async () =&gt; {
   try {
-    statusText.textContent = "正在開啟相機...";
-    gestureText.textContent = "準備啟動手勢偵測...";
+    statusText.textContent = &quot;正在開啟相機...&quot;;
+    gestureText.textContent = &quot;準備啟動手勢偵測...&quot;;
 
     await setupCamera();
 
-    statusText.textContent = "相機已開啟，正在載入手勢模型...";
+    statusText.textContent = &quot;相機已開啟，正在載入手勢模型...&quot;;
 
     await setupHandLandmarker();
 
-    statusText.textContent = "手勢模型已載入，請比 1 拍第 1 格";
-    gestureText.textContent = "請把手放到鏡頭中央";
+    statusText.textContent = &quot;手勢模型已載入，請比 1 拍第 1 格&quot;;
+    gestureText.textContent = &quot;請把手放到鏡頭中央&quot;;
 
     if (!isDetecting) {
       isDetecting = true;
       requestAnimationFrame(detectLoop);
     }
   } catch (error) {
-    console.error("啟動失敗：", error);
+    console.error(&quot;啟動失敗：&quot;, error);
     statusText.textContent = `啟動失敗：${error.name || error.message}`;
-    gestureText.textContent = "請確認相機權限、HTTPS 網址與網路連線";
+    gestureText.textContent = &quot;請確認相機權限、HTTPS 網址與網路連線&quot;;
   }
 });
 
-resetBtn.addEventListener("click", async () => {
+resetBtn.addEventListener(&quot;click&quot;, async () =&gt; {
   currentSlot = 1;
   photos = [];
   isCapturing = false;
   lastFingerCount = 0;
   gestureStableStart = 0;
 
-  statusText.textContent = "已重新開始，請比 1 拍第 1 格";
-  gestureText.textContent = "目前手勢：尚未偵測";
+  statusText.textContent = &quot;已重新開始，請比 1 拍第 1 格&quot;;
+  gestureText.textContent = &quot;目前手勢：尚未偵測&quot;;
 
   await drawFinalPhoto();
 });
 
-flashBtn.addEventListener("click", () => {
+flashBtn.addEventListener(&quot;click&quot;, () =&gt; {
   flashEnabled = !flashEnabled;
-  flashBtn.textContent = flashEnabled ? "閃光燈：開" : "閃光燈：關";
+  flashBtn.textContent = flashEnabled ? &quot;閃光燈：開&quot; : &quot;閃光燈：關&quot;;
 });
 
-downloadBtn.addEventListener("click", async () => {
+downloadBtn.addEventListener(&quot;click&quot;, async () =&gt; {
   const photoCount = photos.filter(Boolean).length;
 
-  if (photoCount < 4) {
+  if (photoCount &lt; 4) {
     alert(`目前只拍了 ${photoCount} 張，請先完成四格拍照！`);
     return;
   }
@@ -616,13 +747,13 @@ downloadBtn.addEventListener("click", async () => {
   try {
     await drawFinalPhoto();
 
-    const link = document.createElement("a");
-    link.download = "photobooth.png";
-    link.href = resultCanvas.toDataURL("image/png");
+    const link = document.createElement(&quot;a&quot;);
+    link.download = &quot;photobooth.png&quot;;
+    link.href = resultCanvas.toDataURL(&quot;image/png&quot;);
     link.click();
   } catch (error) {
-    console.error("下載失敗：", error);
-    alert("下載失敗，請檢查相框圖片是否成功載入。");
+    console.error(&quot;下載失敗：&quot;, error);
+    alert(&quot;下載失敗，請檢查相框圖片是否成功載入。&quot;);
   }
 });
 
@@ -631,7 +762,7 @@ async function setupCamera() {
 
   const stream = await navigator.mediaDevices.getUserMedia({
     video: {
-      facingMode: "user",
+      facingMode: &quot;user&quot;,
       width: { ideal: 720 },
       height: { ideal: 960 }
     },
@@ -640,8 +771,8 @@ async function setupCamera() {
 
   video.srcObject = stream;
 
-  await new Promise((resolve) => {
-    video.onloadedmetadata = () => {
+  await new Promise((resolve) =&gt; {
+    video.onloadedmetadata = () =&gt; {
       video.play();
       resolve();
     };
@@ -654,16 +785,16 @@ async function setupHandLandmarker() {
   if (handLandmarker) return;
 
   const vision = await FilesetResolver.forVisionTasks(
-    "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/wasm"
+    &quot;https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/wasm&quot;
   );
 
   handLandmarker = await HandLandmarker.createFromOptions(vision, {
     baseOptions: {
       modelAssetPath:
-        "https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task",
-      delegate: "GPU"
+        &quot;https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task&quot;,
+      delegate: &quot;GPU&quot;
     },
-    runningMode: "VIDEO",
+    runningMode: &quot;VIDEO&quot;,
     numHands: 1,
     minHandDetectionConfidence: 0.2,
     minHandPresenceConfidence: 0.2,
@@ -676,13 +807,13 @@ function detectLoop() {
 
   if (!isCameraOn || !handLandmarker) return;
 
-  if (video.readyState < 2 || video.videoWidth === 0 || video.videoHeight === 0) {
+  if (video.readyState &lt; 2 || video.videoWidth === 0 || video.videoHeight === 0) {
     return;
   }
 
   const now = performance.now();
 
-  if (now - lastDetectTime < detectInterval) {
+  if (now - lastDetectTime &lt; detectInterval) {
     return;
   }
 
@@ -693,12 +824,12 @@ function detectLoop() {
   try {
     results = handLandmarker.detectForVideo(video, now);
   } catch (error) {
-    console.error("detectForVideo 錯誤：", error);
-    gestureText.textContent = "手勢偵測錯誤，請重新整理網頁";
+    console.error(&quot;detectForVideo 錯誤：&quot;, error);
+    gestureText.textContent = &quot;手勢偵測錯誤，請重新整理網頁&quot;;
     return;
   }
 
-  if (results.landmarks && results.landmarks.length > 0) {
+  if (results.landmarks &amp;&amp; results.landmarks.length &gt; 0) {
     const fingerCount = countFingers(results.landmarks[0]);
 
     gestureText.textContent =
@@ -706,7 +837,7 @@ function detectLoop() {
 
     checkGestureAndCapture(fingerCount);
   } else {
-    gestureText.textContent = "模型已啟動，但目前沒有偵測到手";
+    gestureText.textContent = &quot;模型已啟動，但目前沒有偵測到手&quot;;
   }
 }
 
@@ -718,13 +849,13 @@ function checkGestureAndCapture(fingerCount) {
     gestureStableStart = now;
   }
 
-  const isStable = now - gestureStableStart >= stableTime;
+  const isStable = now - gestureStableStart &gt;= stableTime;
 
   if (
-    fingerCount === currentSlot &&
-    isStable &&
-    !isCapturing &&
-    currentSlot <= 4
+    fingerCount === currentSlot &amp;&amp;
+    isStable &amp;&amp;
+    !isCapturing &amp;&amp;
+    currentSlot &lt;= 4
   ) {
     captureWithCountdown(currentSlot);
   }
@@ -741,14 +872,14 @@ function countFingers(landmarks) {
     { tip: 20, pip: 18 }
   ];
 
-  fingers.forEach((finger) => {
+  fingers.forEach((finger) =&gt; {
     const tip = landmarks[finger.tip];
     const pip = landmarks[finger.pip];
 
     const tipDistance = distance(tip, wrist);
     const pipDistance = distance(pip, wrist);
 
-    if (tipDistance > pipDistance * 1.15) {
+    if (tipDistance &gt; pipDistance * 1.15) {
       count++;
     }
   });
@@ -769,36 +900,36 @@ async function captureWithCountdown(slot) {
   statusText.textContent = `偵測到 ${slot} 根手指，準備拍第 ${slot} 格`;
 
   try {
-    for (let i = 3; i > 0; i--) {
+    for (let i = 3; i &gt; 0; i--) {
       countdownText.textContent = i;
       await wait(700);
     }
 
-    countdownText.textContent = "拍！";
+    countdownText.textContent = &quot;拍！&quot;;
     await flashScreen();
 
     const photo = capturePhoto();
 
     photos[slot - 1] = photo;
 
-    countdownText.textContent = "";
+    countdownText.textContent = &quot;&quot;;
 
     try {
       await drawFinalPhoto();
     } catch (error) {
-      console.error("成品預覽繪製失敗：", error);
-      statusText.textContent = "照片已拍下，但相框載入失敗，請檢查 frames 檔名";
+      console.error(&quot;成品預覽繪製失敗：&quot;, error);
+      statusText.textContent = &quot;照片已拍下，但相框載入失敗，請檢查 frames 檔名&quot;;
     }
 
-    if (currentSlot < 4) {
+    if (currentSlot &lt; 4) {
       currentSlot++;
       statusText.textContent = `第 ${slot} 格完成，請比 ${currentSlot} 拍第 ${currentSlot} 格`;
     } else {
-      statusText.textContent = "四格拍照完成，可以開始編輯與下載！";
+      statusText.textContent = &quot;四格拍照完成，可以開始編輯與下載！&quot;;
     }
   } catch (error) {
-    console.error("拍照流程錯誤：", error);
-    statusText.textContent = "拍照流程發生錯誤，請看 Console";
+    console.error(&quot;拍照流程錯誤：&quot;, error);
+    statusText.textContent = &quot;拍照流程發生錯誤，請看 Console&quot;;
   }
 
   await wait(900);
@@ -811,15 +942,15 @@ async function flashScreen() {
     return;
   }
 
-  flash.classList.add("active");
+  flash.classList.add(&quot;active&quot;);
   await wait(120);
-  flash.classList.remove("active");
+  flash.classList.remove(&quot;active&quot;);
   await wait(150);
 }
 
 function capturePhoto() {
-  const canvas = document.createElement("canvas");
-  const ctx = canvas.getContext("2d");
+  const canvas = document.createElement(&quot;canvas&quot;);
+  const ctx = canvas.getContext(&quot;2d&quot;);
 
   canvas.width = video.videoWidth;
   canvas.height = video.videoHeight;
@@ -834,21 +965,21 @@ function capturePhoto() {
 }
 
 function createProcessedPhoto(sourceCanvas) {
-  const temp = document.createElement("canvas");
-  const tempCtx = temp.getContext("2d");
+  const temp = document.createElement(&quot;canvas&quot;);
+  const tempCtx = temp.getContext(&quot;2d&quot;);
 
   temp.width = sourceCanvas.width;
   temp.height = sourceCanvas.height;
 
   tempCtx.filter = filterOptions[selectedFilter].value;
   tempCtx.drawImage(sourceCanvas, 0, 0);
-  tempCtx.filter = "none";
+  tempCtx.filter = &quot;none&quot;;
 
-  if (selectedEffect === "blur") {
+  if (selectedEffect === &quot;blur&quot;) {
     applyBlurEffect(temp);
-  } else if (selectedEffect === "mosaic") {
+  } else if (selectedEffect === &quot;mosaic&quot;) {
     applyMosaicEffect(temp, 14);
-  } else if (selectedEffect === "convex") {
+  } else if (selectedEffect === &quot;convex&quot;) {
     applyConvexEffect(temp);
   }
 
@@ -856,30 +987,30 @@ function createProcessedPhoto(sourceCanvas) {
 }
 
 function applyBlurEffect(canvas) {
-  const copy = document.createElement("canvas");
-  const copyCtx = copy.getContext("2d");
+  const copy = document.createElement(&quot;canvas&quot;);
+  const copyCtx = copy.getContext(&quot;2d&quot;);
 
   copy.width = canvas.width;
   copy.height = canvas.height;
   copyCtx.drawImage(canvas, 0, 0);
 
-  const ctx = canvas.getContext("2d");
+  const ctx = canvas.getContext(&quot;2d&quot;);
   ctx.clearRect(0, 0, canvas.width, canvas.height);
-  ctx.filter = "blur(5px)";
+  ctx.filter = &quot;blur(5px)&quot;;
   ctx.drawImage(copy, 0, 0);
-  ctx.filter = "none";
+  ctx.filter = &quot;none&quot;;
 }
 
 function applyMosaicEffect(canvas, blockSize) {
-  const ctx = canvas.getContext("2d");
+  const ctx = canvas.getContext(&quot;2d&quot;);
   const width = canvas.width;
   const height = canvas.height;
 
   const imageData = ctx.getImageData(0, 0, width, height);
   const data = imageData.data;
 
-  for (let y = 0; y < height; y += blockSize) {
-    for (let x = 0; x < width; x += blockSize) {
+  for (let y = 0; y &lt; height; y += blockSize) {
+    for (let x = 0; x &lt; width; x += blockSize) {
       const index = (y * width + x) * 4;
 
       const r = data[index];
@@ -893,7 +1024,7 @@ function applyMosaicEffect(canvas, blockSize) {
 }
 
 function applyConvexEffect(canvas) {
-  const ctx = canvas.getContext("2d");
+  const ctx = canvas.getContext(&quot;2d&quot;);
   const width = canvas.width;
   const height = canvas.height;
 
@@ -907,8 +1038,8 @@ function applyConvexEffect(canvas) {
   const cy = height / 2;
   const r = Math.min(width, height) / 2.3;
 
-  for (let y = 0; y < height; y++) {
-    for (let x = 0; x < width; x++) {
+  for (let y = 0; y &lt; height; y++) {
+    for (let x = 0; x &lt; width; x++) {
       const dx = x - cx;
       const dy = y - cy;
       const d = Math.sqrt(dx * dx + dy * dy);
@@ -916,7 +1047,7 @@ function applyConvexEffect(canvas) {
       let sx = x;
       let sy = y;
 
-      if (d <= r) {
+      if (d &lt;= r) {
         sx = Math.floor((dx * d) / r + cx);
         sy = Math.floor((dy * d) / r + cy);
       }
@@ -940,15 +1071,15 @@ function applyConvexEffect(canvas) {
 async function loadImage(src) {
   if (frameImageCache[src]) return frameImageCache[src];
 
-  return new Promise((resolve, reject) => {
+  return new Promise((resolve, reject) =&gt; {
     const img = new Image();
 
-    img.onload = () => {
+    img.onload = () =&gt; {
       frameImageCache[src] = img;
       resolve(img);
     };
 
-    img.onerror = () => {
+    img.onerror = () =&gt; {
       reject(new Error(`圖片載入失敗：${src}`));
     };
 
@@ -969,19 +1100,19 @@ async function drawFinalPhoto() {
     resultCanvas.width = 1080;
     resultCanvas.height = 1920;
 
-    resultCtx.fillStyle = "#ffffff";
+    resultCtx.fillStyle = &quot;#ffffff&quot;;
     resultCtx.fillRect(0, 0, resultCanvas.width, resultCanvas.height);
 
-    resultCtx.fillStyle = "#111";
-    resultCtx.font = "42px Arial";
-    resultCtx.textAlign = "center";
+    resultCtx.fillStyle = &quot;#111&quot;;
+    resultCtx.font = &quot;42px Arial&quot;;
+    resultCtx.textAlign = &quot;center&quot;;
     resultCtx.fillText(
-      "相框載入失敗",
+      &quot;相框載入失敗&quot;,
       resultCanvas.width / 2,
       resultCanvas.height / 2 - 30
     );
 
-    resultCtx.font = "28px Arial";
+    resultCtx.font = &quot;28px Arial&quot;;
     resultCtx.fillText(
       frame.src,
       resultCanvas.width / 2,
@@ -1011,22 +1142,22 @@ async function drawFinalPhoto() {
 }
 
 function isHolePixel(r, g, b, a) {
-  if (a < 20) {
+  if (a &lt; 20) {
     return true;
   }
 
-  if (a < 245) {
+  if (a &lt; 245) {
     return true;
   }
 
   const avg = (r + g + b) / 3;
   const spread = Math.max(r, g, b) - Math.min(r, g, b);
 
-  if (avg > 236 && spread < 18) {
+  if (avg &gt; 236 &amp;&amp; spread &lt; 18) {
     return true;
   }
 
-  if (r > 232 && g > 145 && g < 230 && b > 165 && b < 250) {
+  if (r &gt; 232 &amp;&amp; g &gt; 145 &amp;&amp; g &lt; 230 &amp;&amp; b &gt; 165 &amp;&amp; b &lt; 250) {
     return true;
   }
 
@@ -1034,13 +1165,13 @@ function isHolePixel(r, g, b, a) {
 }
 
 function isInsideBox(x, y, rect, clipShape) {
-  if (clipShape === "ellipse") {
+  if (clipShape === &quot;ellipse&quot;) {
     const dx = (x - rect.cx) / rect.rx;
     const dy = (y - rect.cy) / rect.ry;
-    return dx * dx + dy * dy <= 1;
+    return dx * dx + dy * dy &lt;= 1;
   }
 
-  return x >= rect.x && x <= rect.x + rect.w && y >= rect.y && y <= rect.y + rect.h;
+  return x &gt;= rect.x &amp;&amp; x &lt;= rect.x + rect.w &amp;&amp; y &gt;= rect.y &amp;&amp; y &lt;= rect.y + rect.h;
 }
 
 function buildFrameWithPunchedHoles(frameImg, frame, canvasW, canvasH) {
@@ -1050,25 +1181,25 @@ function buildFrameWithPunchedHoles(frameImg, frame, canvasW, canvasH) {
     return punchedFrameCache[cacheKey];
   }
 
-  const temp = document.createElement("canvas");
+  const temp = document.createElement(&quot;canvas&quot;);
   temp.width = canvasW;
   temp.height = canvasH;
-  const tempCtx = temp.getContext("2d");
+  const tempCtx = temp.getContext(&quot;2d&quot;);
   tempCtx.drawImage(frameImg, 0, 0, canvasW, canvasH);
 
   const imageData = tempCtx.getImageData(0, 0, canvasW, canvasH);
   const data = imageData.data;
 
-  frame.boxes.forEach((box) => {
-    const clipShape = box.shape || frame.clipShape || "rect";
+  frame.boxes.forEach((box) =&gt; {
+    const clipShape = box.shape || frame.clipShape || &quot;rect&quot;;
     const rect = getBoxMetrics(box, canvasW, canvasH);
     const x0 = Math.max(0, Math.floor(rect.x));
     const y0 = Math.max(0, Math.floor(rect.y));
     const x1 = Math.min(canvasW - 1, Math.ceil(rect.x + rect.w));
     const y1 = Math.min(canvasH - 1, Math.ceil(rect.y + rect.h));
 
-    for (let y = y0; y <= y1; y++) {
-      for (let x = x0; x <= x1; x++) {
+    for (let y = y0; y &lt;= y1; y++) {
+      for (let x = x0; x &lt;= x1; x++) {
         if (!isInsideBox(x, y, rect, clipShape)) {
           continue;
         }
@@ -1092,14 +1223,14 @@ function buildFrameWithPunchedHoles(frameImg, frame, canvasW, canvasH) {
 }
 
 function drawPhotosIntoFrame(frame, canvasW, canvasH) {
-  frame.boxes.forEach((box, index) => {
+  frame.boxes.forEach((box, index) =&gt; {
     if (!photos[index]) return;
 
     const processed = createProcessedPhoto(photos[index]);
-    const clipShape = box.shape || frame.clipShape || "rect";
+    const clipShape = box.shape || frame.clipShape || &quot;rect&quot;;
     const rect = getBoxMetrics(box, canvasW, canvasH);
 
-    if (clipShape === "ellipse") {
+    if (clipShape === &quot;ellipse&quot;) {
       drawPhotoInEllipse(resultCtx, processed, rect.cx, rect.cy, rect.rx, rect.ry);
       return;
     }
@@ -1149,18 +1280,18 @@ function drawPhotoInRect(ctx, img, x, y, w, h, radius) {
   const iw = Math.max(1, Math.round(w));
   const ih = Math.max(1, Math.round(h));
 
-  const temp = document.createElement("canvas");
+  const temp = document.createElement(&quot;canvas&quot;);
   temp.width = iw;
   temp.height = ih;
-  const tempCtx = temp.getContext("2d");
+  const tempCtx = temp.getContext(&quot;2d&quot;);
 
   drawImageCover(tempCtx, img, 0, 0, iw, ih);
 
-  tempCtx.globalCompositeOperation = "destination-in";
+  tempCtx.globalCompositeOperation = &quot;destination-in&quot;;
   roundRectPath(tempCtx, 0, 0, iw, ih, radius);
-  tempCtx.fillStyle = "#000";
+  tempCtx.fillStyle = &quot;#000&quot;;
   tempCtx.fill();
-  tempCtx.globalCompositeOperation = "source-over";
+  tempCtx.globalCompositeOperation = &quot;source-over&quot;;
 
   ctx.drawImage(temp, x, y, w, h);
 }
@@ -1169,19 +1300,19 @@ function drawPhotoInEllipse(ctx, img, cx, cy, rx, ry) {
   const w = Math.max(1, Math.round(rx * 2));
   const h = Math.max(1, Math.round(ry * 2));
 
-  const temp = document.createElement("canvas");
+  const temp = document.createElement(&quot;canvas&quot;);
   temp.width = w;
   temp.height = h;
-  const tempCtx = temp.getContext("2d");
+  const tempCtx = temp.getContext(&quot;2d&quot;);
 
   drawImageCover(tempCtx, img, 0, 0, w, h);
 
-  tempCtx.globalCompositeOperation = "destination-in";
+  tempCtx.globalCompositeOperation = &quot;destination-in&quot;;
   tempCtx.beginPath();
   tempCtx.ellipse(w / 2, h / 2, w / 2, h / 2, 0, 0, Math.PI * 2);
-  tempCtx.fillStyle = "#000";
+  tempCtx.fillStyle = &quot;#000&quot;;
   tempCtx.fill();
-  tempCtx.globalCompositeOperation = "source-over";
+  tempCtx.globalCompositeOperation = &quot;source-over&quot;;
 
   ctx.drawImage(temp, cx - rx, cy - ry);
 }
@@ -1209,7 +1340,7 @@ function drawImageCover(ctx, img, x, y, w, h) {
   let sw;
   let sh;
 
-  if (imgRatio > boxRatio) {
+  if (imgRatio &gt; boxRatio) {
     sh = img.height;
     sw = sh * boxRatio;
     sx = (img.width - sw) / 2;
@@ -1225,46 +1356,46 @@ function drawImageCover(ctx, img, x, y, w, h) {
 }
 
 function renderControls() {
-  renderButtonGroup(filterControls, filterOptions, selectedFilter, async (key) => {
+  renderButtonGroup(filterControls, filterOptions, selectedFilter, async (key) =&gt; {
     selectedFilter = key;
 
-    if (photos.filter(Boolean).length > 0) {
+    if (photos.filter(Boolean).length &gt; 0) {
       await drawFinalPhoto();
     }
   });
 
-  renderButtonGroup(effectControls, effectOptions, selectedEffect, async (key) => {
+  renderButtonGroup(effectControls, effectOptions, selectedEffect, async (key) =&gt; {
     selectedEffect = key;
 
-    if (photos.filter(Boolean).length > 0) {
+    if (photos.filter(Boolean).length &gt; 0) {
       await drawFinalPhoto();
     }
   });
 
-  renderButtonGroup(frameControls, frameOptions, selectedFrame, async (key) => {
+  renderButtonGroup(frameControls, frameOptions, selectedFrame, async (key) =&gt; {
     selectedFrame = key;
 
     try {
       await drawFinalPhoto();
     } catch (error) {
-      console.error("切換相框失敗：", error);
-      statusText.textContent = "切換相框失敗，請檢查 frames 檔案";
+      console.error(&quot;切換相框失敗：&quot;, error);
+      statusText.textContent = &quot;切換相框失敗，請檢查 frames 檔案&quot;;
     }
   });
 }
 
 function renderButtonGroup(container, options, selectedKey, onClick) {
-  container.innerHTML = "";
+  container.innerHTML = &quot;&quot;;
 
-  Object.entries(options).forEach(([key, value]) => {
-    const btn = document.createElement("button");
-    btn.textContent = typeof value === "string" ? value : value.label;
+  Object.entries(options).forEach(([key, value]) =&gt; {
+    const btn = document.createElement(&quot;button&quot;);
+    btn.textContent = typeof value === &quot;string&quot; ? value : value.label;
 
     if (key === selectedKey) {
-      btn.classList.add("active");
+      btn.classList.add(&quot;active&quot;);
     }
 
-    btn.addEventListener("click", async () => {
+    btn.addEventListener(&quot;click&quot;, async () =&gt; {
       await onClick(key);
       renderControls();
     });
@@ -1274,48 +1405,40 @@ function renderButtonGroup(container, options, selectedKey, onClick) {
 }
 
 function wait(ms) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
+  return new Promise((resolve) =&gt; setTimeout(resolve, ms));
 }
 
 renderControls();
 
-drawFinalPhoto().catch((error) => {
-  console.error("初始相框載入失敗：", error);
-  statusText.textContent = "初始相框載入失敗，請檢查 frames 檔案";
+drawFinalPhoto().catch((error) =&gt; {
+  console.error(&quot;初始相框載入失敗：&quot;, error);
+  statusText.textContent = &quot;初始相框載入失敗，請檢查 frames 檔案&quot;;
 });
-```
-
----
-
-## 本地執行
-
-```bash
-cd gesture-booth
+</code></pre>
+<hr>
+<h2>本地執行</h2>
+<pre><code class="language-bash">cd gesture-booth
 python3 -m http.server 8080
-```
-
-開啟瀏覽器：`http://localhost:8080`
-
-### 操作步驟
-
-1. 點「開啟相機」，允許相機權限
-2. 依序比 1、2、3、4 根手指各拍一格
-3. 選濾鏡、特效、相框
-4. 點「下載照片」儲存 PNG
-
----
-
-## 新增相框指南
-
-1. 將 PNG 放入 `frames/` 目錄
-2. 在 `frameOptions` 加一個新項目：
-
-```js
-myFrame: {
-  label: "我的相框",
-  src: "/frames/my-frame.png",
-  // 橢圓洞加這行：clipShape: "ellipse",
-  // 需要背景色加這行：background: "#000000",
+</code></pre>
+<p>開啟瀏覽器：<code>http://localhost:8080</code></p>
+<h3>操作步驟</h3>
+<ol>
+<li>點「開啟相機」，允許相機權限</li>
+<li>依序比 1、2、3、4 根手指各拍一格</li>
+<li>選濾鏡、特效、相框</li>
+<li>點「下載照片」儲存 PNG</li>
+</ol>
+<hr>
+<h2>新增相框指南</h2>
+<ol>
+<li>將 PNG 放入 <code>frames/</code> 目錄</li>
+<li>在 <code>frameOptions</code> 加一個新項目：</li>
+</ol>
+<pre><code class="language-js">myFrame: {
+  label: &quot;我的相框&quot;,
+  src: &quot;/frames/my-frame.png&quot;,
+  // 橢圓洞加這行：clipShape: &quot;ellipse&quot;,
+  // 需要背景色加這行：background: &quot;#000000&quot;,
   boxes: [
     { x: 0.15, y: 0.10, w: 0.70, h: 0.20 }, // 格 1
     { x: 0.15, y: 0.35, w: 0.70, h: 0.20 }, // 格 2
@@ -1323,22 +1446,23 @@ myFrame: {
     { x: 0.15, y: 0.78, w: 0.70, h: 0.20 }  // 格 4
   ]
 }
-```
+</code></pre>
+<ol start="3">
+<li>用 Python + Pillow 量測洞的比例座標：</li>
+</ol>
+<pre><code class="language-python">from PIL import Image
 
-3. 用 Python + Pillow 量測洞的比例座標：
-
-```python
-from PIL import Image
-
-img = Image.open("frames/my-frame.png").convert("RGBA")
+img = Image.open(&quot;frames/my-frame.png&quot;).convert(&quot;RGBA&quot;)
 w, h = img.size
 p = img.load()
 
 # 在洞的中心點採樣，確認 rgba 值
 x, y = int(w * 0.5), int(h * 0.2)
 print(p[x, y])  # (r, g, b, a)
-```
+</code></pre>
+<hr>
+<p><em>最後更新：2026-06-01</em></p>
 
----
-
-*最後更新：2026-06-01*
+</main>
+</body>
+</html>
