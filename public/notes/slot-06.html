@@ -1,12 +1,1268 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Slot 06</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SNN N! Ordering Space — POC Report</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Noto+Serif+TC:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --ink:     #0a0a08;
+  --paper:   #f5f2eb;
+  --paper2:  #ede9df;
+  --paper3:  #e3ddd0;
+  --rule:    rgba(10,10,8,0.12);
+  --rule2:   rgba(10,10,8,0.06);
+  --red:     #c0392b;
+  --red2:    #e74c3c;
+  --gold:    #b8860b;
+  --green:   #1a6b3c;
+  --blue:    #1a3a6b;
+  --mono:    'Space Mono', monospace;
+  --sans:    'Syne', sans-serif;
+  --serif:   'Noto Serif TC', serif;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--serif);
+  font-size: 15px;
+  line-height: 1.8;
+}
+
+/* ── MASTHEAD ── */
+.masthead {
+  background: var(--ink);
+  color: var(--paper);
+  padding: 4rem 5vw 3rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.masthead::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    0deg, transparent, transparent 39px,
+    rgba(255,255,255,0.03) 39px, rgba(255,255,255,0.03) 40px
+  );
+}
+
+.masthead-inner { position: relative; max-width: 1100px; margin: 0 auto; }
+
+.masthead-label {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: rgba(245,242,235,0.4);
+  margin-bottom: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.masthead-label::before {
+  content: '';
+  display: inline-block;
+  width: 32px;
+  height: 1px;
+  background: rgba(245,242,235,0.3);
+}
+
+.masthead h1 {
+  font-family: var(--sans);
+  font-size: clamp(2.5rem, 6vw, 5rem);
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.03em;
+  margin-bottom: 1rem;
+}
+
+.masthead h1 .accent { color: #e8d5a3; }
+
+.masthead-sub {
+  font-family: var(--sans);
+  font-size: clamp(1rem, 2vw, 1.25rem);
+  font-weight: 400;
+  color: rgba(245,242,235,0.6);
+  max-width: 600px;
+  margin-bottom: 2.5rem;
+  line-height: 1.5;
+}
+
+.masthead-meta {
+  display: flex;
+  gap: 2rem;
+  flex-wrap: wrap;
+}
+
+.meta-item {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(245,242,235,0.4);
+}
+
+.meta-item span {
+  display: block;
+  font-size: 13px;
+  color: rgba(245,242,235,0.8);
+  margin-top: 2px;
+  letter-spacing: 0;
+}
+
+/* ── LAYOUT ── */
+.body-wrap {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 0 5vw;
+}
+
+/* ── NAV ── */
+.toc {
+  background: var(--ink);
+  color: var(--paper);
+  padding: 0;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  border-bottom: 2px solid var(--red);
+}
+
+.toc-inner {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 0 5vw;
+  display: flex;
+  align-items: stretch;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.toc-inner::-webkit-scrollbar { display: none; }
+
+.toc-item {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(245,242,235,0.45);
+  text-decoration: none;
+  padding: 14px 16px;
+  border-right: 1px solid rgba(255,255,255,0.06);
+  transition: all 0.15s;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.toc-item:hover { color: var(--paper); background: rgba(255,255,255,0.05); }
+.toc-item.active { color: #e8d5a3; border-bottom: 2px solid #e8d5a3; }
+
+.toc-num {
+  font-size: 8px;
+  opacity: 0.4;
+}
+
+/* ── SECTION ── */
+.section {
+  padding: 5rem 0;
+  border-bottom: 1px solid var(--rule);
+  scroll-margin-top: 48px;
+}
+
+.section:last-child { border-bottom: none; }
+
+.section-header {
+  display: grid;
+  grid-template-columns: 48px 1fr;
+  gap: 0 1.5rem;
+  align-items: start;
+  margin-bottom: 3rem;
+}
+
+.section-num {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: rgba(10,10,8,0.25);
+  padding-top: 6px;
+  letter-spacing: 0.1em;
+}
+
+.section-title {
+  font-family: var(--sans);
+  font-size: clamp(1.5rem, 3vw, 2.25rem);
+  font-weight: 700;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+}
+
+.section-title-zh {
+  font-family: var(--serif);
+  font-size: 0.65em;
+  font-weight: 300;
+  color: rgba(10,10,8,0.4);
+  display: block;
+  margin-top: 4px;
+  letter-spacing: 0;
+}
+
+/* ── PROSE ── */
+.prose {
+  grid-column: 2;
+  max-width: 680px;
+}
+
+.prose p {
+  color: rgba(10,10,8,0.75);
+  margin-bottom: 1.2rem;
+  font-size: 14.5px;
+}
+
+.prose p:last-child { margin-bottom: 0; }
+
+/* ── DEFINITION ── */
+.def-block {
+  border-left: 3px solid var(--ink);
+  padding: 1rem 1.25rem;
+  margin: 1.5rem 0;
+  background: var(--paper2);
+}
+
+.def-term {
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.5rem;
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+}
+
+.def-term .zh {
+  font-family: var(--serif);
+  font-size: 13px;
+  font-weight: 400;
+  color: rgba(10,10,8,0.5);
+  letter-spacing: 0.05em;
+}
+
+.def-body {
+  font-size: 13.5px;
+  color: rgba(10,10,8,0.7);
+  line-height: 1.7;
+}
+
+.def-math {
+  font-family: var(--mono);
+  font-size: 11.5px;
+  color: var(--blue);
+  margin-top: 0.4rem;
+  display: block;
+  background: rgba(26,58,107,0.06);
+  padding: 6px 10px;
+  border-radius: 2px;
+}
+
+/* ── RESULTS TABLE ── */
+.result-table-wrap { overflow-x: auto; margin: 1.5rem 0; }
+
+.result-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: var(--mono);
+  font-size: 12px;
+}
+
+.result-table thead tr {
+  background: var(--ink);
+  color: var(--paper);
+}
+
+.result-table th {
+  padding: 10px 14px;
+  text-align: left;
+  font-weight: 400;
+  letter-spacing: 0.08em;
+  font-size: 10px;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.result-table td {
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--rule);
+  color: rgba(10,10,8,0.8);
+  vertical-align: middle;
+}
+
+.result-table tbody tr:nth-child(even) { background: var(--paper2); }
+.result-table tbody tr:hover { background: var(--paper3); }
+
+.val-good  { color: var(--green); font-weight: 700; }
+.val-warn  { color: var(--gold); }
+.val-bad   { color: var(--red); }
+.val-mono  { font-family: var(--mono); font-size: 11px; }
+
+/* ── FINDING CARD ── */
+.findings {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1px;
+  background: var(--rule);
+  border: 1px solid var(--rule);
+  margin: 2rem 0;
+}
+
+.finding {
+  background: var(--paper);
+  padding: 1.5rem;
+}
+
+.finding-num {
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: rgba(10,10,8,0.3);
+  margin-bottom: 0.5rem;
+}
+
+.finding-title {
+  font-family: var(--sans);
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.finding-title .zh {
+  display: block;
+  font-family: var(--serif);
+  font-weight: 300;
+  font-size: 12px;
+  color: rgba(10,10,8,0.4);
+  margin-top: 2px;
+}
+
+.finding-body {
+  font-size: 13px;
+  color: rgba(10,10,8,0.65);
+  line-height: 1.6;
+}
+
+.finding-evidence {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--blue);
+  margin-top: 0.75rem;
+  padding: 6px 10px;
+  background: rgba(26,58,107,0.06);
+  border-left: 2px solid var(--blue);
+}
+
+.finding.confirmed { border-top: 3px solid var(--green); }
+.finding.partial   { border-top: 3px solid var(--gold); }
+.finding.pending   { border-top: 3px solid rgba(10,10,8,0.2); }
+
+/* ── ARCH FLOW ── */
+.arch-flow {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  overflow-x: auto;
+  padding: 1.5rem;
+  background: var(--ink);
+  margin: 1.5rem 0;
+  scrollbar-width: none;
+}
+
+.arch-flow::-webkit-scrollbar { display: none; }
+
+.arch-node {
+  background: rgba(255,255,255,0.07);
+  border: 1px solid rgba(255,255,255,0.12);
+  padding: 10px 14px;
+  min-width: 100px;
+  flex-shrink: 0;
+  text-align: center;
+}
+
+.arch-node .n-label {
+  font-family: var(--mono);
+  font-size: 8px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.3);
+  margin-bottom: 4px;
+}
+
+.arch-node .n-name {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: rgba(255,255,255,0.85);
+}
+
+.arch-node .n-dim {
+  font-family: var(--mono);
+  font-size: 9px;
+  color: rgba(255,255,255,0.3);
+  margin-top: 2px;
+}
+
+.arch-node.highlight {
+  border-color: #e8d5a3;
+  background: rgba(232,213,163,0.1);
+}
+
+.arch-node.highlight .n-name { color: #e8d5a3; }
+
+.arch-node.dead {
+  border-color: rgba(192,57,43,0.4);
+  background: rgba(192,57,43,0.08);
+  opacity: 0.7;
+}
+
+.arch-arrow {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: rgba(255,255,255,0.2);
+  padding: 0 6px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.arch-arrow .arrow-label {
+  font-size: 8px;
+  letter-spacing: 0.05em;
+  color: rgba(255,255,255,0.2);
+  white-space: nowrap;
+}
+
+/* ── EVOLUTION TIMELINE ── */
+.timeline { margin: 2rem 0; }
+
+.tl-item {
+  display: grid;
+  grid-template-columns: 80px 1fr;
+  gap: 0 1.5rem;
+  margin-bottom: 0;
+  position: relative;
+}
+
+.tl-item::before {
+  content: '';
+  position: absolute;
+  left: 40px;
+  top: 24px;
+  bottom: -24px;
+  width: 1px;
+  background: var(--rule);
+}
+
+.tl-item:last-child::before { display: none; }
+
+.tl-marker {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: 12px;
+}
+
+.tl-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--ink);
+  border: 2px solid var(--paper);
+  box-shadow: 0 0 0 1px var(--ink);
+  flex-shrink: 0;
+}
+
+.tl-dot.active { background: var(--green); box-shadow: 0 0 0 1px var(--green); }
+.tl-dot.failed { background: var(--red); box-shadow: 0 0 0 1px var(--red); }
+
+.tl-version {
+  font-family: var(--mono);
+  font-size: 9px;
+  color: rgba(10,10,8,0.3);
+  letter-spacing: 0.1em;
+  margin-top: 6px;
+  text-transform: uppercase;
+}
+
+.tl-content {
+  padding: 12px 0 32px;
+}
+
+.tl-title {
+  font-family: var(--sans);
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.tl-desc {
+  font-size: 13px;
+  color: rgba(10,10,8,0.6);
+  line-height: 1.6;
+}
+
+.tl-problem {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--red);
+  margin-top: 6px;
+  padding: 4px 8px;
+  background: rgba(192,57,43,0.06);
+  border-left: 2px solid var(--red);
+  display: inline-block;
+}
+
+.tl-solved {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--green);
+  margin-top: 6px;
+  padding: 4px 8px;
+  background: rgba(26,107,60,0.06);
+  border-left: 2px solid var(--green);
+  display: inline-block;
+}
+
+/* ── OPEN QUESTIONS ── */
+.questions { margin: 2rem 0; }
+
+.question {
+  display: grid;
+  grid-template-columns: 32px 1fr;
+  gap: 0 1rem;
+  padding: 1.25rem 0;
+  border-bottom: 1px solid var(--rule);
+  align-items: start;
+}
+
+.question:last-child { border-bottom: none; }
+
+.q-num {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: rgba(10,10,8,0.25);
+  padding-top: 2px;
+}
+
+.q-text {
+  font-family: var(--sans);
+  font-size: 14px;
+  font-weight: 500;
+  margin-bottom: 4px;
+}
+
+.q-text .zh {
+  font-family: var(--serif);
+  font-weight: 300;
+  font-size: 13px;
+  color: rgba(10,10,8,0.45);
+  display: block;
+  margin-top: 2px;
+}
+
+.q-status {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  padding: 3px 8px;
+  border-radius: 2px;
+  display: inline-block;
+  margin-top: 6px;
+}
+
+.q-status.answered  { background: rgba(26,107,60,0.1); color: var(--green); }
+.q-status.partial   { background: rgba(184,134,11,0.1); color: var(--gold); }
+.q-status.open      { background: rgba(10,10,8,0.06); color: rgba(10,10,8,0.4); }
+
+/* ── NEXT STEPS ── */
+.next-steps {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 1.5rem;
+  margin: 2rem 0;
+}
+
+.next-step {
+  padding: 1.5rem;
+  border: 1px solid var(--rule);
+  position: relative;
+}
+
+.next-step::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+}
+
+.next-step.immediate::before { background: var(--red); }
+.next-step.near::before      { background: var(--gold); }
+.next-step.future::before    { background: var(--blue); }
+
+.ns-phase {
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: rgba(10,10,8,0.3);
+  margin-bottom: 0.5rem;
+}
+
+.ns-title {
+  font-family: var(--sans);
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.ns-title .zh {
+  display: block;
+  font-family: var(--serif);
+  font-weight: 300;
+  font-size: 12px;
+  color: rgba(10,10,8,0.4);
+  margin-top: 2px;
+}
+
+.ns-body {
+  font-size: 13px;
+  color: rgba(10,10,8,0.6);
+  line-height: 1.6;
+}
+
+/* ── INLINE CODE ── */
+code {
+  font-family: var(--mono);
+  font-size: 11px;
+  background: var(--paper3);
+  padding: 1px 5px;
+  border-radius: 2px;
+}
+
+/* ── DIVIDER ── */
+.rule-divider {
+  height: 1px;
+  background: var(--rule);
+  margin: 2rem 0;
+}
+
+/* ── FOOTER ── */
+footer {
+  background: var(--ink);
+  color: rgba(245,242,235,0.35);
+  padding: 2.5rem 5vw;
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-align: center;
+}
+
+/* ── BAR CHART ── */
+.bar-chart { margin: 1.5rem 0; }
+
+.bar-row {
+  display: grid;
+  grid-template-columns: 80px 1fr 60px;
+  gap: 0 12px;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.bar-label {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: rgba(10,10,8,0.6);
+  text-align: right;
+}
+
+.bar-track {
+  background: var(--paper3);
+  height: 16px;
+  position: relative;
+  overflow: hidden;
+}
+
+.bar-fill {
+  height: 100%;
+  background: var(--ink);
+  transition: width 1s ease;
+}
+
+.bar-fill.good { background: var(--green); }
+.bar-fill.warn { background: var(--gold); }
+.bar-fill.bad  { background: var(--red); }
+
+.bar-val {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: rgba(10,10,8,0.6);
+}
+
+/* ── RESPONSIVE ── */
+@media (max-width: 640px) {
+  .section-header { grid-template-columns: 1fr; }
+  .section-num { display: none; }
+  .findings { grid-template-columns: 1fr; }
+  .next-steps { grid-template-columns: 1fr; }
+}
+</style>
 </head>
 <body>
-  <!-- draft -->
-  <p>Draft slot 06 — replace this entire file on GitHub to publish.</p>
+
+<!-- MASTHEAD -->
+<header class="masthead">
+  <div class="masthead-inner">
+    <div class="masthead-label">Proof of Concept Report · POC 研究報告</div>
+    <h1>SNN <span class="accent">N!</span><br>Ordering Space</h1>
+    <p class="masthead-sub">Exploiting the factorial representational capacity of spike temporal ordering in Spiking Neural Networks · 利用脈衝神經網路時序排列的階乘表達空間</p>
+    <div class="masthead-meta">
+      <div class="meta-item">Status <span>POC Complete</span></div>
+      <div class="meta-item">Hardware <span>8× H100 80GB</span></div>
+      <div class="meta-item">Date <span>June 2026</span></div>
+      <div class="meta-item">Author <span>Fu-Chun Yang</span></div>
+    </div>
+  </div>
+</header>
+
+<!-- NAV -->
+<nav class="toc">
+  <div class="toc-inner">
+    <a class="toc-item active" href="#definitions"><span class="toc-num">01</span>Definitions 定義</a>
+    <a class="toc-item" href="#architecture"><span class="toc-num">02</span>Architecture 架構</a>
+    <a class="toc-item" href="#evolution"><span class="toc-num">03</span>Evolution 演進</a>
+    <a class="toc-item" href="#results"><span class="toc-num">04</span>Results 結果</a>
+    <a class="toc-item" href="#findings"><span class="toc-num">05</span>Findings 發現</a>
+    <a class="toc-item" href="#questions"><span class="toc-num">06</span>Open Questions 開放問題</a>
+    <a class="toc-item" href="#next"><span class="toc-num">07</span>Next Steps 下一步</a>
+  </div>
+</nav>
+
+<div class="body-wrap">
+
+<!-- 01 DEFINITIONS -->
+<section class="section" id="definitions">
+  <div class="section-header">
+    <div class="section-num">01</div>
+    <div>
+      <h2 class="section-title">Core Definitions<span class="section-title-zh">核心定義</span></h2>
+    </div>
+  </div>
+
+  <div class="def-block">
+    <div class="def-term">Spiking Neural Network (SNN) <span class="zh">脈衝神經網路</span></div>
+    <div class="def-body">A neural network whose neurons communicate via discrete binary spikes rather than continuous activations. Neurons fire when their membrane potential exceeds a threshold; information is encoded in the timing of these spikes rather than their magnitude.<br>以離散二值脈衝而非連續激活值進行通訊的神經網路。Neuron 在膜電位超過閾值時發放脈衝，資訊編碼於脈衝的<em>時間</em>而非數值大小。</div>
+    <code class="def-math">mem[t] = β · mem[t-1] + input[t]  ;  spk = 1 if mem > θ  else 0</code>
+  </div>
+
+  <div class="def-block">
+    <div class="def-term">LIF — Leaky Integrate-and-Fire <span class="zh">漏積分發放模型</span></div>
+    <div class="def-body">The standard SNN neuron model. Membrane potential decays at rate β (leaky), integrates input current, and fires when the threshold θ is crossed. A surrogate gradient approximates the Heaviside step function during backpropagation.<br>標準 SNN neuron 模型。膜電位以速率 β 衰減，積分輸入電流，超過閾值 θ 時發放。Surrogate gradient 在反向傳播時近似 Heaviside 函數。</div>
+  </div>
+
+  <div class="def-block">
+    <div class="def-term">State Leaky <span class="zh">狀態疊加漏積分</span></div>
+    <div class="def-body">Two cascaded LIF neurons where LIF₁ (β=0.9) feeds its spikes into LIF₂ (β=0.95). This smooths the spike train, spreading neuron firing times across the time axis to increase ordering information density.<br>兩層串聯的 LIF neuron，LIF₁（β=0.9）的 spike 作為 LIF₂（β=0.95）的輸入。使 spike train 更平滑，讓各 neuron 的發放時間分散在時間軸上。</div>
+    <code class="def-math">spk1, mem1 = lif1(cur, mem1)  ;  spk2, mem2 = lif2(spk1, mem2)</code>
+  </div>
+
+  <div class="def-block">
+    <div class="def-term">Spike Matrix S <span class="zh">脈衝矩陣</span></div>
+    <div class="def-body">The binary M×T matrix recording all spike events from Pass 1. Row i contains the full spike train of neuron i across T timesteps. This is the uncompressed, raw representation that preserves all ordering information.<br>Pass 1 輸出的二值 M×T 矩陣，記錄所有脈衝事件。第 i 行是 neuron i 在 T 個時間步內的完整 spike train。</div>
+    <code class="def-math">S ∈ {0,1}^(M×T)  ;  S[i,t] = 1 iff neuron i fires at timestep t</code>
+  </div>
+
+  <div class="def-block">
+    <div class="def-term">Spike Ordering π <span class="zh">脈衝排列</span></div>
+    <div class="def-body">The permutation of neuron indices ranked by their first spike time. M neurons yield M! possible orderings — the core representational space of this research. No prior work has successfully exploited this space as a primary information carrier.<br>依據 first spike time 排序的 neuron 索引排列。M 個 neuron 產生 M! 種可能排列——本研究的核心表示空間。目前無任何研究成功利用此空間作為主要資訊載體。</div>
+    <code class="def-math">π = argsort([first_spike_time(i) for i in neurons])  ;  |Π| = M!</code>
+  </div>
+
+  <div class="def-block">
+    <div class="def-term">Soft First-Spike Score a <span class="zh">軟性首次脈衝分數</span></div>
+    <div class="def-body">A differentiable approximation of first-spike time. Only the first spike of each neuron contributes, masked by a running-silence product. Temporal weights decay exponentially so earlier spikes receive higher scores. Crucially, this is continuous and its gradient w.r.t. S is non-zero everywhere.<br>First spike time 的可微分近似。每個 neuron 只有第一個 spike 有貢獻，由 running-silence 乘積遮蔽。時間權重指數衰減，越早的 spike 分數越高。梯度全程非零。</div>
+    <code class="def-math">M[i,t] = S[i,t] · ∏_{s&lt;t}(1−S[i,s])  ;  a_i = Σ_t M[i,t]·exp(−w·t)</code>
+  </div>
+
+  <div class="def-block">
+    <div class="def-term">Plackett-Luce Distribution <span class="zh">Plackett-Luce 分布</span></div>
+    <div class="def-body">A probability distribution over all M! permutations, parameterized by a score vector a. The probability of a permutation π decomposes as a product of softmax terms over successively smaller sets. The result is a differentiable soft one-hot vector over M! orderings.<br>由分數向量 a 參數化的 M! 排列概率分布。排列 π 的概率分解為對逐漸縮小的集合的 softmax 乘積。結果是 M! 維的可微分 soft one-hot 向量。</div>
+    <code class="def-math">P(π|a) = ∏_{k=1}^{M} exp(a_{π_k}) / Σ_{j≥k} exp(a_{π_j})</code>
+  </div>
+
+  <div class="def-block">
+    <div class="def-term">Orthogonal Linear Layer <span class="zh">正交線性層</span></div>
+    <div class="def-body">A linear layer constrained to W^T W = I, implemented via Cayley parameterization. It can only rotate the input current space, not scale it. This preserves the relative magnitudes of neuron currents, preventing the model from collapsing ordering into a binary on/off code.<br>透過 Cayley 參數化約束 W^T W = I 的線性層。只能旋轉輸入電流空間，不能縮放。保留了 neuron 電流的相對大小，防止 ordering 退化為二值碼。</div>
+    <code class="def-math">||cur'|| = ||cur||  ;  W = (I+S)^{-1}(I−S),  S = −S^T  (Cayley map)</code>
+  </div>
+
+  <div class="def-block">
+    <div class="def-term">E-Drop <span class="zh">時間洗牌準確率降幅</span></div>
+    <div class="def-body">The accuracy drop when the time axis of the spike matrix is randomly shuffled at evaluation. A high E-drop confirms the model is genuinely using spike timing information rather than neuron identity or firing rate. E-drop = 0 was the critical diagnostic failure that exposed the binary-code shortcut.<br>評估時隨機打亂 spike matrix 時間軸後的準確率降幅。高 E-drop 確認模型真正在使用 spike timing 資訊。E-drop = 0 是暴露二值碼捷徑的關鍵診斷失敗。</div>
+    <code class="def-math">E-drop = acc(normal) − acc(time_shuffled)</code>
+  </div>
+</section>
+
+<!-- 02 ARCHITECTURE -->
+<section class="section" id="architecture">
+  <div class="section-header">
+    <div class="section-num">02</div>
+    <div>
+      <h2 class="section-title">Final Architecture<span class="section-title-zh">最終架構</span></h2>
+    </div>
+  </div>
+
+  <div class="arch-flow">
+    <div class="arch-node highlight">
+      <div class="n-label">Input</div>
+      <div class="n-name">cur</div>
+      <div class="n-dim">∈ ℝ^M</div>
+    </div>
+    <div class="arch-arrow">→<div class="arrow-label">direct</div></div>
+    <div class="arch-node">
+      <div class="n-label">Pass 1</div>
+      <div class="n-name">LIF₁</div>
+      <div class="n-dim">β=0.90</div>
+    </div>
+    <div class="arch-arrow">→</div>
+    <div class="arch-node">
+      <div class="n-label">Pass 1</div>
+      <div class="n-name">LIF₂</div>
+      <div class="n-dim">β=0.95</div>
+    </div>
+    <div class="arch-arrow">→</div>
+    <div class="arch-node">
+      <div class="n-label">Spike Matrix</div>
+      <div class="n-name">S</div>
+      <div class="n-dim">{0,1}^(M×T)</div>
+    </div>
+    <div class="arch-arrow">→</div>
+    <div class="arch-node highlight">
+      <div class="n-label">Soft First Spike</div>
+      <div class="n-name">a</div>
+      <div class="n-dim">∈ ℝ^M</div>
+    </div>
+    <div class="arch-arrow">→</div>
+    <div class="arch-node highlight">
+      <div class="n-label">Plackett-Luce</div>
+      <div class="n-name">p</div>
+      <div class="n-dim">∈ ℝ^K</div>
+    </div>
+    <div class="arch-arrow">→</div>
+    <div class="arch-node">
+      <div class="n-label">Readout</div>
+      <div class="n-name">Linear</div>
+      <div class="n-dim">K→C</div>
+    </div>
+    <div class="arch-arrow">→</div>
+    <div class="arch-node">
+      <div class="n-label">Loss</div>
+      <div class="n-name">CE</div>
+      <div class="n-dim">scalar</div>
+    </div>
+  </div>
+
+  <div class="prose">
+    <p>The final POC architecture removes fc_in entirely. Input current is fed directly to LIF₁, preserving the one-to-one correspondence between input dimensions and neuron currents. Any linear layer before the SNN — even an 8×8 identity-like transform — allows the model to rescale currents and collapse ordering into a binary on/off code.<br>最終 POC 架構完全移除 fc_in。輸入電流直接餵進 LIF₁，保留輸入維度與 neuron 電流的一對一對應關係。任何在 SNN 之前的線性層——即使是 8×8 的小型線性層——都允許模型重新縮放電流，讓 ordering 退化為二值碼。</p>
+    <p>When an input transformation is needed, an <strong>Orthogonal Linear Layer</strong> (W^T W = I via Cayley parameterization) preserves current magnitudes while allowing rotation. This is the key architectural insight for future integration with FFN encoders.<br>需要輸入變換時，<strong>正交線性層</strong>（Cayley 參數化，W^T W = I）在保留電流大小的同時允許旋轉。這是未來與 FFN 編碼器整合的關鍵架構洞見。</p>
+  </div>
+</section>
+
+<!-- 03 EVOLUTION -->
+<section class="section" id="evolution">
+  <div class="section-header">
+    <div class="section-num">03</div>
+    <div>
+      <h2 class="section-title">Design Evolution<span class="section-title-zh">設計演進</span></h2>
+    </div>
+  </div>
+
+  <div class="timeline">
+    <div class="tl-item">
+      <div class="tl-marker">
+        <div class="tl-dot failed"></div>
+        <div class="tl-version">V1</div>
+      </div>
+      <div class="tl-content">
+        <div class="tl-title">RPC — Recursive Proportional Cutting</div>
+        <div class="tl-desc">Original design. Spike matrix → argmax → argsort → recursive interval cutting → coordinates. Geometrically sound: similar orderings map to nearby coordinates.</div>
+        <div class="tl-problem">FATAL: argmax + argsort have zero gradient. ∂L/∂W_fc = 0. Pass 1 never learns.</div>
+      </div>
+    </div>
+
+    <div class="tl-item">
+      <div class="tl-marker">
+        <div class="tl-dot failed"></div>
+        <div class="tl-version">V2</div>
+      </div>
+      <div class="tl-content">
+        <div class="tl-title">Soft RLS — Soft Recursive Leader Selection</div>
+        <div class="tl-desc">Replaced argmax with exponentially-weighted spike scores a_i. Introduced recursive soft selection via softmax. Gradient flows. But coordinate used neuron index i as value — arbitrary and semantically meaningless.</div>
+        <div class="tl-problem">Softmax collapse when score differences are large. Per-neuron firing rate shortcut not closed. Acc = 0.487.</div>
+      </div>
+    </div>
+
+    <div class="tl-item">
+      <div class="tl-marker">
+        <div class="tl-dot active"></div>
+        <div class="tl-version">V3</div>
+      </div>
+      <div class="tl-content">
+        <div class="tl-title">Plackett-Luce Soft One-Hot</div>
+        <div class="tl-desc">Enumerate all M! permutations. Compute differentiable probability for each via Plackett-Luce. For M&gt;6, use Monte Carlo sampling (K=512) with Gumbel-max trick. Gradient flows through log-probability computation.</div>
+        <div class="tl-solved">Gradient: fc_in norm = 0.014. Acc = 1.000 on toy task. But firing rate still a shortcut.</div>
+      </div>
+    </div>
+
+    <div class="tl-item">
+      <div class="tl-marker">
+        <div class="tl-dot active"></div>
+        <div class="tl-version">V4</div>
+      </div>
+      <div class="tl-content">
+        <div class="tl-title">Direct Current Input + Soft First-Spike Score</div>
+        <div class="tl-desc">Remove fc_in entirely. Input current fed directly to LIF. Replace all-spike score with first-spike-only score using running-silence mask. Add Gaussian noise σ=0.02 to prevent deterministic convergence.</div>
+        <div class="tl-solved">E-drop = 0.744. Ratio = 18.6. First confirmation that SNN genuinely uses spike timing. Binary-code shortcut eliminated by direct input design.</div>
+      </div>
+    </div>
+
+    <div class="tl-item">
+      <div class="tl-marker">
+        <div class="tl-dot active"></div>
+        <div class="tl-version">V4+</div>
+      </div>
+      <div class="tl-content">
+        <div class="tl-title">Orthogonal Layer for fc_in</div>
+        <div class="tl-desc">When an input transformation is needed, constrain W^T W = I via Cayley parameterization. The layer can only rotate, not scale, preserving relative current magnitudes.</div>
+        <div class="tl-solved">E-drop = 0.420 (vs Standard fc: 0.051). Ordering preserved through orthogonal transformation. Path to FFN + SNN co-existence established.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 04 RESULTS -->
+<section class="section" id="results">
+  <div class="section-header">
+    <div class="section-num">04</div>
+    <div>
+      <h2 class="section-title">Experimental Results<span class="section-title-zh">實驗結果</span></h2>
+    </div>
+  </div>
+
+  <h3 style="font-family:var(--sans);font-size:14px;font-weight:600;margin-bottom:1rem;margin-top:0">
+    Exp A — C Scaling (M=8, M!=40,320)
+    <span style="font-family:var(--serif);font-weight:300;font-size:13px;color:rgba(10,10,8,0.4);display:block;margin-top:2px">C 掃描實驗，固定 M=8</span>
+  </h3>
+
+  <div class="result-table-wrap">
+    <table class="result-table">
+      <thead>
+        <tr>
+          <th>C (classes)</th>
+          <th>M!/C (space ratio)</th>
+          <th>mean acc</th>
+          <th>mean E-drop</th>
+          <th>Interpretation</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>24</td><td>1,680</td><td class="val-good">1.000</td><td class="val-good">0.764</td><td>Space abundant / 空間充裕</td></tr>
+        <tr><td>100</td><td>403</td><td class="val-good">0.978</td><td class="val-good">0.885</td><td>Space abundant / 空間充裕</td></tr>
+        <tr><td>500</td><td>81</td><td class="val-good">0.856</td><td class="val-good">0.830</td><td>Comfortable / 尚可</td></tr>
+        <tr><td>1,000</td><td>40</td><td class="val-warn">0.733</td><td class="val-warn">0.717</td><td>Starting to compress / 開始壓縮</td></tr>
+        <tr><td>5,000</td><td>8</td><td class="val-bad">0.310</td><td class="val-bad">0.307</td><td>Near capacity limit / 接近容量上限</td></tr>
+        <tr><td>10,000</td><td>4</td><td class="val-bad">0.162</td><td class="val-bad">~0.16</td><td>Over capacity / 超過容量</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <p style="font-family:var(--mono);font-size:11px;color:rgba(10,10,8,0.5);margin-bottom:2rem">
+    Key observation: acc ≈ E-drop across all C. The model uses almost exclusively temporal ordering information. Capacity degrades when M!/C approaches 8.
+    <br>關鍵觀察：所有 C 下 acc ≈ E-drop，模型幾乎只使用時間排列資訊。M!/C 接近 8 時容量開始退化。
+  </p>
+
+  <h3 style="font-family:var(--sans);font-size:14px;font-weight:600;margin-bottom:1rem;margin-top:2rem">
+    Exp B — fc_in Type Comparison
+    <span style="font-family:var(--serif);font-weight:300;font-size:13px;color:rgba(10,10,8,0.4);display:block;margin-top:2px">fc_in 類型比較</span>
+  </h3>
+
+  <div class="result-table-wrap">
+    <table class="result-table">
+      <thead>
+        <tr><th>fc_in Type</th><th>acc</th><th>E-drop</th><th>orth_err</th><th>Status</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>None (baseline)</td><td class="val-good">1.000</td><td class="val-good">0.744</td><td>—</td><td>✅ Ordering used / 使用排列</td></tr>
+        <tr><td>Standard Linear (8×8)</td><td class="val-warn">0.860</td><td class="val-bad">0.051</td><td>—</td><td>❌ Shortcut / 走捷徑</td></tr>
+        <tr><td>Orthogonal (8×8)</td><td class="val-good">0.923</td><td class="val-good">0.420</td><td class="val-good">0.0000</td><td>✅ Ordering preserved / 排列保留</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3 style="font-family:var(--sans);font-size:14px;font-weight:600;margin-bottom:1rem;margin-top:2rem">
+    Exp Capacity — SNN-Base vs SNN-Rec (partial)
+    <span style="font-family:var(--serif);font-weight:300;font-size:13px;color:rgba(10,10,8,0.4);display:block;margin-top:2px">基礎 vs 遞迴 SNN（部分結果）</span>
+  </h3>
+
+  <div class="result-table-wrap">
+    <table class="result-table">
+      <thead>
+        <tr><th>C</th><th>SNN-Base acc</th><th>SNN-Rec acc</th><th>Rec advantage</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>128</td><td>0.620</td><td>0.622</td><td class="val-warn">+0.002</td></tr>
+        <tr><td>256</td><td>0.401</td><td>0.467</td><td class="val-good">+0.066</td></tr>
+        <tr><td>512</td><td>0.241</td><td>0.320</td><td class="val-good">+0.079</td></tr>
+        <tr><td>1024+</td><td colspan="3" style="color:rgba(10,10,8,0.3);font-style:italic">Still running · 仍在跑</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <p style="font-family:var(--mono);font-size:11px;color:rgba(10,10,8,0.5)">
+    Rec advantage grows with C. Recurrent connections enable inter-neuron competition, enriching the ordering dynamics.
+    <br>Rec 優勢隨 C 增大而增加。Recurrent 連接使 neuron 之間產生競爭，豐富了排列的動態特性。
+  </p>
+</section>
+
+<!-- 05 FINDINGS -->
+<section class="section" id="findings">
+  <div class="section-header">
+    <div class="section-num">05</div>
+    <div>
+      <h2 class="section-title">Core Findings<span class="section-title-zh">核心發現</span></h2>
+    </div>
+  </div>
+
+  <div class="findings">
+    <div class="finding confirmed">
+      <div class="finding-num">Finding 01 · 發現一</div>
+      <div class="finding-title">SNN Can Learn Spike Ordering<span class="zh">SNN 能學習脈衝排列</span></div>
+      <div class="finding-body">With direct current input and soft first-spike scoring, the SNN genuinely exploits temporal ordering as the primary information carrier. Time shuffling causes a large accuracy drop, confirming the mechanism.<br>在直接電流輸入和軟性首次脈衝分數的設計下，SNN 真正以時間排列作為主要資訊載體。時間打亂導致準確率大幅下降，確認了機制的存在。</div>
+      <div class="finding-evidence">E-drop = 0.744  ·  ratio = 18.6  ·  acc = 1.000</div>
+    </div>
+
+    <div class="finding confirmed">
+      <div class="finding-num">Finding 02 · 發現二</div>
+      <div class="finding-title">M! Is the Real Capacity Bound<span class="zh">M! 是真實的容量上限</span></div>
+      <div class="finding-body">Accuracy and E-drop remain coupled and high until M!/C falls below ~8, then degrade together. The model exclusively uses ordering even as C scales. Capacity degrades gracefully rather than collapsing.<br>在 M!/C 降到約 8 以下之前，準確率和 E-drop 保持高且耦合。C 增大時模型仍然只使用排列。容量優雅地退化而非崩潰。</div>
+      <div class="finding-evidence">acc ≈ E-drop  ·  C=1000 acc=0.733  ·  C=5000 acc=0.310</div>
+    </div>
+
+    <div class="finding confirmed">
+      <div class="finding-num">Finding 03 · 發現三</div>
+      <div class="finding-title">Any Linear Layer Kills Ordering<span class="zh">任何線性層都會破壞排列</span></div>
+      <div class="finding-body">Even an 8×8 standard linear layer before the SNN collapses E-drop from 0.744 to 0.051. The layer rescales currents, creating large magnitude differences that reduce ordering to a binary on/off code. Higher accuracy is not sufficient evidence of ordering use.<br>即使是 SNN 之前的 8×8 標準線性層，也會讓 E-drop 從 0.744 崩潰至 0.051。線性層重新縮放電流，產生大幅度差異，使排列退化為二值碼。</div>
+      <div class="finding-evidence">Standard fc E-drop = 0.051  ·  baseline = 0.744</div>
+    </div>
+
+    <div class="finding confirmed">
+      <div class="finding-num">Finding 04 · 發現四</div>
+      <div class="finding-title">Orthogonal Layer Preserves Ordering<span class="zh">正交層保留排列</span></div>
+      <div class="finding-body">Constraining W^T W = I via Cayley parameterization prevents current rescaling. E-drop remains at 0.420 — substantially above the standard layer's 0.051. Orthogonal accuracy (0.923) even exceeds standard (0.860), showing ordering is beneficial not just preserved.<br>Cayley 參數化約束 W^T W = I，防止電流重新縮放。E-drop 保持在 0.420，遠高於標準層的 0.051。正交層準確率（0.923）甚至超過標準層（0.860），顯示排列不只被保留，還有益於分類。</div>
+      <div class="finding-evidence">Ortho E-drop = 0.420  ·  orth_err = 0.0000  ·  acc = 0.923</div>
+    </div>
+
+    <div class="finding confirmed">
+      <div class="finding-num">Finding 05 · 發現五</div>
+      <div class="finding-title">Recurrent Connections Help<span class="zh">Recurrent 連接有效</span></div>
+      <div class="finding-body">LIF₂-level recurrent connections consistently improve accuracy over the base model. The advantage grows with C (C=256: +0.066, C=512: +0.079), suggesting recurrent inter-neuron competition enriches the ordering space under pressure.<br>LIF₂ 層的 recurrent 連接持續提升準確率。優勢隨 C 增大而增加，顯示 recurrent neuron 間競爭在壓力下豐富了排列空間。</div>
+      <div class="finding-evidence">C=512 Rec +0.079 vs Base  ·  advantage grows with C</div>
+    </div>
+
+    <div class="finding confirmed">
+      <div class="finding-num">Finding 06 · 發現六</div>
+      <div class="finding-title">Gradient Flow Fully Restored<span class="zh">梯度流完全恢復</span></div>
+      <div class="finding-body">The Plackett-Luce parameterization with soft first-spike scoring restores gradient flow to all layers. The critical fix was replacing argmax/argsort (gradient=0) with differentiable operations throughout the pipeline.<br>Plackett-Luce 參數化配合軟性首次脈衝分數，恢復了所有層的梯度流。關鍵修正是將 argmax/argsort（梯度=0）替換為全程可微分操作。</div>
+      <div class="finding-evidence">fc_in.weight.grad norm = 0.014  ·  (was: None)</div>
+    </div>
+  </div>
+</section>
+
+<!-- 06 OPEN QUESTIONS -->
+<section class="section" id="questions">
+  <div class="section-header">
+    <div class="section-num">06</div>
+    <div>
+      <h2 class="section-title">Open Questions<span class="section-title-zh">開放問題</span></h2>
+    </div>
+  </div>
+
+  <div class="questions">
+    <div class="question">
+      <div class="q-num">Q1</div>
+      <div>
+        <div class="q-text">What is the precise M!/C capacity threshold?<span class="zh">M!/C 的精確容量臨界值是多少？</span></div>
+        <div style="font-size:13px;color:rgba(10,10,8,0.55)">Data suggests degradation begins at M!/C ≈ 8. Is this fundamental or architecture-dependent? Does recurrent connection shift this threshold?<br>數據顯示 M!/C ≈ 8 時開始退化。這是根本的還是架構依賴的？Recurrent 連接是否改變這個臨界值？</div>
+        <div class="q-status partial">Partial — needs systematic sweep</div>
+      </div>
+    </div>
+
+    <div class="question">
+      <div class="q-num">Q2</div>
+      <div>
+        <div class="q-text">Full Capacity — SNN-Rec results for C=1024, 2048, 4096?<span class="zh">SNN-Rec 在 C=1024, 2048, 4096 的完整結果？</span></div>
+        <div style="font-size:13px;color:rgba(10,10,8,0.55)">Experiment still running. Does Rec advantage continue to grow? Is there a point where recurrent competition alone cannot compensate?<br>實驗仍在進行中。Rec 優勢是否繼續增大？是否存在 recurrent 競爭本身無法補償的點？</div>
+        <div class="q-status open">Pending — experiment running</div>
+      </div>
+    </div>
+
+    <div class="question">
+      <div class="q-num">Q3</div>
+      <div>
+        <div class="q-text">How does w (temporal decay rate) affect the ordering regime?<span class="zh">w（時間衰減率）如何影響排列機制？</span></div>
+        <div style="font-size:13px;color:rgba(10,10,8,0.55)">w=0.5 was used throughout. Larger w emphasizes only early spikes; smaller w gives later spikes more gradient. Is there an optimal w for maximizing E-drop?<br>全程使用 w=0.5。更大的 w 只強調早期 spike；更小的 w 給後期 spike 更多梯度。是否存在最大化 E-drop 的最佳 w？</div>
+        <div class="q-status open">Open — not yet tested</div>
+      </div>
+    </div>
+
+    <div class="question">
+      <div class="q-num">Q4</div>
+      <div>
+        <div class="q-text">Can Orthogonal + FFN scale to real datasets?<span class="zh">正交層 + FFN 能否在真實資料集上擴展？</span></div>
+        <div style="font-size:13px;color:rgba(10,10,8,0.55)">The orthogonal layer enables FFN + SNN co-existence on toy data. Does the ordering signal survive through a deep FFN encoder on noisy, high-dimensional input?<br>正交層在 toy 資料上實現了 FFN + SNN 共存。在有雜訊的高維輸入上，排列信號能否在深層 FFN 編碼器後存活？</div>
+        <div class="q-status open">Open — Phase 2 target</div>
+      </div>
+    </div>
+
+    <div class="question">
+      <div class="q-num">Q5</div>
+      <div>
+        <div class="q-text">What is the biologically optimal recurrent connection topology?<span class="zh">最具生物合理性的 recurrent 連接拓撲是什麼？</span></div>
+        <div style="font-size:13px;color:rgba(10,10,8,0.55)">Current implementation: fully connected W_rec on LIF₂. Do inhibitory connections dominate? Does the learned W_rec resemble winner-take-all circuits? Should LIF₁ also have recurrent connections?<br>目前實作：LIF₂ 上的全連接 W_rec。抑制性連接是否佔主導？學到的 W_rec 是否類似 winner-take-all 電路？LIF₁ 是否也應有 recurrent 連接？</div>
+        <div class="q-status open">Open — W_rec analysis pending</div>
+      </div>
+    </div>
+
+    <div class="question">
+      <div class="q-num">Q6</div>
+      <div>
+        <div class="q-text">Ordering Autoencoder: can ordering reconstruct the input?<span class="zh">排列自編碼器：排列能否重建輸入？</span></div>
+        <div style="font-size:13px;color:rgba(10,10,8,0.55)">If a decoder can reconstruct x from the ordering alone, it proves ordering carries the full input information — not just class labels. This would be the strongest possible proof of concept.<br>如果解碼器能僅從排列重建 x，這證明排列攜帶了完整的輸入資訊，而不只是 class label。這將是最強有力的概念驗證。</div>
+        <div class="q-status open">Open — future direction</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 07 NEXT STEPS -->
+<section class="section" id="next">
+  <div class="section-header">
+    <div class="section-num">07</div>
+    <div>
+      <h2 class="section-title">Next Steps<span class="section-title-zh">下一步</span></h2>
+    </div>
+  </div>
+
+  <div class="next-steps">
+    <div class="next-step immediate">
+      <div class="ns-phase">Immediate · 立即</div>
+      <div class="ns-title">Complete Capacity Experiment<span class="zh">完成容量實驗</span></div>
+      <div class="ns-body">Wait for C=1024/2048/4096 SNN-Base vs SNN-Rec results. Analyse W_rec sign (inhibitory vs excitatory). Determine if Rec advantage continues to scale.<br>等待 C=1024/2048/4096 SNN-Base vs SNN-Rec 結果。分析 W_rec 符號（抑制性 vs 激發性）。確認 Rec 優勢是否持續增大。</div>
+    </div>
+
+    <div class="next-step immediate">
+      <div class="ns-phase">Immediate · 立即</div>
+      <div class="ns-title">w Sweep<span class="zh">w 掃描</span></div>
+      <div class="ns-body">Sweep w ∈ {0.1, 0.25, 0.5, 1.0, 2.0}. Find the w that maximizes E-drop while maintaining acc. Understand the tradeoff between temporal resolution and gradient richness.<br>掃描 w ∈ {0.1, 0.25, 0.5, 1.0, 2.0}。找到最大化 E-drop 同時維持 acc 的 w。理解時間解析度與梯度豐富性之間的權衡。</div>
+    </div>
+
+    <div class="next-step near">
+      <div class="ns-phase">Near-term · 近期</div>
+      <div class="ns-title">FFN + Orthogonal + SNN Pipeline<span class="zh">FFN + 正交 + SNN 管線</span></div>
+      <div class="ns-body">Stack: FFN encoder → Orthogonal layer → SNN → PL → readout. Test on a structured dataset with noise. Verify E-drop survives through FFN. This is the core architecture for real applications.<br>堆疊：FFN 編碼器 → 正交層 → SNN → PL → 讀出層。在有雜訊的結構化資料集上測試。驗證 E-drop 在 FFN 後存活。這是真實應用的核心架構。</div>
+    </div>
+
+    <div class="next-step near">
+      <div class="ns-phase">Near-term · 近期</div>
+      <div class="ns-title">Ordering Autoencoder<span class="zh">排列自編碼器</span></div>
+      <div class="ns-body">X → fc_in → SNN → ordering → decoder → X'. Loss = reconstruction error. If successful, proves ordering carries full input information. Strongest possible POC evidence.<br>X → fc_in → SNN → ordering → 解碼器 → X'。Loss = 重建誤差。若成功，證明排列攜帶完整輸入資訊。最強的 POC 證據。</div>
+    </div>
+
+    <div class="next-step future">
+      <div class="ns-phase">Future · 未來</div>
+      <div class="ns-title">Real Benchmark Validation<span class="zh">真實 Benchmark 驗證</span></div>
+      <div class="ns-body">Apply to a real dataset (e.g., time-series classification, genomics). Compare ordering-based SNN against rate-based SNN and equivalent-parameter MLP. Measure whether M! capacity provides measurable benefit.<br>應用於真實資料集（如時間序列分類、基因組學）。與 rate-based SNN 和等參數量 MLP 比較。衡量 M! 容量是否提供可測量的優勢。</div>
+    </div>
+
+    <div class="next-step future">
+      <div class="ns-phase">Future · 未來</div>
+      <div class="ns-title">NeurIPS 2026 Submission<span class="zh">NeurIPS 2026 投稿</span></div>
+      <div class="ns-body">Formalize the POC into a full paper. Core claim: M! ordering space is a novel, exploitable representational modality for SNNs. Supporting evidence: gradient restoration, capacity scaling, orthogonal interface design.<br>將 POC 正式化為完整論文。核心主張：M! 排列空間是 SNN 的新型可利用表示模態。支撐證據：梯度恢復、容量擴展、正交介面設計。</div>
+    </div>
+  </div>
+</section>
+
+</div><!-- body-wrap -->
+
+<footer>
+  SNN N! Ordering Space · Proof of Concept · Fu-Chun Yang · June 2026 · UCSC / Relay Labs
+</footer>
+
+<script>
+// TOC active state on scroll
+const sections = document.querySelectorAll('.section');
+const tocItems = document.querySelectorAll('.toc-item');
+
+const obs = new IntersectionObserver((entries) => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      tocItems.forEach(t => t.classList.remove('active'));
+      const id = e.target.id;
+      const active = document.querySelector(`.toc-item[href="#${id}"]`);
+      if (active) active.classList.add('active');
+    }
+  });
+}, { threshold: 0.25, rootMargin: '-48px 0px 0px 0px' });
+
+sections.forEach(s => obs.observe(s));
+
+// Bar chart animation on scroll
+const bars = document.querySelectorAll('.bar-fill');
+const barObs = new IntersectionObserver((entries) => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      e.target.style.width = e.target.dataset.width || e.target.style.width;
+    }
+  });
+}, { threshold: 0.5 });
+
+bars.forEach(b => barObs.observe(b));
+
+// Staggered reveal on load
+document.querySelectorAll('.finding, .next-step, .question').forEach((el, i) => {
+  el.style.opacity = '0';
+  el.style.transform = 'translateY(12px)';
+  el.style.transition = `opacity 0.4s ease ${i * 0.05}s, transform 0.4s ease ${i * 0.05}s`;
+});
+
+const revealObs = new IntersectionObserver((entries) => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      e.target.style.opacity = '1';
+      e.target.style.transform = 'translateY(0)';
+    }
+  });
+}, { threshold: 0.1 });
+
+document.querySelectorAll('.finding, .next-step, .question').forEach(el => revealObs.observe(el));
+</script>
 </body>
 </html>
