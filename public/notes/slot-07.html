@@ -1,12 +1,1096 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Slot 07</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SNN N! Ordering Space — Checkpoint</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<script>
+MathJax = {
+  tex: {
+    inlineMath: [['$', '$']],
+    displayMath: [['$$', '$$']],
+    tags: 'ams'
+  },
+  options: { skipHtmlTags: ['script','noscript','style','textarea','pre'] }
+};
+</script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js" async></script>
+<style>
+/* ── RESET & BASE ── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; font-size: 16px; }
+
+:root {
+  --bg:        #fafaf8;
+  --bg2:       #f3f2ee;
+  --bg3:       #eceae4;
+  --ink:       #1a1a18;
+  --ink2:      #4a4a46;
+  --ink3:      #8a8a84;
+  --rule:      #d8d6d0;
+  --rule2:     #eceae4;
+  --accent:    #1a1a18;
+  --mono:      'JetBrains Mono', monospace;
+  --serif:     'EB Garamond', Georgia, serif;
+  --page-w:    760px;
+  --side-w:    200px;
+}
+
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--serif);
+  font-size: 1.0625rem;
+  line-height: 1.75;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── LAYOUT ── */
+.page {
+  display: grid;
+  grid-template-columns: var(--side-w) var(--page-w);
+  gap: 0;
+  max-width: calc(var(--side-w) + var(--page-w) + 6rem);
+  margin: 0 auto;
+  padding: 0 3rem;
+  align-items: start;
+}
+
+/* ── SIDEBAR NAV ── */
+.sidenav {
+  position: sticky;
+  top: 4rem;
+  padding-right: 2.5rem;
+  padding-top: 6rem;
+  font-family: var(--mono);
+  font-size: 0.625rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.sidenav a {
+  display: block;
+  color: var(--ink3);
+  text-decoration: none;
+  padding: 0.3rem 0;
+  border-left: 1px solid transparent;
+  padding-left: 0.75rem;
+  transition: color 0.15s, border-color 0.15s;
+  line-height: 1.4;
+}
+
+.sidenav a:hover { color: var(--ink); border-left-color: var(--rule); }
+.sidenav a.active { color: var(--ink); border-left-color: var(--ink); }
+
+.sidenav .nav-group { margin-bottom: 1.5rem; }
+.sidenav .nav-label {
+  color: var(--ink3);
+  font-size: 0.5625rem;
+  letter-spacing: 0.12em;
+  margin-bottom: 0.25rem;
+  padding-left: 0.75rem;
+}
+
+/* ── MAIN CONTENT ── */
+main {
+  border-left: 1px solid var(--rule);
+  padding: 0 0 8rem 4rem;
+}
+
+/* ── HEADER ── */
+.doc-header {
+  padding: 6rem 0 4rem;
+  border-bottom: 1px solid var(--rule);
+  margin-bottom: 4rem;
+}
+
+.doc-label {
+  font-family: var(--mono);
+  font-size: 0.625rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink3);
+  margin-bottom: 1.25rem;
+}
+
+.doc-title {
+  font-size: 2.75rem;
+  font-weight: 500;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  margin-bottom: 1rem;
+  font-style: italic;
+}
+
+.doc-subtitle {
+  font-size: 1.0625rem;
+  color: var(--ink2);
+  max-width: 520px;
+  line-height: 1.6;
+  margin-bottom: 2rem;
+}
+
+.doc-meta {
+  display: flex;
+  gap: 2rem;
+  font-family: var(--mono);
+  font-size: 0.625rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink3);
+  flex-wrap: wrap;
+}
+
+/* ── SECTIONS ── */
+.section {
+  padding: 3.5rem 0;
+  border-bottom: 1px solid var(--rule2);
+  scroll-margin-top: 3rem;
+}
+
+.section:last-child { border-bottom: none; }
+
+.section-id {
+  font-family: var(--mono);
+  font-size: 0.5625rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink3);
+  margin-bottom: 0.6rem;
+}
+
+h2 {
+  font-size: 1.5rem;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  margin-bottom: 1.75rem;
+  line-height: 1.2;
+}
+
+h3 {
+  font-size: 1.0625rem;
+  font-weight: 500;
+  margin: 2rem 0 0.75rem;
+  letter-spacing: -0.005em;
+}
+
+p {
+  color: var(--ink2);
+  margin-bottom: 1rem;
+  max-width: 600px;
+}
+
+p:last-child { margin-bottom: 0; }
+
+/* ── DEFINITION ENTRIES ── */
+.def-entry {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0;
+  padding: 1.5rem 0;
+  border-bottom: 1px solid var(--rule2);
+}
+
+.def-entry:last-child { border-bottom: none; }
+
+.def-head {
+  display: flex;
+  align-items: baseline;
+  gap: 1rem;
+  margin-bottom: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.def-symbol {
+  font-family: var(--mono);
+  font-size: 0.8125rem;
+  color: var(--ink);
+  font-weight: 500;
+  background: var(--bg2);
+  padding: 0.1rem 0.5rem;
+  border-radius: 3px;
+  white-space: nowrap;
+}
+
+.def-name {
+  font-style: italic;
+  color: var(--ink);
+  font-size: 1.0625rem;
+}
+
+.def-type {
+  font-family: var(--mono);
+  font-size: 0.5625rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink3);
+  margin-left: auto;
+}
+
+.def-body {
+  color: var(--ink2);
+  font-size: 0.9375rem;
+  max-width: 560px;
+  line-height: 1.7;
+}
+
+.def-formula {
+  margin: 0.75rem 0 0.25rem;
+  padding: 0.75rem 1rem;
+  background: var(--bg2);
+  border-left: 2px solid var(--rule);
+  font-size: 0.9375rem;
+  overflow-x: auto;
+}
+
+/* ── FORMULA SHEET ── */
+.formula-grid {
+  display: grid;
+  gap: 0;
+}
+
+.formula-row {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: 2rem;
+  padding: 1.25rem 0;
+  border-bottom: 1px solid var(--rule2);
+  align-items: start;
+}
+
+.formula-row:last-child { border-bottom: none; }
+
+.formula-label {
+  font-family: var(--mono);
+  font-size: 0.625rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink3);
+  padding-top: 0.2rem;
+  line-height: 1.5;
+}
+
+.formula-label strong {
+  display: block;
+  color: var(--ink2);
+  font-weight: 500;
+  margin-bottom: 0.2rem;
+  text-transform: none;
+  letter-spacing: 0;
+  font-family: var(--serif);
+  font-size: 0.875rem;
+}
+
+.formula-body {
+  overflow-x: auto;
+}
+
+.formula-note {
+  font-size: 0.8125rem;
+  color: var(--ink3);
+  margin-top: 0.4rem;
+  font-style: italic;
+  font-family: var(--serif);
+}
+
+/* ── RESULTS TABLE ── */
+.results-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: var(--mono);
+  font-size: 0.75rem;
+  margin: 1.5rem 0;
+}
+
+.results-table thead tr {
+  border-bottom: 2px solid var(--ink);
+}
+
+.results-table th {
+  text-align: left;
+  padding: 0.5rem 0.75rem;
+  font-weight: 400;
+  font-size: 0.5625rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink3);
+  padding-bottom: 0.6rem;
+}
+
+.results-table td {
+  padding: 0.6rem 0.75rem;
+  border-bottom: 1px solid var(--rule2);
+  color: var(--ink2);
+  vertical-align: middle;
+}
+
+.results-table tbody tr:last-child td { border-bottom: none; }
+
+.val-hi   { color: var(--ink); font-weight: 500; }
+.val-mid  { color: var(--ink2); }
+.val-lo   { color: var(--ink3); }
+.val-note { font-style: italic; color: var(--ink3); font-family: var(--serif); font-size: 0.8125rem; }
+
+/* ── PROOF CHAIN ── */
+.proof-chain { margin: 1.5rem 0; }
+
+.proof-step {
+  display: grid;
+  grid-template-columns: 2.5rem 1fr;
+  gap: 0 1.25rem;
+  margin-bottom: 0;
+}
+
+.proof-step-num {
+  font-family: var(--mono);
+  font-size: 0.625rem;
+  color: var(--ink3);
+  padding-top: 0.25rem;
+  letter-spacing: 0.05em;
+  text-align: right;
+}
+
+.proof-step-body {
+  padding: 1rem 0 1rem 1rem;
+  border-left: 1px solid var(--rule);
+  margin-bottom: 0;
+}
+
+.proof-step:last-child .proof-step-body { border-left-color: transparent; }
+
+.proof-step-title {
+  font-size: 0.9375rem;
+  font-weight: 500;
+  color: var(--ink);
+  margin-bottom: 0.25rem;
+}
+
+.proof-step-evidence {
+  font-family: var(--mono);
+  font-size: 0.6875rem;
+  color: var(--ink3);
+  margin-top: 0.35rem;
+}
+
+/* ── INLINE CODE ── */
+code {
+  font-family: var(--mono);
+  font-size: 0.8125rem;
+  background: var(--bg2);
+  padding: 0.1em 0.35em;
+  border-radius: 2px;
+  color: var(--ink);
+}
+
+/* ── OPEN QUESTIONS ── */
+.q-list { list-style: none; }
+
+.q-item {
+  display: grid;
+  grid-template-columns: 2rem 1fr auto;
+  gap: 0 1rem;
+  padding: 1rem 0;
+  border-bottom: 1px solid var(--rule2);
+  align-items: baseline;
+}
+
+.q-item:last-child { border-bottom: none; }
+
+.q-num {
+  font-family: var(--mono);
+  font-size: 0.5625rem;
+  color: var(--ink3);
+  letter-spacing: 0.1em;
+  padding-top: 0.2rem;
+}
+
+.q-text {
+  font-size: 0.9375rem;
+  color: var(--ink2);
+}
+
+.q-text strong { color: var(--ink); font-weight: 500; }
+
+.q-status {
+  font-family: var(--mono);
+  font-size: 0.5rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 0.2rem 0.5rem;
+  border: 1px solid var(--rule);
+  color: var(--ink3);
+  white-space: nowrap;
+}
+
+.q-status.answered { border-color: var(--ink2); color: var(--ink2); }
+.q-status.partial  { border-color: var(--ink3); }
+
+/* ── FOOTNOTE / CAPTION ── */
+.caption {
+  font-family: var(--mono);
+  font-size: 0.5625rem;
+  letter-spacing: 0.08em;
+  color: var(--ink3);
+  margin-top: 0.5rem;
+  text-transform: uppercase;
+}
+
+/* ── DIVIDER ── */
+.rule { height: 1px; background: var(--rule); margin: 2rem 0; }
+
+/* ── RESPONSIVE ── */
+@media (max-width: 900px) {
+  .page { grid-template-columns: 1fr; padding: 0 1.5rem; }
+  .sidenav { display: none; }
+  main { border-left: none; padding-left: 0; }
+  .formula-row { grid-template-columns: 1fr; gap: 0.5rem; }
+  .q-item { grid-template-columns: 2rem 1fr; }
+  .q-status { display: none; }
+}
+
+/* ── PRINT ── */
+@media print {
+  .sidenav { display: none; }
+  .page { grid-template-columns: 1fr; }
+  main { border-left: none; padding-left: 0; }
+}
+</style>
 </head>
 <body>
-  <!-- draft -->
-  <p>Draft slot 07 — replace this entire file on GitHub to publish.</p>
+
+<div class="page">
+
+<!-- SIDEBAR -->
+<nav class="sidenav" id="sidenav">
+  <div class="nav-group">
+    <div class="nav-label">Document</div>
+    <a href="#header">Overview</a>
+  </div>
+  <div class="nav-group">
+    <div class="nav-label">Reference</div>
+    <a href="#symbols">Symbol Table</a>
+    <a href="#formulas">Formula Sheet</a>
+  </div>
+  <div class="nav-group">
+    <div class="nav-label">Architecture</div>
+    <a href="#pipeline">Full Pipeline</a>
+    <a href="#components">Components</a>
+  </div>
+  <div class="nav-group">
+    <div class="nav-label">Evidence</div>
+    <a href="#proof">Proof Chain</a>
+    <a href="#results">Results</a>
+  </div>
+  <div class="nav-group">
+    <div class="nav-label">Status</div>
+    <a href="#findings">Findings</a>
+    <a href="#open">Open Questions</a>
+  </div>
+</nav>
+
+<!-- MAIN -->
+<main>
+
+<!-- HEADER -->
+<header class="doc-header" id="header">
+  <div class="doc-label">Research Checkpoint · June 2026</div>
+  <h1 class="doc-title">SNN N! Ordering Space</h1>
+  <p class="doc-subtitle">A proof-of-concept framework for exploiting the factorial representational space of spike temporal ordering in Spiking Neural Networks.</p>
+  <div class="doc-meta">
+    <span>Fu-Chun Yang</span>
+    <span>UCSC / Relay Labs</span>
+    <span>M=8 · M!=40,320</span>
+    <span>8× H100 80GB</span>
+  </div>
+</header>
+
+<!-- SYMBOL TABLE -->
+<section class="section" id="symbols">
+  <div class="section-id">§1</div>
+  <h2>Symbol Table</h2>
+  <p>All symbols used throughout this document, with types and domains.</p>
+
+  <div style="margin-top:1.5rem">
+
+    <div class="def-entry">
+      <div class="def-head">
+        <span class="def-symbol">M</span>
+        <span class="def-name">Number of neurons</span>
+        <span class="def-type">Scalar · ℤ₊</span>
+      </div>
+      <div class="def-body">The number of LIF neurons in the SNN layer. Determines the size of the ordering space: $M$ neurons can produce $M!$ distinct spike orderings.</div>
+    </div>
+
+    <div class="def-entry">
+      <div class="def-head">
+        <span class="def-symbol">T</span>
+        <span class="def-name">Number of timesteps</span>
+        <span class="def-type">Scalar · ℤ₊</span>
+      </div>
+      <div class="def-body">The simulation length of the SNN. Should satisfy $T \gg M$ to allow all neurons sufficient time to fire at distinct timesteps, maximising ordering information.</div>
+    </div>
+
+    <div class="def-entry">
+      <div class="def-head">
+        <span class="def-symbol">C</span>
+        <span class="def-name">Number of classes</span>
+        <span class="def-type">Scalar · ℤ₊</span>
+      </div>
+      <div class="def-body">The number of output categories. The ratio $M!/C$ determines how much ordering space is available per class. Capacity degrades when $M!/C \lesssim 8$.</div>
+    </div>
+
+    <div class="def-entry">
+      <div class="def-head">
+        <span class="def-symbol">$\beta$</span>
+        <span class="def-name">Membrane decay rate</span>
+        <span class="def-type">Scalar · (0,1)</span>
+      </div>
+      <div class="def-body">The leakage coefficient of the LIF neuron. Higher $\beta$ means slower decay (longer integration window). LIF₁ uses $\beta_1 = 0.9$, LIF₂ uses $\beta_2 = 0.95$.</div>
+    </div>
+
+    <div class="def-entry">
+      <div class="def-head">
+        <span class="def-symbol">$\theta$</span>
+        <span class="def-name">Firing threshold</span>
+        <span class="def-type">Scalar · ℝ₊</span>
+      </div>
+      <div class="def-body">The membrane potential value above which the neuron fires a spike. Default $\theta = 1.0$ in snntorch.</div>
+    </div>
+
+    <div class="def-entry">
+      <div class="def-head">
+        <span class="def-symbol">$\mathbf{cur}$</span>
+        <span class="def-name">Input current vector</span>
+        <span class="def-type">Vector · ℝ^M</span>
+      </div>
+      <div class="def-body">The input driving current for each neuron. In the direct-input architecture, this is fed straight to LIF₁ without any linear transformation. The $i$-th entry $\text{cur}_i$ determines how quickly neuron $i$ reaches threshold.</div>
+    </div>
+
+    <div class="def-entry">
+      <div class="def-head">
+        <span class="def-symbol">$S$</span>
+        <span class="def-name">Spike matrix</span>
+        <span class="def-type">Matrix · {0,1}^{M×T}</span>
+      </div>
+      <div class="def-body">The binary output of Pass 1. Entry $S_{i,t} = 1$ if and only if neuron $i$ fires at timestep $t$. This is the uncompressed representation preserving all temporal information.</div>
+    </div>
+
+    <div class="def-entry">
+      <div class="def-head">
+        <span class="def-symbol">$t_i^*$</span>
+        <span class="def-name">First spike time of neuron $i$</span>
+        <span class="def-type">Scalar · {0,…,T}</span>
+      </div>
+      <div class="def-body">The timestep at which neuron $i$ fires for the first time: $t_i^* = \min\{t : S_{i,t} = 1\}$. Assigned $T$ if the neuron never fires. This is the key quantity encoding ordering information.</div>
+    </div>
+
+    <div class="def-entry">
+      <div class="def-head">
+        <span class="def-symbol">$\pi$</span>
+        <span class="def-name">Spike ordering (permutation)</span>
+        <span class="def-type">Vector · S_M</span>
+      </div>
+      <div class="def-body">The permutation of neuron indices ranked by their first spike times: $\pi = \text{argsort}([t_0^*, t_1^*, \ldots, t_{M-1}^*])$. There are $M!$ possible orderings. This is the core representational object of this research.</div>
+    </div>
+
+    <div class="def-entry">
+      <div class="def-head">
+        <span class="def-symbol">$w$</span>
+        <span class="def-name">Temporal decay rate</span>
+        <span class="def-type">Scalar · ℝ₊</span>
+      </div>
+      <div class="def-body">Controls the exponential weighting of spike times in the soft first-spike score. Larger $w$ emphasises early spikes more strongly; the limit $w \to \infty$ approximates argmin. Default $w = 0.5$.</div>
+    </div>
+
+    <div class="def-entry">
+      <div class="def-head">
+        <span class="def-symbol">$M_{i,t}$</span>
+        <span class="def-name">First-spike mask</span>
+        <span class="def-type">Scalar · {0,1}</span>
+      </div>
+      <div class="def-body">A binary mask isolating the first spike of neuron $i$. Equals 1 at time $t$ if and only if neuron $i$ fires at $t$ and has not fired at any earlier timestep. Used to make the first-spike score differentiable.</div>
+    </div>
+
+    <div class="def-entry">
+      <div class="def-head">
+        <span class="def-symbol">$a_i$</span>
+        <span class="def-name">Soft first-spike score</span>
+        <span class="def-type">Scalar · ℝ₊</span>
+      </div>
+      <div class="def-body">A differentiable approximation of $e^{-w \cdot t_i^*}$. Computed from $S$ via the first-spike mask. Larger $a_i$ means neuron $i$ fired earlier. Gradient $\partial a_i / \partial S_{i,t} = e^{-wt} \neq 0$ everywhere.</div>
+    </div>
+
+    <div class="def-entry">
+      <div class="def-head">
+        <span class="def-symbol">$\hat{a}_i$</span>
+        <span class="def-name">Soft rank score</span>
+        <span class="def-type">Scalar · [0,1]</span>
+      </div>
+      <div class="def-body">The rank-normalised version of $a_i$. Represents how many other neurons neuron $i$ fired before. Contains only ordinal information — the absolute magnitude of $a_i$ is discarded. Invariant to ordering-preserving rescaling of spike times.</div>
+    </div>
+
+    <div class="def-entry">
+      <div class="def-head">
+        <span class="def-symbol">$\tau$</span>
+        <span class="def-name">Soft rank temperature</span>
+        <span class="def-type">Scalar · ℝ₊</span>
+      </div>
+      <div class="def-body">Controls the sharpness of the sigmoid in the soft rank formula. $\tau \to 0$ recovers exact rank (zero gradient); $\tau \to \infty$ gives uniform output (no ordinal information). Default $\tau = 0.01$ for OPS invariance.</div>
+    </div>
+
+    <div class="def-entry">
+      <div class="def-head">
+        <span class="def-symbol">$\mathbf{p}$</span>
+        <span class="def-name">Plackett-Luce distribution</span>
+        <span class="def-type">Vector · Δ^{M!-1}</span>
+      </div>
+      <div class="def-body">A probability distribution over all $M!$ permutations, parameterised by the score vector. Entry $p_\pi = P(\pi \mid \hat{\mathbf{a}})$ is the probability of observing ordering $\pi$ given the soft rank scores. For $M > 6$, approximated by Monte Carlo with $K$ samples.</div>
+    </div>
+
+    <div class="def-entry">
+      <div class="def-head">
+        <span class="def-symbol">$K$</span>
+        <span class="def-name">Monte Carlo sample count</span>
+        <span class="def-type">Scalar · ℤ₊</span>
+      </div>
+      <div class="def-body">Number of permutations sampled from the Plackett-Luce distribution via the Gumbel-max trick when $M > 6$ makes exact enumeration intractable. Default $K = 512$. The readout dimension equals $K$ in Monte Carlo mode.</div>
+    </div>
+
+    <div class="def-entry">
+      <div class="def-head">
+        <span class="def-symbol">$\mathbf{W}_\text{out}$</span>
+        <span class="def-name">Readout weight matrix</span>
+        <span class="def-type">Matrix · ℝ^{C×K}</span>
+      </div>
+      <div class="def-body">The sole learnable component outside the SNN. Maps the Plackett-Luce distribution $\mathbf{p}$ to class logits. Dimension is $C \times M!$ for exact mode and $C \times K$ for Monte Carlo mode.</div>
+    </div>
+
+    <div class="def-entry">
+      <div class="def-head">
+        <span class="def-symbol">$\mathbf{S}$</span>
+        <span class="def-name">Skew-symmetric generator</span>
+        <span class="def-type">Matrix · ℝ^{M×M}, $S_{ij} = -S_{ji}$</span>
+      </div>
+      <div class="def-body">The learnable parameter of the orthogonal layer, constrained to be skew-symmetric ($\mathbf{S} = -\mathbf{S}^T$). The orthogonal weight matrix $\mathbf{W}$ is derived from $\mathbf{S}$ via the Cayley map. The upper triangle of $\mathbf{S}$ contains the free parameters.</div>
+    </div>
+
+    <div class="def-entry">
+      <div class="def-head">
+        <span class="def-symbol">$\sigma$</span>
+        <span class="def-name">Logistic sigmoid</span>
+        <span class="def-type">Function · ℝ → (0,1)</span>
+      </div>
+      <div class="def-body">The standard sigmoid function $\sigma(x) = 1/(1+e^{-x})$. Used in the soft rank formula to approximate the step function $\mathbf{1}[a_i > a_j]$ with a smooth, differentiable surrogate.</div>
+    </div>
+
+  </div>
+</section>
+
+<!-- FORMULA SHEET -->
+<section class="section" id="formulas">
+  <div class="section-id">§2</div>
+  <h2>Formula Sheet</h2>
+
+  <div class="formula-grid">
+
+    <div class="formula-row">
+      <div class="formula-label">
+        <strong>LIF Dynamics</strong>
+        Membrane update &amp; spike
+      </div>
+      <div class="formula-body">
+        $$\text{mem}_i[t] = \beta \cdot \text{mem}_i[t-1] + \text{input}_i[t]$$
+        $$S_{i,t} = \mathbf{1}\!\left[\text{mem}_i[t] > \theta\right]$$
+        <div class="formula-note">Surrogate gradient approximates $\partial S / \partial \text{mem}$ during backpropagation.</div>
+      </div>
+    </div>
+
+    <div class="formula-row">
+      <div class="formula-label">
+        <strong>First-Spike Mask</strong>
+        Isolate first event
+      </div>
+      <div class="formula-body">
+        $$M_{i,t} = S_{i,t} \cdot \prod_{s=0}^{t-1}(1 - S_{i,s})$$
+        <div class="formula-note">$M_{i,t} = 1$ iff neuron $i$ fires at $t$ and has not fired before. Gradient: $\partial M_{i,t}/\partial S_{i,s} \neq 0$.</div>
+      </div>
+    </div>
+
+    <div class="formula-row">
+      <div class="formula-label">
+        <strong>Soft First-Spike Score</strong>
+        Differentiable timing
+      </div>
+      <div class="formula-body">
+        $$a_i = \sum_{t=0}^{T-1} M_{i,t} \cdot e^{-w \cdot t}$$
+        <div class="formula-note">Approximates $e^{-w \cdot t_i^*}$. Gradient: $\partial a_i / \partial S_{i,t} = e^{-wt} \cdot \prod_{s < t}(1 - S_{i,s}) \neq 0$.</div>
+      </div>
+    </div>
+
+    <div class="formula-row">
+      <div class="formula-label">
+        <strong>Soft Rank Normalisation</strong>
+        Discard magnitude
+      </div>
+      <div class="formula-body">
+        $$\hat{a}_i = \frac{1}{M-1}\sum_{j \neq i} \sigma\!\left(\frac{a_i - a_j}{\tau}\right)$$
+        <div class="formula-note">$\hat{a}_i \in [0,1]$. Invariant to any order-preserving transformation of $\mathbf{a}$. As $\tau \to 0$, $\hat{a}_i \to \text{rank}(a_i)/(M-1)$.</div>
+      </div>
+    </div>
+
+    <div class="formula-row">
+      <div class="formula-label">
+        <strong>Plackett-Luce</strong>
+        Distribution over $S_M$
+      </div>
+      <div class="formula-body">
+        $$\log P(\pi \mid \hat{\mathbf{a}}) = \sum_{k=1}^{M} \left(\hat{a}_{\pi_k} - \log \sum_{j=k}^{M} e^{\hat{a}_{\pi_j}}\right)$$
+        <div class="formula-note">Computed in log-space for numerical stability. Final $\mathbf{p} = \text{softmax}([\log P(\pi_1|\hat{\mathbf{a}}), \ldots])$ over all $M!$ permutations.</div>
+      </div>
+    </div>
+
+    <div class="formula-row">
+      <div class="formula-label">
+        <strong>Gumbel-Max Sampling</strong>
+        Monte Carlo PL
+      </div>
+      <div class="formula-body">
+        $$\pi^{(k)} = \text{argsort}\!\left(-(\hat{\mathbf{a}} + \mathbf{g}^{(k)})\right), \quad \mathbf{g}^{(k)} \sim \text{Gumbel}(0,1)^M$$
+        <div class="formula-note">Used when $M > 6$. argsort is inside <code>torch.no_grad()</code>; gradients flow through log $P(\pi^{(k)} | \hat{\mathbf{a}})$ only.</div>
+      </div>
+    </div>
+
+    <div class="formula-row">
+      <div class="formula-label">
+        <strong>Readout &amp; Loss</strong>
+        Classification
+      </div>
+      <div class="formula-body">
+        $$\text{logits} = \mathbf{W}_\text{out}\,\mathbf{p} + \mathbf{b}$$
+        $$\mathcal{L} = -\log \frac{e^{\text{logits}_y}}{\sum_{c} e^{\text{logits}_c}}$$
+        <div class="formula-note">Cross-entropy on the true class $y$. Gradient flows back through $\mathbf{p} \to \hat{\mathbf{a}} \to \mathbf{a} \to S \to \text{mem} \to \mathbf{cur}$.</div>
+      </div>
+    </div>
+
+    <div class="formula-row">
+      <div class="formula-label">
+        <strong>Orthogonal Layer</strong>
+        Cayley map
+      </div>
+      <div class="formula-body">
+        $$\mathbf{W} = (I + \mathbf{S})^{-1}(I - \mathbf{S}), \quad \mathbf{S} = -\mathbf{S}^\top$$
+        $$\mathbf{W}^\top \mathbf{W} = I \;\Rightarrow\; \|\mathbf{W}\mathbf{x}\| = \|\mathbf{x}\|$$
+        <div class="formula-note">Learned parameter is $\mathbf{S}$ (unconstrained upper triangle). $\mathbf{W}$ is derived — rotation only, no scaling. Preserves relative current magnitudes.</div>
+      </div>
+    </div>
+
+    <div class="formula-row">
+      <div class="formula-label">
+        <strong>Recurrent Input</strong>
+        LIF₂ with competition
+      </div>
+      <div class="formula-body">
+        $$\text{input\_to\_lif2}_{i,t} = S_{i,t}^{(1)} + \sum_{j} W_{\text{rec},ij} \cdot S_{j,t-1}^{(2)}$$
+        <div class="formula-note">$W_\text{rec} \in \mathbb{R}^{M \times M}$, learnable. When off-diagonal entries are negative, earlier-firing neurons inhibit later ones (winner-take-all).</div>
+      </div>
+    </div>
+
+    <div class="formula-row">
+      <div class="formula-label">
+        <strong>E-drop</strong>
+        Temporal dependence metric
+      </div>
+      <div class="formula-body">
+        $$\text{E-drop} = \text{acc}(\text{normal}) - \text{acc}(\text{time-shuffled})$$
+        <div class="formula-note">Time-shuffle permutes the $T$ axis of $S$ uniformly at random, destroying first-spike timing while preserving spike counts. High E-drop confirms temporal ordering is the primary information source.</div>
+      </div>
+    </div>
+
+    <div class="formula-row">
+      <div class="formula-label">
+        <strong>OPS drop</strong>
+        Ordering vs timing
+      </div>
+      <div class="formula-body">
+        $$\text{OPS-drop} = \text{acc}(\text{normal}) - \text{acc}(\text{order-preserving shuffle})$$
+        <div class="formula-note">OPS re-samples spike times from a new random set while preserving $\pi$. Low OPS-drop means the model uses ordering, not absolute timing values.</div>
+      </div>
+    </div>
+
+    <div class="formula-row">
+      <div class="formula-label">
+        <strong>fst-std</strong>
+        Ordering separation
+      </div>
+      <div class="formula-body">
+        $$\text{fst-std} = \frac{1}{M}\sum_{i=1}^{M} \text{std}_{c}\!\left(\mathbb{E}\!\left[t_i^* \mid \text{class} = c\right]\right)$$
+        <div class="formula-note">Average standard deviation of per-neuron first spike times across classes. Higher values indicate greater ordering separation between classes.</div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- PIPELINE -->
+<section class="section" id="pipeline">
+  <div class="section-id">§3</div>
+  <h2>Full Pipeline</h2>
+  <p>The complete forward pass, from input current to classification loss.</p>
+
+  <div style="margin: 2rem 0; overflow-x: auto;">
+    $$\underbrace{\mathbf{cur}}_{\mathbb{R}^M} \;\xrightarrow{\text{LIF}_1,\,\text{LIF}_2}\; \underbrace{S}_{\{0,1\}^{M \times T}} \;\xrightarrow{\text{mask}} \;\underbrace{a_i}_{\mathbb{R}_+^M} \;\xrightarrow{\text{rank}}\; \underbrace{\hat{a}_i}_{[0,1]^M} \;\xrightarrow{\text{PL}}\; \underbrace{\mathbf{p}}_{\Delta^{K-1}} \;\xrightarrow{\mathbf{W}_\text{out}}\; \underbrace{\text{logits}}_{\mathbb{R}^C} \;\xrightarrow{\mathcal{L}_\text{CE}}\; \text{loss}$$
+  </div>
+
+  <p>The gradient flows backwards through every step. The only discrete operation, the Gumbel-max argsort for Monte Carlo sampling, is placed inside <code>torch.no_grad()</code>; gradients pass through the log-probability computation instead.</p>
+
+  <h3>Gradient path</h3>
+  <div style="margin: 1rem 0; overflow-x:auto;">
+    $$\frac{\partial \mathcal{L}}{\partial \mathbf{cur}} = \frac{\partial \mathcal{L}}{\partial \mathbf{p}} \cdot \frac{\partial \mathbf{p}}{\partial \hat{\mathbf{a}}} \cdot \frac{\partial \hat{\mathbf{a}}}{\partial \mathbf{a}} \cdot \frac{\partial \mathbf{a}}{\partial S} \cdot \underbrace{\frac{\partial S}{\partial \text{mem}}}_{\text{surrogate}} \cdot \frac{\partial \text{mem}}{\partial \mathbf{cur}}$$
+  </div>
+  <p>Every factor is non-zero. Prior to this work, the $\partial \mathbf{p}/\partial \hat{\mathbf{a}}$ term was zero because the pipeline used argmax/argsort instead of the Plackett-Luce formulation.</p>
+</section>
+
+<!-- COMPONENTS -->
+<section class="section" id="components">
+  <div class="section-id">§4</div>
+  <h2>Component Definitions</h2>
+
+  <h3>State Leaky — cascaded LIF</h3>
+  <p>Two LIF neurons in series. LIF₁ ($\beta_1 = 0.9$) receives the input current and generates an initial sparse spike train. LIF₂ ($\beta_2 = 0.95$, higher $\beta$ = slower decay) receives LIF₁'s spikes as its input, integrating them over a longer window. The effect is temporal smoothing: spikes that arrive in a burst from LIF₁ are spread across more timesteps by LIF₂, increasing the number of distinct first-spike times and therefore the information content of the ordering.</p>
+
+  <h3>Orthogonal layer — rotation only</h3>
+  <p>Any matrix $\mathbf{W}$ can be decomposed as $\mathbf{U}\mathbf{\Sigma}\mathbf{V}^\top$ (SVD). The diagonal $\mathbf{\Sigma}$ controls scaling per direction. A standard <code>nn.Linear</code> layer learns both rotation and scaling; scaling can amplify current differences to the point where ordering collapses into a binary on/off code. The orthogonal layer forces $\mathbf{\Sigma} = I$ by parameterising only the rotational component via a skew-symmetric generator $\mathbf{S}$ and the Cayley map. Relative current magnitudes are preserved: if neuron 2 has a slightly higher current than neuron 0 before the layer, it will still have a slightly higher current after.</p>
+
+  <h3>Recurrent connections on LIF₂</h3>
+  <p>A learnable $M \times M$ weight matrix $\mathbf{W}_\text{rec}$ is added to LIF₂'s input. When $W_{\text{rec},ij} < 0$, a spike from neuron $j$ at $t-1$ suppresses neuron $i$ at $t$. This implements soft winner-take-all dynamics: early-firing neurons inhibit later ones, pushing spike times towards the extremes of the time axis. The result is higher fst-std and better ordering separation under large-$C$ pressure.</p>
+
+</section>
+
+<!-- PROOF CHAIN -->
+<section class="section" id="proof">
+  <div class="section-id">§5</div>
+  <h2>Proof Chain</h2>
+  <p>Four mutually reinforcing experiments establishing that spike ordering is the primary information carrier.</p>
+
+  <div class="proof-chain" style="margin-top:1.5rem">
+
+    <div class="proof-step">
+      <div class="proof-step-num">01</div>
+      <div class="proof-step-body">
+        <div class="proof-step-title">Temporal information is used — E-drop test</div>
+        <p style="font-size:0.9375rem;max-width:520px">Training a model on direct-current inputs with soft first-spike scoring, then randomly shuffling the time axis of $S$ at evaluation, causes accuracy to drop from 1.000 to 0.198. The model cannot recover by relying on firing rate or other non-temporal features.</p>
+        <div class="proof-step-evidence">E-drop = 0.744 · ratio between/within = 18.6 · acc = 1.000</div>
+      </div>
+    </div>
+
+    <div class="proof-step">
+      <div class="proof-step-num">02</div>
+      <div class="proof-step-body">
+        <div class="proof-step-title">No other information source — acc ≈ E-drop across all $C$</div>
+        <p style="font-size:0.9375rem;max-width:520px">Across six values of $C$ from 24 to 10,000, accuracy and E-drop remain nearly equal. After time-shuffle, accuracy falls to approximately $1/C$ (random chance). This confirms there is no secondary pathway the model can exploit.</p>
+        <div class="proof-step-evidence">shuffle acc ≈ 1/C = 0.0001 at C=10,000 · verified: 0.002 ≈ 1/C</div>
+      </div>
+    </div>
+
+    <div class="proof-step">
+      <div class="proof-step-num">03</div>
+      <div class="proof-step-body">
+        <div class="proof-step-title">Ordering is learned, not absolute timing — OID test</div>
+        <p style="font-size:0.9375rem;max-width:520px">The Ordering-Invariant Dataset holds each class's ordering fixed while randomly re-sampling absolute spike times for every example. Within-class first-spike standard deviation is 1.96 (large), yet ordering accuracy reaches 1.000. The model learns the permutation, not the time values.</p>
+        <div class="proof-step-evidence">ordering_acc = 1.000 · within_fst_std = 1.96 · acc = 0.793</div>
+      </div>
+    </div>
+
+    <div class="proof-step">
+      <div class="proof-step-num">04</div>
+      <div class="proof-step-body">
+        <div class="proof-step-title">Only ordering matters at evaluation — OPS + soft rank test</div>
+        <p style="font-size:0.9375rem;max-width:520px">The Ordering-Preserving Shuffle changes all absolute spike times while holding the permutation $\pi$ constant. Without soft rank normalisation, OPS-drop = 0.228 because the PL distribution's concentration changes. With soft rank ($\tau = 0.01$), which discards magnitude information from $\mathbf{a}$, OPS-drop falls to 0.017 — a 13× reduction — while accuracy remains at 1.000.</p>
+        <div class="proof-step-evidence">OPS-drop (baseline) = 0.228 · OPS-drop (τ=0.01) = 0.017 · acc = 1.000</div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- RESULTS -->
+<section class="section" id="results">
+  <div class="section-id">§6</div>
+  <h2>Experimental Results</h2>
+
+  <h3>Exp A — capacity scaling ($M=8$, $M! = 40{,}320$)</h3>
+
+  <table class="results-table">
+    <thead>
+      <tr>
+        <th>$C$</th>
+        <th>$M!/C$</th>
+        <th>mean acc</th>
+        <th>mean E-drop</th>
+        <th>acc $-$ E-drop</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td>24</td><td>1,680</td><td class="val-hi">1.000</td><td class="val-hi">0.764</td><td class="val-note">+0.236</td></tr>
+      <tr><td>100</td><td>403</td><td class="val-hi">0.978</td><td class="val-hi">0.885</td><td class="val-note">+0.093</td></tr>
+      <tr><td>500</td><td>81</td><td class="val-hi">0.856</td><td class="val-hi">0.830</td><td class="val-note">+0.026</td></tr>
+      <tr><td>1,000</td><td>40</td><td class="val-mid">0.733</td><td class="val-mid">0.717</td><td class="val-note">+0.016</td></tr>
+      <tr><td>5,000</td><td>8</td><td class="val-lo">0.310</td><td class="val-lo">0.307</td><td class="val-note">+0.003</td></tr>
+      <tr><td>10,000</td><td>4</td><td class="val-lo">0.162</td><td class="val-lo">0.160</td><td class="val-note">+0.002 ≈ 1/C</td></tr>
+    </tbody>
+  </table>
+  <div class="caption">As $C$ grows, acc $\approx$ E-drop, confirming ordering is the sole information channel.</div>
+
+  <h3 style="margin-top:2rem">Exp B — input layer type ($M=8$, $C=24$)</h3>
+
+  <table class="results-table">
+    <thead>
+      <tr><th>fc type</th><th>acc</th><th>E-drop</th><th>orth error $\|\mathbf{W}^\top\mathbf{W} - I\|_F$</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>None (direct)</td><td class="val-hi">1.000</td><td class="val-hi">0.744</td><td>—</td></tr>
+      <tr><td>Standard Linear</td><td class="val-mid">0.860</td><td class="val-lo">0.051</td><td>—</td></tr>
+      <tr><td>Orthogonal (Cayley)</td><td class="val-hi">0.923</td><td class="val-hi">0.420</td><td class="val-hi">0.000</td></tr>
+    </tbody>
+  </table>
+  <div class="caption">A standard linear layer destroys ordering (E-drop 0.744→0.051). The orthogonal layer retains it (0.420).</div>
+
+  <h3 style="margin-top:2rem">Exp Capacity — SNN-Base vs SNN-Rec ($M=8$)</h3>
+
+  <table class="results-table">
+    <thead>
+      <tr><th>$C$</th><th>Base acc</th><th>Rec acc</th><th>Rec $-$ Base</th><th>Base collapse</th><th>Rec collapse</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>128</td><td>0.620</td><td>0.622</td><td>+0.002</td><td>YES</td><td>YES</td></tr>
+      <tr><td>256</td><td>0.401</td><td class="val-mid">0.467</td><td>+0.066</td><td>YES</td><td>YES</td></tr>
+      <tr><td>512</td><td>0.241</td><td class="val-mid">0.320</td><td class="val-hi">+0.079</td><td>YES</td><td>YES</td></tr>
+      <tr><td>1,024</td><td>0.142</td><td class="val-mid">0.192</td><td>+0.050</td><td>2/3 NO</td><td>YES</td></tr>
+      <tr><td>2,048</td><td class="val-lo">0.078</td><td class="val-lo">0.108</td><td>+0.030</td><td>YES</td><td>YES</td></tr>
+    </tbody>
+  </table>
+  <div class="caption">Recurrent advantage peaks at C=512 (+0.079). Rec maintains binary collapse and higher fst-std under pressure.</div>
+
+  <h3 style="margin-top:2rem">OPS + soft rank — tau sweep</h3>
+
+  <table class="results-table">
+    <thead>
+      <tr><th>$\tau$</th><th>acc</th><th>OPS-drop</th><th>vs baseline</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>baseline (no rank)</td><td>1.000</td><td>0.228</td><td>—</td></tr>
+      <tr><td>1.0</td><td>0.999</td><td>0.341</td><td class="val-lo">worse</td></tr>
+      <tr><td>0.1</td><td class="val-hi">1.000</td><td>0.113</td><td>−0.115</td></tr>
+      <tr><td>0.01</td><td class="val-hi">1.000</td><td class="val-hi">0.017</td><td class="val-hi">−0.211 (13×)</td></tr>
+    </tbody>
+  </table>
+  <div class="caption">$\tau = 0.01$ reduces OPS-drop by 13× while maintaining perfect accuracy.</div>
+
+</section>
+
+<!-- FINDINGS -->
+<section class="section" id="findings">
+  <div class="section-id">§7</div>
+  <h2>Confirmed Findings</h2>
+
+  <div style="margin-top:1rem">
+    <div class="def-entry">
+      <div class="def-head"><span class="def-symbol">F1</span><span class="def-name">SNN can learn spike ordering</span></div>
+      <div class="def-body">With direct current input and soft first-spike scoring, the SNN exploits temporal spike ordering as the primary information channel. E-drop = 0.744; time-shuffle reduces accuracy to near random chance.</div>
+    </div>
+    <div class="def-entry">
+      <div class="def-head"><span class="def-symbol">F2</span><span class="def-name">$M!$ is the real capacity bound</span></div>
+      <div class="def-body">Accuracy and E-drop remain coupled across all tested $C$. Capacity degrades gracefully when $M!/C \lesssim 8$, confirming the factorial space is the operative constraint, not any architecture artefact.</div>
+    </div>
+    <div class="def-entry">
+      <div class="def-head"><span class="def-symbol">F3</span><span class="def-name">Any linear layer collapses ordering</span></div>
+      <div class="def-body">An 8×8 standard linear layer before the SNN drops E-drop from 0.744 to 0.051. Scaling of currents — even slight — allows the model to use a binary on/off code instead of ordering.</div>
+    </div>
+    <div class="def-entry">
+      <div class="def-head"><span class="def-symbol">F4</span><span class="def-name">Orthogonal layer preserves ordering</span></div>
+      <div class="def-body">Constraining the pre-SNN layer to be orthogonal via Cayley parameterisation maintains E-drop at 0.420. Orthogonal accuracy (0.923) exceeds standard linear (0.860), suggesting ordering is not merely preserved but beneficial.</div>
+    </div>
+    <div class="def-entry">
+      <div class="def-head"><span class="def-symbol">F5</span><span class="def-name">Recurrent connections improve separation</span></div>
+      <div class="def-body">LIF₂-level recurrent connections improve accuracy at all tested $C$ values. The advantage peaks at $C=512$ (+0.079). Recurrent winner-take-all dynamics maintain higher fst-std (9.49 vs 8.84) under large-$C$ pressure.</div>
+    </div>
+    <div class="def-entry">
+      <div class="def-head"><span class="def-symbol">F6</span><span class="def-name">Soft rank eliminates magnitude leakage</span></div>
+      <div class="def-body">OPS-drop measures whether the model depends on absolute spike time values beyond their ordinal structure. Without soft rank: OPS-drop = 0.228. With $\tau = 0.01$: OPS-drop = 0.017 (13× reduction). Accuracy is maintained at 1.000.</div>
+    </div>
+    <div class="def-entry">
+      <div class="def-head"><span class="def-symbol">F7</span><span class="def-name">Geometric structure is partially learned</span></div>
+      <div class="def-body">In the geo-gen experiment, fn-unseen = 0.670 (vs chance 0.250): the model correctly identifies the first-firing neuron for orderings it has never seen. The SNN generalises the concept "neuron $k$ fires first" without having been trained on all permutations containing it.</div>
+    </div>
+  </div>
+</section>
+
+<!-- OPEN QUESTIONS -->
+<section class="section" id="open">
+  <div class="section-id">§8</div>
+  <h2>Open Questions</h2>
+
+  <ul class="q-list">
+    <li class="q-item">
+      <span class="q-num">Q1</span>
+      <span class="q-text"><strong>Hierarchical readout.</strong> Can replacing the flat PL readout with a hierarchical one (first reading which neuron fires first, then second, etc.) allow generalisation to unseen permutations? fn-unseen = 0.670 suggests the SNN part is ready; the bottleneck is the readout interface.</span>
+      <span class="q-status partial">Partial</span>
+    </li>
+    <li class="q-item">
+      <span class="q-num">Q2</span>
+      <span class="q-text"><strong>Ordering embedding.</strong> Can a learned embedding $\pi \mapsto \mathbf{e}_\pi \in \mathbb{R}^d$ encode geometric structure so that similar permutations are close? This would allow $\mathbf{z} = \sum_\pi p_\pi \mathbf{e}_\pi$ to carry both ordering identity and neighbourhood information.</span>
+      <span class="q-status">Open</span>
+    </li>
+    <li class="q-item">
+      <span class="q-num">Q3</span>
+      <span class="q-text"><strong>Optimal $w$ and $\tau$.</strong> Current values ($w = 0.5$, $\tau = 0.01$) were chosen empirically. What is the theoretical relationship between $w$, $T$, and the gradient magnitude reaching early vs late timesteps? Is there a principled choice?</span>
+      <span class="q-status">Open</span>
+    </li>
+    <li class="q-item">
+      <span class="q-num">Q4</span>
+      <span class="q-text"><strong>FFN + Orthogonal + SNN on real data.</strong> The orthogonal layer enables FFN encoders to coexist with ordering. Does this hold on high-dimensional noisy inputs (e.g., time-series, genomics)? Does E-drop survive a deep encoder?</span>
+      <span class="q-status">Open</span>
+    </li>
+    <li class="q-item">
+      <span class="q-num">Q5</span>
+      <span class="q-text"><strong>Capacity threshold.</strong> Degradation begins at $M!/C \approx 8$. Is this threshold architecture-dependent or a fundamental property of the Plackett-Luce estimation with $K$ samples? Does recurrent competition shift it?</span>
+      <span class="q-status partial">Partial</span>
+    </li>
+    <li class="q-item">
+      <span class="q-num">Q6</span>
+      <span class="q-text"><strong>Ordering autoencoder.</strong> If a decoder can reconstruct the input $\mathbf{x}$ from the ordering alone (with no class supervision), it would prove ordering carries the full input signal. This remains the strongest possible proof of the core claim.</span>
+      <span class="q-status">Open</span>
+    </li>
+    <li class="q-item">
+      <span class="q-num">Q7</span>
+      <span class="q-text"><strong>$W_\text{rec}$ topology.</strong> Does the learned recurrent weight matrix exhibit predominantly inhibitory off-diagonal entries (winner-take-all), and does this resemble known biological competition circuits? What is the effect of initialising $W_\text{rec}$ as inhibitory?</span>
+      <span class="q-status">Open</span>
+    </li>
+  </ul>
+</section>
+
+</main>
+</div>
+
+<script>
+// Sidebar active tracking
+const sections = document.querySelectorAll('.section, .doc-header');
+const links = document.querySelectorAll('.sidenav a');
+
+const obs = new IntersectionObserver((entries) => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      const id = e.target.id;
+      links.forEach(l => {
+        l.classList.toggle('active', l.getAttribute('href') === `#${id}`);
+      });
+    }
+  });
+}, { threshold: 0.2, rootMargin: '-60px 0px -40% 0px' });
+
+sections.forEach(s => obs.observe(s));
+</script>
 </body>
 </html>
