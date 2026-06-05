@@ -1,7 +1,8 @@
 "use client"
 
+import { useState } from "react"
 import Link from "next/link"
-import { ArrowUpRight, Download } from "lucide-react"
+import { ArrowUpRight, ChevronLeft, ChevronRight, Download } from "lucide-react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { useLanguage } from "@/contexts/language-context"
 
@@ -15,8 +16,14 @@ type NotesListProps = {
   notes: Note[]
 }
 
+const PAGE_SIZE = 6
+
 export function NotesList({ notes }: NotesListProps) {
   const { t, language } = useLanguage()
+  const [page, setPage] = useState(0)
+  const totalPages = Math.max(1, Math.ceil(notes.length / PAGE_SIZE))
+  const safePage = Math.min(page, totalPages - 1)
+  const pageNotes = notes.slice(safePage * PAGE_SIZE, safePage * PAGE_SIZE + PAGE_SIZE)
 
   if (notes.length === 0) {
     return (
@@ -27,8 +34,9 @@ export function NotesList({ notes }: NotesListProps) {
   }
 
   return (
+    <div>
     <div className="grid gap-4 sm:grid-cols-2">
-      {notes.map((note) => (
+      {pageNotes.map((note) => (
         <Card
           key={note.slug}
           className="h-full border-gray-200 dark:border-gray-800 bg-white/50 dark:bg-gray-900/50"
@@ -58,6 +66,34 @@ export function NotesList({ notes }: NotesListProps) {
           </CardContent>
         </Card>
       ))}
+    </div>
+    {totalPages > 1 && (
+      <div className="mt-8 flex items-center justify-between gap-4">
+        <button
+          type="button"
+          onClick={() => setPage((p) => Math.max(0, p - 1))}
+          disabled={safePage === 0}
+          className="inline-flex items-center gap-1 text-sm text-primary disabled:text-gray-400 disabled:cursor-not-allowed hover:underline"
+        >
+          <ChevronLeft className="w-4 h-4" />
+          {t("notes.prevPage")}
+        </button>
+        <span className="text-sm text-gray-500 dark:text-gray-400">
+          {language === "zh"
+            ? `第 ${safePage + 1} / ${totalPages} 頁`
+            : `Page ${safePage + 1} of ${totalPages}`}
+        </span>
+        <button
+          type="button"
+          onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
+          disabled={safePage >= totalPages - 1}
+          className="inline-flex items-center gap-1 text-sm text-primary disabled:text-gray-400 disabled:cursor-not-allowed hover:underline"
+        >
+          {t("notes.nextPage")}
+          <ChevronRight className="w-4 h-4" />
+        </button>
+      </div>
+    )}
     </div>
   )
 }

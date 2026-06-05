@@ -54,7 +54,8 @@
   <h2>How it works</h2>
   <ul>
     <li>Each note is a plain HTML file in <code>public/notes/</code>.</li>
-    <li>The site lists every <code>*.html</code> file <strong>except</strong> ones that contain <code>&lt;!-- draft --&gt;</code>.</li>
+    <li>The site lists every <code>*.html</code> file <strong>except</strong> ones that contain <code>&lt;!-- draft --&gt;</code> or <code>&lt;!-- hidden --&gt;</code>.</li>
+    <li>Every note page shows a fixed <strong>← Notes</strong> button (via <code>notes-nav.js</code>).</li>
     <li>Title on the list comes from the file’s <code>&lt;title&gt;</code> (or first <code>&lt;h1&gt;</code>).</li>
     <li>Date on the list is the file’s last-modified time.</li>
     <li>Live URL: <code>/notes/slot-01</code> → serves <code>/notes/slot-01.html</code>.</li>
@@ -69,10 +70,18 @@
     <li>Commit → deploy. It appears on <code>/notes</code> automatically.</li>
   </ol>
 
-  <h2>Hide a note (draft again)</h2>
-  <p>Add this anywhere in the HTML body (slots use it at the top of <code>&lt;body&gt;</code>):</p>
-  <pre>&lt;!-- draft --&gt;</pre>
-  <p>The page can still be opened by direct URL, but it won’t show on the public list.</p>
+  <h2>Choose which notes show on /notes</h2>
+  <p>Open <code>/notes/manage</code> in the browser — check the notes you want, copy the JSON, and save it as <code>notes-manifest.json</code> in the repo root on GitHub. Only slugs listed under <code>show</code> appear on the public list (in that order).</p>
+  <pre>{
+  "show": ["slot-08", "slot-05", "slot-01"]
+}</pre>
+  <p>Delete <code>notes-manifest.json</code> or set <code>show</code> to <code>[]</code> to fall back to all non-hidden notes.</p>
+
+  <h2>Hide a note from the list</h2>
+  <p>Add either marker anywhere in the file to delist without deleting:</p>
+  <pre>&lt;!-- draft --&gt;
+&lt;!-- hidden --&gt;</pre>
+  <p>Or simply omit it from <code>notes-manifest.json</code>. Direct URL still works.</p>
 
   <h2>Reserved slots</h2>
   <p><code>slot-01.html</code> … <code>slot-100.html</code> are pre-created drafts. Use the next free slot or generate more locally:</p>
@@ -104,5 +113,6 @@ pnpm generate-slots --help</pre>
     <li>Folder on GitHub: <code>public/notes/</code></li>
     <li>This file: <code>public/notes/portfolio-draft.html</code> (always draft — for you only)</li>
   </ul>
+  <script src="/notes/notes-nav.js" defer></script>
 </body>
 </html>

@@ -15,7 +15,7 @@ export default function Portfolio() {
 
   return (
     <div className="bg-background-light dark:bg-background-dark font-display text-gray-800 dark:text-gray-200">
-      <div className="flex flex-col min-h-screen">
+      <div className="flex flex-col min-h-screen overscroll-y-none">
         <header className="sticky top-0 z-10 w-full bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-sm border-b border-gray-200 dark:border-gray-800">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex items-center justify-between h-16">

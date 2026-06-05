@@ -81,6 +81,7 @@ function buildSlotHtml(num, pad) {
 <body>
   <!-- draft -->
   <p>Draft slot ${label} — replace this entire file on GitHub to publish.</p>
+  <script src="/notes/notes-nav.js" defer></script>
 </body>
 </html>
 `

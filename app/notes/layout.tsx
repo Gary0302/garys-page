@@ -1,5 +1,6 @@
 import type { Metadata } from "next"
 import { NotesHeader } from "@/components/notes-header"
+import { NotesScrollFix } from "@/components/notes-scroll-fix"
 
 export const metadata: Metadata = {
   title: "Notes | Gary Yang",
@@ -8,9 +9,10 @@ export const metadata: Metadata = {
 
 export default function NotesLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="bg-background-light dark:bg-background-dark font-display text-gray-800 dark:text-gray-200 min-h-screen flex flex-col">
+    <div className="bg-background-light dark:bg-background-dark font-display text-gray-800 dark:text-gray-200 min-h-screen">
+      <NotesScrollFix />
       <NotesHeader />
-      <main className="flex-grow">{children}</main>
+      <main>{children}</main>
       <footer className="border-t border-gray-200 dark:border-gray-800">
         <div className="max-w-4xl mx-auto py-6 px-4 sm:px-6 lg:px-8 text-center text-sm text-gray-500 dark:text-gray-400">
           <p>© 2025 Gary Yang</p>

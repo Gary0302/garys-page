@@ -86,19 +86,22 @@
   * {
     @apply border-border;
   }
-  html, body {
-    @apply bg-background text-foreground;
-    overflow-x: hidden;
-    /* Change contain to none */
-    overscroll-behavior-y: none; /* Prevent vertical bounce */
-  }
   html {
-     height: 100%;
-     overscroll-behavior-y: none; /* Apply here too for good measure */
+    @apply bg-background text-foreground;
+    min-height: 100%;
   }
   body {
-     min-height: 100%;
-     overflow-x: hidden;
-     overscroll-behavior-y: none; /* Apply here too */
+    @apply bg-background text-foreground;
+    min-height: 100%;
+    overflow-x: clip;
+  }
+  /* Notes routes: ensure document scroll is never blocked */
+  html.notes-route-scroll,
+  body.notes-route-scroll {
+    height: auto !important;
+    min-height: 100%;
+    overflow-x: clip;
+    overflow-y: auto !important;
+    overscroll-behavior-y: auto;
   }
 }
