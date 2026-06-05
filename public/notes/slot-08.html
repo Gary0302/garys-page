@@ -486,9 +486,9 @@ code{font-family:var(--mono);font-size:.8125rem;background:var(--bg2);padding:.1
       <div class="proof-step-num">01</div>
       <div class="proof-step-body">
         <div class="proof-step-title"><span class="lang-en">Temporal information is used — E-drop test</span><span class="lang-zh">使用時間資訊 — E-drop 測試</span></div>
-        <p class="lang-en" style="font-size:.9375rem;max-width:520px">Random time-axis shuffle of $S$ drops accuracy from 1.000 to 0.198. After shuffle, acc $\approx 1/C$ (random chance). No non-temporal feature can compensate.</p>
-        <p class="lang-zh" style="font-size:.9375rem;max-width:520px">隨機打亂 $S$ 的時間軸使準確率從 1.000 降至 0.198。打亂後 acc $\approx 1/C$（隨機猜測）。非時間特徵無法補償。</p>
-        <div class="proof-step-evidence">E-drop = 0.744 · ratio between/within = 18.6 · shuffle acc → 1/C</div>
+        <p class="lang-en" style="font-size:.9375rem;max-width:520px">Random time-axis shuffle of $S$ drops accuracy from 1.000 to 0.256. After shuffle, acc $\approx 1/C$ (random chance). Ratio between/within = 18.2. No non-temporal feature can compensate.</p>
+        <p class="lang-zh" style="font-size:.9375rem;max-width:520px">隨機打亂 $S$ 的時間軸使準確率從 1.000 降至 0.256。打亂後 acc $\approx 1/C$（隨機猜測）。類間/類內比 = 18.2。非時間特徵無法補償。</p>
+        <div class="proof-step-evidence">E-drop = 0.744 · ratio between/within = 18.2 · shuffle acc → 0.256</div>
       </div>
     </div>
     <div class="proof-step">
@@ -861,6 +861,5 @@ const obs = new IntersectionObserver(entries => {
 }, { threshold: 0.2, rootMargin: '-60px 0px -40% 0px' });
 sections.forEach(s => obs.observe(s));
 </script>
-  <script src="/notes/notes-nav.js" defer></script>
 </body>
 </html>

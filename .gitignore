@@ -27,3 +27,9 @@ yarn-error.log*
 next-env.d.ts
 
 idea.txt
+
+# macOS
+.DS_Store
+
+# temp files
+tmp.html
