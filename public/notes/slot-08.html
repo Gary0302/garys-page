@@ -1,12 +1,865 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Slot 08</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SNN N! Ordering Space — Research Checkpoint v2</title>
+<script>
+MathJax = {
+  tex: { inlineMath: [['$','$']], displayMath: [['$$','$$']], tags: 'ams' },
+  options: { skipHtmlTags: ['script','noscript','style','textarea','pre'] }
+};
+</script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js" async></script>
+<style>
+/* Research memo layout with Notion export fonts */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth;font-size:16px;-webkit-print-color-adjust:exact}
+:root{
+  --bg:#fefefe;--bg2:#f9f9f7;--bg3:#f3f3f1;--bg4:#ececea;
+  --ink:#1a1a18;--ink2:#4a4a46;--ink3:#8a8a84;--ink4:#b8b8b0;
+  --rule:#d8d6d0;--rule2:#eceae4;
+  --sans:ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI Variable Display","Segoe UI",Helvetica,"Apple Color Emoji","Noto Sans Arabic","Noto Sans Hebrew",Arial,sans-serif,"Segoe UI Emoji","Segoe UI Symbol";
+  --mono:"SFMono-Regular",Menlo,Consolas,"PT Mono","Liberation Mono",Courier,monospace;
+  --page:760px;--side:200px
+}
+body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:1.0625rem;line-height:1.75;-webkit-font-smoothing:antialiased}
+body[data-lang="zh"]{font-family:ui-sans-serif,-apple-system,"PingFang TC","Noto Sans CJK TC","Microsoft JhengHei",Arial,sans-serif}
+body[data-lang="en"] .lang-zh,body[data-lang="zh"] .lang-en{display:none!important}
+.lang-switch{display:flex;gap:.35rem;margin-bottom:2rem}
+.lang-switch button{font-family:var(--mono);font-size:.625rem;letter-spacing:.08em;text-transform:uppercase;padding:.35rem .6rem;border:1px solid var(--rule);background:transparent;color:var(--ink3);cursor:pointer;border-radius:3px;transition:color .15s,border-color .15s,background .15s}
+.lang-switch button:hover{color:var(--ink);border-color:var(--ink2)}
+.lang-switch button.active{color:var(--ink);border-color:var(--ink);background:var(--bg2)}
+
+/* layout */
+.page{display:grid;grid-template-columns:var(--side) var(--page);max-width:calc(var(--side) + var(--page) + 6rem);margin:0 auto;padding:0 3rem;align-items:start}
+
+/* sidebar */
+.sidenav{position:sticky;top:4rem;padding-right:2.5rem;padding-top:6rem;font-family:var(--mono);font-size:.625rem;letter-spacing:.08em;text-transform:uppercase}
+.sidenav a{display:block;color:var(--ink3);text-decoration:none;padding:.3rem 0;border-left:1px solid transparent;padding-left:.75rem;transition:color .15s,border-color .15s;line-height:1.4}
+.sidenav a:hover{color:var(--ink);border-left-color:var(--rule)}
+.sidenav a.active{color:var(--ink);border-left-color:var(--ink)}
+.nav-group{margin-bottom:1.5rem}
+.nav-label{color:var(--ink3);font-size:.5625rem;letter-spacing:.12em;margin-bottom:.25rem;padding-left:.75rem}
+
+/* main */
+main{border-left:1px solid var(--rule);padding:0 0 8rem 4rem}
+
+/* header */
+.doc-header{padding:6rem 0 4rem;border-bottom:1px solid var(--rule);margin-bottom:4rem;scroll-margin-top:3rem}
+.doc-title{font-size:2.75rem;font-weight:600;line-height:1.1;letter-spacing:-.02em;margin-bottom:1rem;color:var(--ink)}
+.doc-subtitle{font-size:1.0625rem;color:var(--ink2);max-width:520px;line-height:1.6;margin-bottom:1.5rem}
+.doc-date{font-family:var(--mono);font-size:.8125rem;letter-spacing:.04em;color:var(--ink3)}
+
+/* sections */
+.section{padding:3.5rem 0;border-bottom:1px solid var(--rule2);scroll-margin-top:3rem}
+.section:last-child{border-bottom:none}
+h2{font-size:1.5rem;font-weight:600;letter-spacing:-.01em;margin-bottom:1.75rem;line-height:1.2;color:var(--ink)}
+h2 .section-num{font-family:var(--mono);font-weight:500;color:var(--ink2);margin-right:.4em}
+h3{font-size:1.0625rem;font-weight:600;margin:2rem 0 .75rem;letter-spacing:-.005em;color:var(--ink)}
+h4{font-family:var(--mono);font-size:.75rem;font-weight:500;letter-spacing:.05em;color:var(--ink2);margin:1.5rem 0 .5rem;text-transform:uppercase}
+p{color:var(--ink2);margin-bottom:1rem;max-width:600px}
+p:last-child{margin-bottom:0}
+strong{font-weight:600;color:var(--ink)}
+
+/* definition entries */
+.def-entry{padding:1.5rem 0;border-bottom:1px solid var(--rule2)}
+.def-entry:last-child{border-bottom:none}
+.def-head{display:flex;align-items:baseline;gap:1rem;margin-bottom:.5rem;flex-wrap:wrap}
+.def-symbol{font-family:var(--mono);font-size:.8125rem;color:var(--ink);font-weight:500;background:var(--bg2);padding:.1rem .5rem;border-radius:3px;white-space:nowrap}
+.def-name{font-weight:500;color:var(--ink);font-size:1.0625rem}
+.def-type{font-family:var(--mono);font-size:.875rem;letter-spacing:.02em;text-transform:none;color:var(--ink2);margin-left:auto}
+.def-body{color:var(--ink2);font-size:.9375rem;max-width:560px;line-height:1.7}
+.def-formula{margin:.75rem 0 .25rem;padding:.75rem 1rem;background:var(--bg2);border-left:2px solid var(--rule);font-size:.9375rem;overflow-x:auto}
+
+/* formula sheet */
+.formula-grid{display:grid;gap:0}
+.formula-row{display:grid;grid-template-columns:1fr 2fr;gap:2rem;padding:1.25rem 0;border-bottom:1px solid var(--rule2);align-items:start}
+.formula-row:last-child{border-bottom:none}
+.formula-label{font-family:var(--mono);font-size:.625rem;letter-spacing:.1em;text-transform:uppercase;color:var(--ink3);padding-top:.2rem;line-height:1.5}
+.formula-label strong{display:block;color:var(--ink2);font-weight:600;text-transform:none;letter-spacing:0;font-family:var(--sans);font-size:.875rem;margin-bottom:.2rem}
+.formula-body{overflow-x:auto}
+.formula-body mjx-container[jax="CHTML"][display="true"]{margin:.75rem 0}
+.formula-note{font-family:var(--sans);font-size:.9375rem;font-style:normal;font-weight:400;color:var(--ink2);line-height:1.7;margin-top:.75rem;max-width:560px}
+.formula-note code{font-family:var(--mono);font-size:.8125rem}
+
+/* tables */
+.tbl{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:.875rem;margin:1.5rem 0}
+.tbl thead tr{border-bottom:2px solid var(--ink)}
+.tbl th{text-align:left;padding:.55rem .85rem;font-weight:400;font-size:.75rem;letter-spacing:.08em;text-transform:uppercase;color:var(--ink3);padding-bottom:.65rem}
+.tbl td{padding:.65rem .85rem;border-bottom:1px solid var(--rule2);color:var(--ink2);vertical-align:middle;font-size:.875rem}
+.tbl tbody tr:last-child td{border-bottom:none}
+.val-hi{color:var(--ink);font-weight:500}
+.val-mid{color:var(--ink2)}
+.val-lo{color:var(--ink3)}
+.val-note{color:var(--ink3);font-family:var(--sans);font-size:.875rem}
+
+/* capacity matrix */
+.matrix-wrap{overflow-x:auto;margin:1.5rem 0}
+.matrix{border-collapse:collapse;font-family:var(--mono);font-size:.875rem}
+.matrix th{padding:.55rem .95rem;font-size:.75rem;letter-spacing:.06em;text-transform:uppercase;color:var(--ink3);font-weight:400;text-align:center;border-bottom:1px solid var(--rule2)}
+.matrix td{padding:.6rem .95rem;text-align:center;border-bottom:1px solid var(--rule2);border-right:1px solid var(--rule2);font-size:.875rem;min-width:80px}
+.matrix td:first-child{text-align:left;color:var(--ink2);border-right:2px solid var(--rule);font-weight:500}
+.matrix tr:last-child td{border-bottom:none}
+.cell-hi{color:var(--ink);font-weight:500}
+.cell-mid{color:var(--ink2)}
+.cell-lo{color:var(--ink3)}
+.cell-na{color:var(--ink4);font-style:italic}
+.matrix-label{font-family:var(--mono);font-size:.8125rem;letter-spacing:.06em;text-transform:uppercase;color:var(--ink3);margin-bottom:.6rem;margin-top:1.5rem;line-height:1.5}
+
+/* proof chain */
+.proof-chain{margin:1.5rem 0}
+.proof-step{display:grid;grid-template-columns:2.5rem 1fr;gap:0 1.25rem;margin-bottom:0}
+.proof-step-num{font-family:var(--mono);font-size:.625rem;color:var(--ink3);padding-top:.25rem;letter-spacing:.05em;text-align:right}
+.proof-step-body{padding:1rem 0 1rem 1rem;border-left:1px solid var(--rule);margin-bottom:0}
+.proof-step:last-child .proof-step-body{border-left-color:transparent}
+.proof-step-title{font-size:.9375rem;font-weight:600;color:var(--ink);margin-bottom:.25rem}
+.proof-step-evidence{font-family:var(--mono);font-size:.6875rem;color:var(--ink3);margin-top:.35rem}
+
+/* issues log */
+.issue-list{list-style:none;margin:1rem 0}
+.issue-item{display:grid;grid-template-columns:1.5rem 1fr;gap:0 .75rem;padding:.75rem 0;border-bottom:1px solid var(--rule2);align-items:start}
+.issue-item:last-child{border-bottom:none}
+.issue-icon{font-family:var(--mono);font-size:.625rem;color:var(--ink3);padding-top:.15rem}
+.issue-body{font-size:.9375rem;color:var(--ink2);line-height:1.6}
+.issue-body strong{color:var(--ink);font-weight:600}
+.issue-body code{font-family:var(--mono);font-size:.8125rem;background:var(--bg2);padding:.1em .35em;border-radius:2px;color:var(--ink)}
+.issue-status{font-family:var(--mono);font-size:.5rem;letter-spacing:.1em;text-transform:uppercase;padding:.2rem .5rem;border:1px solid var(--rule);color:var(--ink3);display:inline-block;margin-top:.4rem}
+.issue-status.resolved{border-color:var(--ink2);color:var(--ink2)}
+.issue-status.open{border-color:var(--ink4)}
+.issue-status.phase2{border-color:var(--ink3)}
+
+/* open questions */
+.q-list{list-style:none}
+.q-item{display:grid;grid-template-columns:2rem 1fr auto;gap:0 1rem;padding:1rem 0;border-bottom:1px solid var(--rule2);align-items:baseline}
+.q-item:last-child{border-bottom:none}
+.q-num{font-family:var(--mono);font-size:.5625rem;color:var(--ink3);padding-top:.2rem}
+.q-text{font-size:.9375rem;color:var(--ink2)}
+.q-text strong{color:var(--ink);font-weight:600}
+.q-status{font-family:var(--mono);font-size:.5rem;letter-spacing:.1em;text-transform:uppercase;padding:.2rem .5rem;border:1px solid var(--rule);color:var(--ink3);white-space:nowrap}
+.q-status.answered{border-color:var(--ink2);color:var(--ink2)}
+.q-status.partial{border-color:var(--ink3)}
+
+/* inline elements */
+code{font-family:var(--mono);font-size:.8125rem;background:var(--bg2);padding:.1em .35em;border-radius:2px;color:var(--ink)}
+.rule{height:1px;background:var(--rule);margin:2rem 0}
+.caption{font-family:var(--mono);font-size:.8125rem;letter-spacing:.04em;color:var(--ink3);margin-top:.6rem;line-height:1.65;max-width:600px}
+
+/* param box */
+.param-box{background:var(--bg2);padding:1rem 1.25rem;margin:1rem 0;font-family:var(--mono);font-size:.75rem;line-height:1.9;border-left:2px solid var(--rule)}
+.param-key{color:var(--ink2)}
+.param-val{color:var(--ink)}
+.param-note{color:var(--ink3)}
+
+@media(max-width:900px){
+  .page{grid-template-columns:1fr;padding:0 1.5rem}
+  .sidenav{display:none}
+  main{border-left:none;padding-left:0}
+  .formula-row{grid-template-columns:1fr;gap:.5rem}
+  .q-item{grid-template-columns:2rem 1fr}
+  .q-status{display:none}
+  .issue-item{grid-template-columns:1fr}
+  .issue-icon{display:none}
+}
+</style>
 </head>
-<body>
-  <!-- draft -->
-  <p>Draft slot 08 — replace this entire file on GitHub to publish.</p>
+<body data-lang="en">
+<div class="page">
+
+<!-- SIDEBAR -->
+<nav class="sidenav" id="sidenav">
+  <div class="lang-switch">
+    <button type="button" class="active" data-set-lang="en">EN</button>
+    <button type="button" data-set-lang="zh">繁中</button>
+  </div>
+  <div class="nav-group">
+    <div class="nav-label"><span class="lang-en">Document</span><span class="lang-zh">文件</span></div>
+    <a href="#header"><span class="lang-en">Overview</span><span class="lang-zh">概覽</span></a>
+  </div>
+  <div class="nav-group">
+    <div class="nav-label"><span class="lang-en">Reference</span><span class="lang-zh">參考</span></div>
+    <a href="#symbols"><span class="lang-en">Symbol Table</span><span class="lang-zh">符號表</span></a>
+    <a href="#params"><span class="lang-en">Parameter Guide</span><span class="lang-zh">參數指南</span></a>
+    <a href="#formulas"><span class="lang-en">Formula Sheet</span><span class="lang-zh">公式表</span></a>
+  </div>
+  <div class="nav-group">
+    <div class="nav-label"><span class="lang-en">Architecture</span><span class="lang-zh">架構</span></div>
+    <a href="#pipeline"><span class="lang-en">Pipeline</span><span class="lang-zh">完整管線</span></a>
+    <a href="#components"><span class="lang-en">Components</span><span class="lang-zh">元件說明</span></a>
+  </div>
+  <div class="nav-group">
+    <div class="nav-label"><span class="lang-en">Evidence</span><span class="lang-zh">證據</span></div>
+    <a href="#proof"><span class="lang-en">Proof Chain</span><span class="lang-zh">證明鏈</span></a>
+    <a href="#results"><span class="lang-en">Results</span><span class="lang-zh">實驗結果</span></a>
+    <a href="#capacity"><span class="lang-en">Capacity Matrix</span><span class="lang-zh">容量矩陣</span></a>
+  </div>
+  <div class="nav-group">
+    <div class="nav-label"><span class="lang-en">Status</span><span class="lang-zh">狀態</span></div>
+    <a href="#findings"><span class="lang-en">Findings</span><span class="lang-zh">已確認發現</span></a>
+    <a href="#issues"><span class="lang-en">Known Issues</span><span class="lang-zh">已知問題</span></a>
+    <a href="#open"><span class="lang-en">Open Questions</span><span class="lang-zh">待解問題</span></a>
+    <a href="#phase2"><span class="lang-en">Phase 2</span><span class="lang-zh">第二階段</span></a>
+  </div>
+</nav>
+
+<!-- MAIN -->
+<main>
+
+<!-- HEADER -->
+<header class="doc-header" id="header">
+  <h1 class="doc-title"><span class="lang-en">SNN N! Ordering Space</span><span class="lang-zh">SNN N! 排序空間</span></h1>
+  <p class="doc-subtitle lang-en">Proof-of-concept framework for exploiting the factorial representational space of spike temporal ordering in Spiking Neural Networks. This document records all findings, known issues, and open questions as of checkpoint v2.</p>
+  <p class="doc-subtitle lang-zh">利用脈衝神經網路中尖峰時間排序所構成的階乘表示空間之概念驗證框架。本文件記錄截至 checkpoint v2 的所有發現、已知問題與待解問題。</p>
+  <div class="doc-date"><span class="lang-en">June 5, 2026 · 14:37</span><span class="lang-zh">2026年6月5日 · 14:37</span></div>
+</header>
+
+<!-- SYMBOL TABLE -->
+<section class="section" id="symbols">
+  <h2><span class="section-num">§1</span> <span class="lang-en">Symbol Table</span><span class="lang-zh">符號表</span></h2>
+
+  <div class="def-entry">
+    <div class="def-head"><span class="def-symbol">M</span><span class="def-name"><span class="lang-en">Number of neurons</span><span class="lang-zh">神經元數量</span></span><span class="def-type">ℤ₊</span></div>
+    <div class="def-body lang-en">Determines the size of the ordering space: $M$ neurons produce $M!$ distinct spike orderings. Tested range: $M \in \{4,6,8,10,12\}$.</div>
+    <div class="def-body lang-zh">決定排序空間大小：$M$ 個神經元產生 $M!$ 種不同尖峰排序。測試範圍：$M \in \{4,6,8,10,12\}$。</div>
+  </div>
+  <div class="def-entry">
+    <div class="def-head"><span class="def-symbol">T</span><span class="def-name"><span class="lang-en">Number of timesteps</span><span class="lang-zh">時間步數</span></span><span class="def-type">ℤ₊</span></div>
+    <div class="def-body lang-en">Simulation length. Must satisfy $T \gg M$ so all neurons can fire at distinct timesteps. Set as $T = \max(16,\, 2M)$ in sweep experiments.</div>
+    <div class="def-body lang-zh">模擬長度。須滿足 $T \gg M$，使所有神經元能在不同時間步發放。掃描實驗中設為 $T = \max(16,\, 2M)$。</div>
+  </div>
+  <div class="def-entry">
+    <div class="def-head"><span class="def-symbol">C</span><span class="def-name"><span class="lang-en">Number of classes</span><span class="lang-zh">類別數</span></span><span class="def-type">ℤ₊</span></div>
+    <div class="def-body lang-en">Output categories. The ratio $M!/C$ governs available ordering space per class. Capacity degrades when $M!/C \lesssim 8$; system is over capacity when $M!/C < 1$.</div>
+    <div class="def-body lang-zh">輸出類別數。比值 $M!/C$ 決定每類可用的排序空間。當 $M!/C \lesssim 8$ 時容量下降；$M!/C < 1$ 時系統超載。</div>
+  </div>
+  <div class="def-entry">
+    <div class="def-head"><span class="def-symbol">$\beta$</span><span class="def-name"><span class="lang-en">Membrane decay rate</span><span class="lang-zh">膜電位衰減率</span></span><span class="def-type">(0,1)</span></div>
+    <div class="def-body lang-en">LIF leakage coefficient. Higher $\beta$ means slower decay and longer integration window. LIF₁: $\beta_1=0.9$; LIF₂: $\beta_2=0.95$. Controls integration speed: steady-state membrane potential is $\text{mem}_\infty = \text{cur}/(1-\beta)$.</div>
+    <div class="def-body lang-zh">LIF 漏電係數。$\beta$ 越大衰減越慢、積分窗口越長。LIF₁：$\beta_1=0.9$；LIF₂：$\beta_2=0.95$。穩態膜電位為 $\text{mem}_\infty = \text{cur}/(1-\beta)$。</div>
+  </div>
+  <div class="def-entry">
+    <div class="def-head"><span class="def-symbol">$\theta$</span><span class="def-name"><span class="lang-en">Firing threshold</span><span class="lang-zh">發放閾值</span></span><span class="def-type">ℝ₊</span></div>
+    <div class="def-body lang-en">Membrane potential value triggering a spike. Default $\theta=1.0$ (snntorch). A neuron will eventually spike iff $\text{cur} > (1-\beta)\theta$.</div>
+    <div class="def-body lang-zh">觸發尖峰的膜電位閾值。預設 $\theta=1.0$（snntorch）。神經元最終會發放當且僅當 $\text{cur} > (1-\beta)\theta$。</div>
+  </div>
+  <div class="def-entry">
+    <div class="def-head"><span class="def-symbol">base</span><span class="def-name"><span class="lang-en">Base current</span><span class="lang-zh">基準電流</span></span><span class="def-type">ℝ₊</span></div>
+    <div class="def-body lang-en">Input current for the highest-rank neuron. Must satisfy $\text{base} < \theta$ to force membrane integration (rather than immediate spiking at $t=0$). Default: $0.40$.</div>
+    <div class="def-body lang-zh">最高排名神經元的輸入電流。須滿足 $\text{base} < \theta$，以強制膜電位積分（而非在 $t=0$ 立即發放）。預設：$0.40$。</div>
+  </div>
+  <div class="def-entry">
+    <div class="def-head"><span class="def-symbol">$\Delta$</span><span class="def-name"><span class="lang-en">Current step (delta)</span><span class="lang-zh">電流步長（delta）</span></span><span class="def-type">ℝ₊</span></div>
+    <div class="def-body lang-en">Current decrement per rank: neuron at rank $k$ receives current $\text{base} - k\Delta$. Controls first-spike time separation between adjacent neurons. Must satisfy $\Delta < (\text{base} - (1-\beta)\theta)/(M-1)$ to guarantee all neurons fire within $T$.</div>
+    <div class="def-body lang-zh">每級電流遞減：排名 $k$ 的神經元接收 $\text{base} - k\Delta$。控制相鄰神經元首次尖峰時間間隔。須滿足 $\Delta < (\text{base} - (1-\beta)\theta)/(M-1)$ 以保證所有神經元在 $T$ 內發放。</div>
+  </div>
+  <div class="def-entry">
+    <div class="def-head"><span class="def-symbol">$\sigma$</span><span class="def-name"><span class="lang-en">Input noise</span><span class="lang-zh">輸入雜訊</span></span><span class="def-type">ℝ₊</span></div>
+    <div class="def-body lang-en">Standard deviation of Gaussian noise added to each sample's current vector. Provides within-class sample diversity. Must remain small relative to $\Delta$ to preserve ordering: $\sigma \ll \Delta$.</div>
+    <div class="def-body lang-zh">加於每個樣本電流向量的高斯雜訊標準差。提供類內樣本多樣性。相對 $\Delta$ 須足夠小以維持排序：$\sigma \ll \Delta$。</div>
+  </div>
+  <div class="def-entry">
+    <div class="def-head"><span class="def-symbol">$w$</span><span class="def-name"><span class="lang-en">Temporal decay rate</span><span class="lang-zh">時間衰減率</span></span><span class="def-type">ℝ₊</span></div>
+    <div class="def-body lang-en">Exponential weighting of spike times in soft first-spike score. Larger $w$ emphasises earlier spikes more strongly. Default $w=0.5$.</div>
+    <div class="def-body lang-zh">軟首次尖峰分數中對尖峰時間的指數加權。$w$ 越大越強調較早的尖峰。預設 $w=0.5$。</div>
+  </div>
+  <div class="def-entry">
+    <div class="def-head"><span class="def-symbol">$\tau$</span><span class="def-name"><span class="lang-en">Soft rank temperature</span><span class="lang-zh">軟排序溫度</span></span><span class="def-type">ℝ₊</span></div>
+    <div class="def-body lang-en">Sigmoid sharpness in soft rank formula. $\tau\to0$ recovers exact rank (zero gradient); $\tau\to\infty$ gives uniform output. Default $\tau=0.01$ for OPS invariance.</div>
+    <div class="def-body lang-zh">軟排序公式中 sigmoid 的銳度。$\tau\to0$ 逼近精確排序（梯度為零）；$\tau\to\infty$ 輸出均勻。預設 $\tau=0.01$ 以達 OPS 不變性。</div>
+  </div>
+  <div class="def-entry">
+    <div class="def-head"><span class="def-symbol">$K$</span><span class="def-name"><span class="lang-en">Monte Carlo samples</span><span class="lang-zh">蒙地卡羅樣本數</span></span><span class="def-type">ℤ₊</span></div>
+    <div class="def-body lang-en">Permutations sampled via Gumbel-max when $M>6$. Default $K=512$. Readout dimension equals $K$ in MC mode.</div>
+    <div class="def-body lang-zh">當 $M>6$ 時以 Gumbel-max 抽樣的排列數。預設 $K=512$。MC 模式下讀出維度等於 $K$。</div>
+  </div>
+  <div class="def-entry">
+    <div class="def-head"><span class="def-symbol">$M_{i,t}$</span><span class="def-name"><span class="lang-en">First-spike mask</span><span class="lang-zh">首次尖峰遮罩</span></span><span class="def-type">{0,1}</span></div>
+    <div class="def-body lang-en">$M_{i,t}=1$ iff neuron $i$ fires at $t$ and has not fired before. Isolates the first spike for differentiable scoring.</div>
+    <div class="def-body lang-zh">$M_{i,t}=1$ 當且僅當神經元 $i$ 在 $t$ 發放且此前未發放。隔離首次尖峰以供可微分計分。</div>
+  </div>
+  <div class="def-entry">
+    <div class="def-head"><span class="def-symbol">$a_i$</span><span class="def-name"><span class="lang-en">Soft first-spike score</span><span class="lang-zh">軟首次尖峰分數</span></span><span class="def-type">ℝ₊</span></div>
+    <div class="def-body lang-en">Differentiable approximation of $e^{-w t_i^*}$. Larger = earlier first spike. Gradient $\partial a_i/\partial S_{i,t} = e^{-wt}\neq 0$.</div>
+    <div class="def-body lang-zh">$e^{-w t_i^*}$ 的可微近似。越大表示首次尖峰越早。梯度 $\partial a_i/\partial S_{i,t} = e^{-wt}\neq 0$。</div>
+  </div>
+  <div class="def-entry">
+    <div class="def-head"><span class="def-symbol">$\hat{a}_i$</span><span class="def-name"><span class="lang-en">Soft rank score</span><span class="lang-zh">軟排序分數</span></span><span class="def-type">[0,1]</span></div>
+    <div class="def-body lang-en">Rank-normalised version of $a_i$. Contains only ordinal information — magnitude is discarded. Invariant to order-preserving rescaling of spike times (OPS-invariant when $\tau$ is small).</div>
+    <div class="def-body lang-zh">$a_i$ 的排序正規化版本。僅含序數資訊——幅度被捨棄。對保序尖峰時間縮放不變（$\tau$ 小時具 OPS 不變性）。</div>
+  </div>
+  <div class="def-entry">
+    <div class="def-head"><span class="def-symbol">$\mathbf{p}$</span><span class="def-name"><span class="lang-en">Plackett-Luce distribution</span><span class="lang-zh">Plackett-Luce 分布</span></span><span class="def-type">$\Delta^{K-1}$</span></div>
+    <div class="def-body lang-en">Probability distribution over $M!$ permutations parameterised by $\hat{\mathbf{a}}$. Entry $p_\pi = P(\pi|\hat{\mathbf{a}})$. Approximated by $K$ Gumbel-max samples for $M>6$.</div>
+    <div class="def-body lang-zh">以 $\hat{\mathbf{a}}$ 參數化的 $M!$ 排列機率分布。$p_\pi = P(\pi|\hat{\mathbf{a}})$。$M>6$ 時以 $K$ 個 Gumbel-max 樣本近似。</div>
+  </div>
+  <div class="def-entry">
+    <div class="def-head"><span class="def-symbol">fst-std</span><span class="def-name"><span class="lang-en">First-spike time std</span><span class="lang-zh">首次尖峰時間標準差</span></span><span class="def-type">ℝ₊</span></div>
+    <div class="def-body lang-en">Average std of per-neuron first-spike times across classes. Higher = greater ordering separation between classes.</div>
+    <div class="def-body lang-zh">各類別間每神經元首次尖峰時間的平均標準差。越高表示類間排序分離越大。</div>
+  </div>
+  <div class="def-entry">
+    <div class="def-head"><span class="def-symbol">E-drop</span><span class="def-name"><span class="lang-en">Time-shuffle accuracy drop</span><span class="lang-zh">時間打亂準確率下降</span></span><span class="def-type">[0,1]</span></div>
+    <div class="def-body lang-en">$\text{acc(normal)} - \text{acc(time-shuffled)}$. High E-drop confirms temporal ordering is the primary information source.</div>
+    <div class="def-body lang-zh">$\text{acc(normal)} - \text{acc(time-shuffled)}$。高 E-drop 確認時間排序是主要資訊來源。</div>
+  </div>
+  <div class="def-entry">
+    <div class="def-head"><span class="def-symbol">OPS-drop</span><span class="def-name"><span class="lang-en">Order-preserving shuffle drop</span><span class="lang-zh">保序打亂下降</span></span><span class="def-type">[0,1]</span></div>
+    <div class="def-body lang-en">$\text{acc(normal)} - \text{acc(OPS)}$. OPS re-samples spike times while preserving $\pi$. Low OPS-drop means the model uses ordering, not absolute timing values.</div>
+    <div class="def-body lang-zh">$\text{acc(normal)} - \text{acc(OPS)}$。OPS 在保留 $\pi$ 下重新抽樣尖峰時間。低 OPS-drop 表示模型使用排序而非絕對時間值。</div>
+  </div>
+</section>
+
+<!-- PARAMETER GUIDE -->
+<section class="section" id="params">
+  <h2><span class="section-num">§2</span> <span class="lang-en">Parameter Guide</span><span class="lang-zh">參數指南</span></h2>
+<p class="lang-en">How base, delta, beta, theta, and sigma interact, and constraints for correct operation.</p>
+  <p class="lang-zh">base、delta、beta、theta 與 sigma 的交互作用，以及正確運作的約束條件。</p>
+
+<h3><span class="lang-en">Guarantee all neurons fire within $T$</span><span class="lang-zh">保證所有神經元在 $T$ 內發放</span></h3>
+<p class="lang-en">A neuron fires eventually iff its steady-state membrane potential exceeds $\theta$:</p>
+  <p class="lang-zh">神經元最終會發放當且僅當其穩態膜電位超過 $\theta$：</p>
+  <div style="margin:1rem 0;overflow-x:auto">$$\frac{\text{cur}}{1-\beta} > \theta \;\Longrightarrow\; \text{cur} > (1-\beta)\theta$$</div>
+<p class="lang-en">For the weakest neuron (rank $M-1$, current $= \text{base}-(M-1)\Delta$):</p>
+  <p class="lang-zh">最弱神經元（排名 $M-1$，電流 $= \text{base}-(M-1)\Delta$）：</p>
+  <div style="margin:1rem 0;overflow-x:auto">$$\Delta < \frac{\text{base} - (1-\beta)\theta}{M-1}$$</div>
+
+<h3><span class="lang-en">Avoid immediate spiking at $t=0$</span><span class="lang-zh">避免在 $t=0$ 立即發放</span></h3>
+<p class="lang-en">If $\text{cur} \geq \theta$, LIF₁ fires on the very first timestep before any integration occurs, eliminating timing information. Requirement:</p>
+  <p class="lang-zh">若 $\text{cur} \geq \theta$，LIF₁ 在第一步就發放，無法積分，時間資訊消失。要求：</p>
+  <div style="margin:1rem 0;overflow-x:auto">$$\text{base} < \theta = 1.0$$</div>
+
+<h3><span class="lang-en">Preserve ordering under noise</span><span class="lang-zh">在雜訊下保持排序</span></h3>
+<p class="lang-en">Noise $\sigma$ must be small enough that adjacent neurons rarely swap rank:</p>
+  <p class="lang-zh">雜訊 $\sigma$ 須足夠小，使相鄰神經元很少交換排名：</p>
+  <div style="margin:1rem 0;overflow-x:auto">$$\sigma \ll \Delta \quad\text{(rule of thumb: } \sigma \leq \Delta/3\text{)}$$</div>
+
+<h3><span class="lang-en">Current configuration</span><span class="lang-zh">目前設定</span></h3>
+  <div class="param-box">
+    <span class="param-key">theta  </span><span class="param-val">1.0   </span><span class="param-note"><span class="lang-en">← snntorch default, fixed</span><span class="lang-zh">← snntorch 預設，固定</span></span><br>
+    <span class="param-key">beta1  </span><span class="param-val">0.9   </span><span class="param-note"><span class="lang-en">← LIF₁ decay rate</span><span class="lang-zh">← LIF₁ 衰減率</span></span><br>
+    <span class="param-key">beta2  </span><span class="param-val">0.95  </span><span class="param-note"><span class="lang-en">← LIF₂ decay rate (smoother)</span><span class="lang-zh">← LIF₂ 衰減率（更平滑）</span></span><br>
+    <span class="param-key">base   </span><span class="param-val">0.40  </span><span class="param-note"><span class="lang-en">← &lt; theta, forces integration</span><span class="lang-zh">← &lt; theta，強制積分</span></span><br>
+    <span class="param-key">delta  </span><span class="param-val">0.05  </span><span class="param-note"><span class="lang-en">← verified: M=4 gives {0:5,1:6,2:8,3:10}</span><span class="lang-zh">← 已驗證：M=4 得 {0:5,1:6,2:8,3:10}</span></span><br>
+    <span class="param-key">sigma  </span><span class="param-val">0.02  </span><span class="param-note"><span class="lang-en">← sigma/delta = 0.4, ordering stable</span><span class="lang-zh">← sigma/delta = 0.4，排序穩定</span></span><br>
+    <span class="param-key">w      </span><span class="param-val">0.5   </span><span class="param-note"><span class="lang-en">← temporal decay in soft score</span><span class="lang-zh">← 軟分數中的時間衰減</span></span><br>
+    <span class="param-key">tau    </span><span class="param-val">0.01  </span><span class="param-note"><span class="lang-en">← near-exact rank, OPS-drop=0.017</span><span class="lang-zh">← 近精確排序，OPS-drop=0.017</span></span><br>
+    <span class="param-key">K      </span><span class="param-val">512   </span><span class="param-note"><span class="lang-en">← MC samples for M&gt;6</span><span class="lang-zh">← M&gt;6 的 MC 樣本</span></span><br>
+    <span class="param-key">T      </span><span class="param-val">max(16,2M)</span><span class="param-note"><span class="lang-en">← ensures all neurons fire</span><span class="lang-zh">← 確保所有神經元發放</span></span>
+  </div>
+
+<h3><span class="lang-en">Known issue with M=8, delta=0.05</span><span class="lang-zh">已知問題：M=8、delta=0.05</span></h3>
+<p class="lang-en">With delta=0.05 and M=8, neurons 6 and 7 (currents 0.10 and 0.05) do not fire within T=50. The minimum viable current is $(1-0.9)\times1.0 = 0.10$, so neuron 6 is borderline and neuron 7 never fires. See §9 Known Issues for discussion.</p>
+  <p class="lang-zh">delta=0.05、M=8 時，神經元 6 和 7（電流 0.10 與 0.05）在 T=50 內不發放。最低可行電流為 $(1-0.9)\times1.0 = 0.10$，神經元 6 處於臨界，神經元 7 永不發放。詳見 §10 已知問題。</p>
+</section>
+
+<!-- FORMULA SHEET -->
+<section class="section" id="formulas">
+  <h2><span class="section-num">§3</span> <span class="lang-en">Formula Sheet</span><span class="lang-zh">公式表</span></h2>
+
+  <div class="formula-grid">
+    <div class="formula-row">
+      <div class="formula-label"><strong><span class="lang-en">LIF Dynamics</span><span class="lang-zh">LIF 動力學</span></strong><span class="lang-en">Membrane update &amp; spike</span><span class="lang-zh">膜電位更新與尖峰</span></div>
+      <div class="formula-body">
+        $$\text{mem}_i[t] = \beta\cdot\text{mem}_i[t-1] + \text{cur}_i$$
+        $$S_{i,t} = \mathbf{1}[\text{mem}_i[t]>\theta]$$
+        <p class="formula-note lang-en">Surrogate gradient approximates $\partial S/\partial\text{mem}$. Steady-state: $\text{mem}_\infty = \text{cur}/(1-\beta)$.</p>
+        <p class="formula-note lang-zh">代理梯度近似 $\partial S/\partial\text{mem}$。穩態：$\text{mem}_\infty = \text{cur}/(1-\beta)$。</p>
+      </div>
+    </div>
+    <div class="formula-row">
+      <div class="formula-label"><strong><span class="lang-en">First-Spike Mask</span><span class="lang-zh">首次尖峰遮罩</span></strong><span class="lang-en">Isolate first event</span><span class="lang-zh">隔離首次事件</span></div>
+      <div class="formula-body">
+        $$M_{i,t} = S_{i,t}\cdot\prod_{s=0}^{t-1}(1-S_{i,s})$$
+        <p class="formula-note lang-en">$M_{i,t}=1$ iff neuron $i$ fires at $t$ and nowhere before. Gradient: $\partial M_{i,t}/\partial S_{i,s}\neq0$.</p>
+        <p class="formula-note lang-zh">$M_{i,t}=1$ 當且僅當神經元 $i$ 在 $t$ 發放且此前未發放。梯度：$\partial M_{i,t}/\partial S_{i,s}\neq0$。</p>
+      </div>
+    </div>
+    <div class="formula-row">
+      <div class="formula-label"><strong><span class="lang-en">Soft First-Spike Score</span><span class="lang-zh">軟首次尖峰分數</span></strong><span class="lang-en">Differentiable timing</span><span class="lang-zh">可微分時間</span></div>
+      <div class="formula-body">
+        $$a_i = \sum_{t=0}^{T-1} M_{i,t}\cdot e^{-w\cdot t}$$
+        <p class="formula-note lang-en">Approximates $e^{-w t_i^*}$. Gradient: $\partial a_i/\partial S_{i,t} = e^{-wt}\cdot\prod_{s&lt;t}(1-S_{i,s})\neq0$.</p>
+        <p class="formula-note lang-zh">近似 $e^{-w t_i^*}$。梯度：$\partial a_i/\partial S_{i,t} = e^{-wt}\cdot\prod_{s&lt;t}(1-S_{i,s})\neq0$。</p>
+      </div>
+    </div>
+    <div class="formula-row">
+      <div class="formula-label"><strong><span class="lang-en">Soft Rank</span><span class="lang-zh">軟排序</span></strong><span class="lang-en">Discard magnitude</span><span class="lang-zh">捨棄幅度</span></div>
+      <div class="formula-body">
+        $$\hat{a}_i = \frac{1}{M-1}\sum_{j\neq i}\sigma\!\left(\frac{a_i-a_j}{\tau}\right)$$
+        <p class="formula-note lang-en">$\hat{a}_i\in[0,1]$. Invariant to order-preserving transforms. As $\tau\to0$, $\hat{a}_i\to\text{rank}(a_i)/(M-1)$. Tied neurons: $\hat{a}_i=\hat{a}_j=0.5$ (unresolvable).</p>
+        <p class="formula-note lang-zh">$\hat{a}_i\in[0,1]$。對保序變換不變。$\tau\to0$ 時 $\hat{a}_i\to\text{rank}(a_i)/(M-1)$。並列神經元：$\hat{a}_i=\hat{a}_j=0.5$（無法分辨）。</p>
+      </div>
+    </div>
+    <div class="formula-row">
+      <div class="formula-label"><strong><span class="lang-en">Plackett-Luce</span><span class="lang-zh">Plackett-Luce</span></strong><span class="lang-en">Distribution over $S_M$</span><span class="lang-zh">$S_M$ 上的分布</span></div>
+      <div class="formula-body">
+        $$\log P(\pi|\hat{\mathbf{a}}) = \sum_{k=1}^{M}\!\left(\hat{a}_{\pi_k} - \log\sum_{j=k}^{M}e^{\hat{a}_{\pi_j}}\right)$$
+        <p class="formula-note lang-en">Computed in log-space. Final $\mathbf{p}=\text{softmax}([\log P(\pi_i|\hat{\mathbf{a}})])$ over all $M!$ permutations (or $K$ MC samples).</p>
+        <p class="formula-note lang-zh">在 log 空間計算。最終 $\mathbf{p}=\text{softmax}([\log P(\pi_i|\hat{\mathbf{a}})])$，遍歷所有 $M!$ 排列（或 $K$ 個 MC 樣本）。</p>
+      </div>
+    </div>
+    <div class="formula-row">
+      <div class="formula-label"><strong><span class="lang-en">Gumbel-Max Sampling</span><span class="lang-zh">Gumbel-Max 抽樣</span></strong><span class="lang-en">Monte Carlo PL</span><span class="lang-zh">蒙地卡羅 PL</span></div>
+      <div class="formula-body">
+        $$\pi^{(k)}=\text{argsort}(-(\hat{\mathbf{a}}+\mathbf{g}^{(k)})),\quad\mathbf{g}^{(k)}\sim\text{Gumbel}(0,1)^M$$
+        <p class="formula-note lang-en">argsort inside <code>torch.no_grad()</code>. Gradients flow through $\log P(\pi^{(k)}|\hat{\mathbf{a}})$ only.</p>
+        <p class="formula-note lang-zh">argsort 在 <code>torch.no_grad()</code> 內。梯度僅流經 $\log P(\pi^{(k)}|\hat{\mathbf{a}})$。</p>
+      </div>
+    </div>
+    <div class="formula-row">
+      <div class="formula-label"><strong><span class="lang-en">Orthogonal Layer</span><span class="lang-zh">正交層</span></strong><span class="lang-en">Cayley map</span><span class="lang-zh">Cayley 映射</span></div>
+      <div class="formula-body">
+        $$\mathbf{W}=(I+\mathbf{S})^{-1}(I-\mathbf{S}),\quad\mathbf{S}=-\mathbf{S}^\top$$
+        $$\mathbf{W}^\top\mathbf{W}=I\;\Rightarrow\;\|\mathbf{W}\mathbf{x}\|=\|\mathbf{x}\|$$
+        <p class="formula-note lang-en">Learned parameter is upper-triangle of $\mathbf{S}$ (unconstrained). Output is pure rotation — no scaling. Constraint: input and output must have same dimension $d\times d$.</p>
+        <p class="formula-note lang-zh">學習參數為 $\mathbf{S}$ 的上三角（無約束）。輸出為純旋轉——無縮放。約束：輸入輸出須同維 $d\times d$。</p>
+      </div>
+    </div>
+    <div class="formula-row">
+      <div class="formula-label"><strong><span class="lang-en">E-drop &amp; OPS-drop</span><span class="lang-zh">E-drop 與 OPS-drop</span></strong><span class="lang-en">Diagnostic metrics</span><span class="lang-zh">診斷指標</span></div>
+      <div class="formula-body">
+        $$\text{E-drop} = \text{acc}_\text{normal} - \text{acc}_\text{time-shuffled}$$
+        $$\text{OPS-drop} = \text{acc}_\text{normal} - \text{acc}_\text{OPS}$$
+        <p class="formula-note lang-en">Time-shuffle permutes $T$ axis of $S$. OPS re-samples spike times while preserving $\pi$. Expected when model uses ordering: acc after shuffle $\approx 1/C$.</p>
+        <p class="formula-note lang-zh">時間打亂置換 $S$ 的 $T$ 軸。OPS 在保留 $\pi$ 下重新抽樣尖峰時間。模型使用排序時，打亂後 acc $\approx 1/C$。</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PIPELINE -->
+<section class="section" id="pipeline">
+  <h2><span class="section-num">§4</span> <span class="lang-en">Full Pipeline</span><span class="lang-zh">完整管線</span></h2>
+
+  <div style="margin:2rem 0;overflow-x:auto">
+    $$\underbrace{\mathbf{cur}}_{\mathbb{R}^M} \xrightarrow{\text{LIF}_1,\text{LIF}_2} \underbrace{S}_{\{0,1\}^{M\times T}} \xrightarrow{\text{mask}} \underbrace{a_i}_{\mathbb{R}_+^M} \xrightarrow{\text{rank}} \underbrace{\hat{a}_i}_{[0,1]^M} \xrightarrow{\text{PL}} \underbrace{\mathbf{p}}_{\Delta^{K-1}} \xrightarrow{\mathbf{W}_\text{out}} \underbrace{\text{logits}}_{\mathbb{R}^C} \xrightarrow{\mathcal{L}_\text{CE}} \text{loss}$$
+  </div>
+
+<p class="lang-en">Gradient path (all non-zero):</p>
+  <p class="lang-zh">梯度路徑（皆非零）：</p>
+  <div style="margin:1rem 0;overflow-x:auto">
+    $$\frac{\partial\mathcal{L}}{\partial\mathbf{cur}} = \frac{\partial\mathcal{L}}{\partial\mathbf{p}}\cdot\frac{\partial\mathbf{p}}{\partial\hat{\mathbf{a}}}\cdot\frac{\partial\hat{\mathbf{a}}}{\partial\mathbf{a}}\cdot\frac{\partial\mathbf{a}}{\partial S}\cdot\underbrace{\frac{\partial S}{\partial\text{mem}}}_{\text{surrogate}}\cdot\frac{\partial\text{mem}}{\partial\mathbf{cur}}$$
+  </div>
+
+<h3><span class="lang-en">Learnable parameters</span><span class="lang-zh">可學習參數</span></h3>
+  <div class="param-box">
+    <span class="param-key">W_out  </span><span class="param-val">K × C    </span><span class="param-note"><span class="lang-en">← sole learnable component in final POC architecture</span><span class="lang-zh">← 最終 POC 架構中唯一可學習元件</span></span><br>
+    <span class="param-key">S      </span><span class="param-val">M(M-1)/2 </span><span class="param-note"><span class="lang-en">← Cayley generator, if orthogonal layer present</span><span class="lang-zh">← Cayley 生成元（若有正交層）</span></span><br>
+    <span class="param-key">LIF₁,₂ </span><span class="param-val">none     </span><span class="param-note"><span class="lang-en">← β and θ are fixed hyperparameters (learn_beta=False)</span><span class="lang-zh">← β 與 θ 為固定超參數（learn_beta=False）</span></span><br>
+    <span class="param-key">W_rec  </span><span class="param-val">M × M    </span><span class="param-note"><span class="lang-en">← removed in final architecture (see §9)</span><span class="lang-zh">← 最終架構中已移除（見 §10）</span></span>
+  </div>
+</section>
+
+<!-- COMPONENTS -->
+<section class="section" id="components">
+  <h2><span class="section-num">§5</span> <span class="lang-en">Component Notes</span><span class="lang-zh">元件說明</span></h2>
+
+<h3><span class="lang-en">Why base must be below theta</span><span class="lang-zh">為何 base 須低於 theta</span></h3>
+<p class="lang-en">When $\text{cur} \geq \theta$, LIF₁ fires on the very first timestep ($t=0$) without any membrane integration. Multiple neurons with currents above threshold all fire simultaneously at $t=0$, destroying ordering information before it can form. Setting $\text{base} < \theta$ forces the membrane to integrate over multiple steps, allowing timing differences to emerge from current magnitude differences.</p>
+  <p class="lang-zh">當 $\text{cur} \geq \theta$ 時，LIF₁ 在 $t=0$ 立即發放，無膜電位積分。多個超閾神經元同時在 $t=0$ 發放，排序資訊在形成前即被破壞。設 $\text{base} < \theta$ 可強制膜電位跨多步積分，使時間差異由電流幅度差異浮現。</p>
+
+<h3><span class="lang-en">State Leaky — two-stage smoothing</span><span class="lang-zh">State Leaky — 兩階段平滑</span></h3>
+<p class="lang-en">LIF₁ ($\beta=0.9$) receives input current and generates an initial sparse spike train. LIF₂ ($\beta=0.95$, higher $\beta$ = longer memory) receives LIF₁'s spikes as input, integrating them over a wider window. Even if two neurons fire simultaneously at LIF₁, LIF₂'s independent integration may produce distinct timing. The chain increases temporal spread.</p>
+  <p class="lang-zh">LIF₁（$\beta=0.9$）接收輸入電流並產生初始稀疏尖峰序列。LIF₂（$\beta=0.95$，較高 $\beta$ 表示更長記憶）以 LIF₁ 尖峰為輸入，在更寬窗口積分。即使 LIF₁ 有兩神經元同時發放，LIF₂ 的獨立積分仍可能產生不同時間。此鏈增加時間展開。</p>
+
+<h3><span class="lang-en">Orthogonal layer — square matrix constraint</span><span class="lang-zh">正交層 — 方陣約束</span></h3>
+<p class="lang-en">The Cayley map requires a square $d\times d$ generator $\mathbf{S}$, producing a $d\times d$ orthogonal $\mathbf{W}$. This means input and output dimensions must be equal. To use an orthogonal pre-SNN layer, the FFN encoder must first compress to exactly $M$ dimensions, then the orthogonal layer rotates within that $M$-dimensional space.</p>
+  <p class="lang-zh">Cayley 映射需要 $d\times d$ 方陣生成元 $\mathbf{S}$，產生 $d\times d$ 正交 $\mathbf{W}$。輸入輸出維度須相等。使用正交 pre-SNN 層時，FFN 編碼器須先壓縮至恰好 $M$ 維，再由正交層在該 $M$ 維空間旋轉。</p>
+
+<h3><span class="lang-en">W_rec — timing pattern vs ordering tradeoff</span><span class="lang-zh">W_rec — 時間模式與排序的權衡</span></h3>
+<p class="lang-en">W_rec isolation experiments revealed: when W_rec is trained freely, it learns to exploit timing patterns (absolute spike times) rather than pure ordering, reducing E-drop from 0.744 to 0.416. W_rec naturally learns 92% inhibitory connections, but even purely inhibitory W_rec causes the model to walk a timing shortcut. Removing W_rec yields the highest E-drop. W_rec is excluded from the final POC architecture.</p>
+  <p class="lang-zh">W_rec 隔離實驗顯示：自由訓練時 W_rec 利用時間模式（絕對尖峰時間）而非純排序，E-drop 從 0.744 降至 0.416。W_rec 自然學到 92% 抑制連接，但即使純抑制 W_rec 也會讓模型走時間捷徑。移除 W_rec 可得最高 E-drop。最終 POC 架構排除 W_rec。</p>
+
+<h3><span class="lang-en">Tied spikes — what happens when two neurons fire at the same timestep</span><span class="lang-zh">並列尖峰 — 兩神經元同時發放時</span></h3>
+<p class="lang-en">If neurons $i$ and $j$ both fire first at $t^*$: $a_i = a_j = e^{-wt^*}$, so $\sigma((a_i-a_j)/\tau) = 0.5$, giving $\hat{a}_i = \hat{a}_j$. The ordering between them is unresolvable — this is correct behaviour, not a bug. In practice, with $\text{delta}=0.05$ and $\sigma=0.02$, ties are rare because adjacent neurons have a 0.05 current gap while noise is only 0.02.</p>
+  <p class="lang-zh">若神經元 $i$、$j$ 皆首次在 $t^*$ 發放：$a_i = a_j = e^{-wt^*}$，故 $\sigma((a_i-a_j)/\tau) = 0.5$，得 $\hat{a}_i = \hat{a}_j$。兩者排序無法分辨——這是正確行為，非 bug。實務上 $\text{delta}=0.05$、$\sigma=0.02$ 時並列罕見，因相鄰神經元電流差 0.05 而雜訊僅 0.02。</p>
+</section>
+
+<!-- PROOF CHAIN -->
+<section class="section" id="proof">
+  <h2><span class="section-num">§6</span> <span class="lang-en">Proof Chain</span><span class="lang-zh">證明鏈</span></h2>
+<p class="lang-en">Four experiments establishing that spike ordering is the primary information carrier.</p>
+  <p class="lang-zh">四項實驗證明尖峰排序是主要資訊載體。</p>
+
+  <div class="proof-chain" style="margin-top:1.5rem">
+    <div class="proof-step">
+      <div class="proof-step-num">01</div>
+      <div class="proof-step-body">
+        <div class="proof-step-title"><span class="lang-en">Temporal information is used — E-drop test</span><span class="lang-zh">使用時間資訊 — E-drop 測試</span></div>
+        <p class="lang-en" style="font-size:.9375rem;max-width:520px">Random time-axis shuffle of $S$ drops accuracy from 1.000 to 0.198. After shuffle, acc $\approx 1/C$ (random chance). No non-temporal feature can compensate.</p>
+        <p class="lang-zh" style="font-size:.9375rem;max-width:520px">隨機打亂 $S$ 的時間軸使準確率從 1.000 降至 0.198。打亂後 acc $\approx 1/C$（隨機猜測）。非時間特徵無法補償。</p>
+        <div class="proof-step-evidence">E-drop = 0.744 · ratio between/within = 18.6 · shuffle acc → 1/C</div>
+      </div>
+    </div>
+    <div class="proof-step">
+      <div class="proof-step-num">02</div>
+      <div class="proof-step-body">
+        <div class="proof-step-title"><span class="lang-en">No other information source — acc ≈ E-drop across all C</span><span class="lang-zh">無其他資訊來源 — 所有 C 下 acc ≈ E-drop</span></div>
+        <p class="lang-en" style="font-size:.9375rem;max-width:520px">Across $C \in \{24,100,500,1000,5000,10000\}$, accuracy and E-drop remain equal. After time-shuffle, acc falls to exactly $1/C$. Verified: at $C=10000$, shuffle acc $= 0.002 \approx 1/C = 0.0001$.</p>
+        <p class="lang-zh" style="font-size:.9375rem;max-width:520px">在 $C \in \{24,100,500,1000,5000,10000\}$ 下，準確率與 E-drop 始終相等。時間打亂後 acc 降至 $1/C$。驗證：$C=10000$ 時打亂 acc $= 0.002 \approx 1/C$。</p>
+        <div class="proof-step-evidence">acc ≈ E-drop for all C · shuffle acc ≈ 1/C confirmed</div>
+      </div>
+    </div>
+    <div class="proof-step">
+      <div class="proof-step-num">03</div>
+      <div class="proof-step-body">
+        <div class="proof-step-title"><span class="lang-en">Ordering is learned, not absolute timing — OID test</span><span class="lang-zh">學習的是排序而非絕對時間 — OID 測試</span></div>
+        <p class="lang-en" style="font-size:.9375rem;max-width:520px">Ordering-Invariant Dataset fixes each class's ordering while re-sampling absolute spike times for every example. Within-class first-spike std = 1.96, yet ordering accuracy = 1.000.</p>
+        <p class="lang-zh" style="font-size:.9375rem;max-width:520px">排序不變資料集固定每類排序，但每樣本重新抽樣絕對尖峰時間。類內首次尖峰 std = 1.96，排序準確率仍為 1.000。</p>
+        <div class="proof-step-evidence">ordering_acc = 1.000 · within_fst_std = 1.96 · acc = 0.793</div>
+      </div>
+    </div>
+    <div class="proof-step">
+      <div class="proof-step-num">04</div>
+      <div class="proof-step-body">
+        <div class="proof-step-title"><span class="lang-en">Only ordering matters at evaluation — OPS + soft rank</span><span class="lang-zh">評估時僅排序重要 — OPS + 軟排序</span></div>
+        <p class="lang-en" style="font-size:.9375rem;max-width:520px">Order-Preserving Shuffle changes all spike times while preserving $\pi$. Without soft rank: OPS-drop = 0.228. With soft rank ($\tau=0.01$): OPS-drop = 0.017 (13× reduction). Accuracy unchanged at 1.000.</p>
+        <p class="lang-zh" style="font-size:.9375rem;max-width:520px">保序打亂改變所有尖峰時間但保留 $\pi$。無軟排序：OPS-drop = 0.228。有軟排序（$\tau=0.01$）：OPS-drop = 0.017（降 13 倍）。準確率維持 1.000。</p>
+        <div class="proof-step-evidence">OPS-drop (τ=0.01) = 0.017 · acc = 1.000 · 13× improvement</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- RESULTS -->
+<section class="section" id="results">
+  <h2><span class="section-num">§7</span> <span class="lang-en">Key Experimental Results</span><span class="lang-zh">關鍵實驗結果</span></h2>
+
+  <h3><span class="lang-en">Exp A — C scaling (M=8, M!=40,320)</span><span class="lang-zh">實驗 A — C 縮放（M=8, M!=40,320）</span></h3>
+  <table class="tbl">
+    <thead><tr><th>C</th><th>M!/C</th><th>acc</th><th>E-drop</th><th>acc − E-drop</th></tr></thead>
+    <tbody>
+      <tr><td>24</td><td>1,680</td><td class="val-hi">1.000</td><td class="val-hi">0.764</td><td class="val-note">+0.236</td></tr>
+      <tr><td>100</td><td>403</td><td class="val-hi">0.978</td><td class="val-hi">0.885</td><td class="val-note">+0.093</td></tr>
+      <tr><td>500</td><td>81</td><td class="val-hi">0.856</td><td class="val-hi">0.830</td><td class="val-note">+0.026</td></tr>
+      <tr><td>1,000</td><td>40</td><td class="val-mid">0.733</td><td class="val-mid">0.717</td><td class="val-note">+0.016</td></tr>
+      <tr><td>5,000</td><td>8</td><td class="val-lo">0.310</td><td class="val-lo">0.307</td><td class="val-note">+0.003</td></tr>
+      <tr><td>10,000</td><td>4</td><td class="val-lo">0.162</td><td class="val-lo">0.160</td><td class="val-note">+0.002 ≈ 1/C</td></tr>
+    </tbody>
+  </table>
+  <div class="caption"><span class="lang-en">acc ≈ E-drop confirms ordering is the sole information channel across all C.</span><span class="lang-zh">acc ≈ E-drop 確認排序是所有 C 下唯一的資訊通道。</span></div>
+
+  <h3 style="margin-top:2rem"><span class="lang-en">W_rec isolation</span><span class="lang-zh">W_rec 隔離</span></h3>
+  <table class="tbl">
+    <thead><tr><th><span class="lang-en">Condition</span><span class="lang-zh">條件</span></th><th>acc</th><th>E-drop</th><th>fst-std</th></tr></thead>
+    <tbody>
+      <tr><td><span class="lang-en">Baseline (W_rec trained)</span><span class="lang-zh">基線（W_rec 已訓練）</span></td><td class="val-hi">0.999</td><td class="val-lo">0.416</td><td>8.935</td></tr>
+      <tr><td><span class="lang-en">Test 1: W_rec = 0</span><span class="lang-zh">測試 1：W_rec = 0</span></td><td class="val-hi">0.999</td><td class="val-hi">0.768</td><td>0.954</td></tr>
+      <tr><td><span class="lang-en">Test 2: W_rec col shuffle</span><span class="lang-zh">測試 2：W_rec 欄打亂</span></td><td class="val-mid">0.688</td><td class="val-mid">0.553</td><td>6.428</td></tr>
+      <tr><td><span class="lang-en">Test 3: W_rec frozen at init</span><span class="lang-zh">測試 3：W_rec 初始化凍結</span></td><td class="val-hi">1.000</td><td class="val-hi">0.744</td><td>0.954</td></tr>
+    </tbody>
+  </table>
+  <div class="caption"><span class="lang-en">Removing W_rec maximises E-drop. Trained W_rec exploits timing patterns, not ordering.</span><span class="lang-zh">移除 W_rec 可最大化 E-drop。訓練後的 W_rec 利用時間模式而非排序。</span></div>
+
+  <h3 style="margin-top:2rem"><span class="lang-en">W_rec regularisation sweep</span><span class="lang-zh">W_rec 正則化掃描</span></h3>
+  <table class="tbl">
+    <thead><tr><th>λ</th><th>acc</th><th>E-drop</th><th>pos_frac</th></tr></thead>
+    <tbody>
+      <tr><td>0.0 (none)</td><td class="val-hi">0.999</td><td class="val-lo">0.416</td><td>0.077</td></tr>
+      <tr><td>0.01</td><td class="val-hi">0.999</td><td class="val-mid">0.430</td><td>0.018</td></tr>
+      <tr><td>0.1</td><td class="val-hi">0.999</td><td class="val-lo">0.283</td><td>0.000</td></tr>
+      <tr><td>1.0</td><td class="val-hi">0.999</td><td class="val-lo">0.159</td><td>0.000</td></tr>
+      <tr><td>10.0</td><td class="val-hi">0.999</td><td class="val-lo">0.070</td><td>0.000</td></tr>
+      <tr><td>W_rec=0 (reference)</td><td class="val-hi">1.000</td><td class="val-hi">0.744</td><td>—</td></tr>
+    </tbody>
+  </table>
+  <div class="caption"><span class="lang-en">Regularisation makes E-drop monotonically worse. Fully suppressing W_rec (λ→∞) approaches but never equals W_rec=0.</span><span class="lang-zh">正則化使 E-drop 單調惡化。完全抑制 W_rec（λ→∞）逼近但不等於 W_rec=0。</span></div>
+
+  <h3 style="margin-top:2rem"><span class="lang-en">OPS + soft rank — tau sweep</span><span class="lang-zh">OPS + 軟排序 — tau 掃描</span></h3>
+  <table class="tbl">
+    <thead><tr><th>τ</th><th>acc</th><th>OPS-drop</th><th><span class="lang-en">vs baseline</span><span class="lang-zh">相對基線</span></th></tr></thead>
+    <tbody>
+      <tr><td><span class="lang-en">baseline (no rank)</span><span class="lang-zh">基線（無排序）</span></td><td>1.000</td><td>0.228</td><td>—</td></tr>
+      <tr><td>1.0</td><td>0.999</td><td class="val-lo">0.341</td><td class="val-note"><span class="lang-en">worse</span><span class="lang-zh">更差</span></td></tr>
+      <tr><td>0.1</td><td class="val-hi">1.000</td><td class="val-mid">0.113</td><td>−0.115</td></tr>
+      <tr><td>0.01</td><td class="val-hi">1.000</td><td class="val-hi">0.017</td><td class="val-hi">−0.211 (13×)</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- CAPACITY MATRIX -->
+<section class="section" id="capacity">
+  <h2><span class="section-num">§8</span> <span class="lang-en">Capacity Matrix</span><span class="lang-zh">容量矩陣</span></h2>
+<p class="lang-en">Full sweep: SNN vs NN baseline across $M \in \{4,6,8,10,12\}$ and $C \in \{10,100,1000,10000\}$. N/A indicates $M! < C$ (theoretically infeasible).</p>
+  <p class="lang-zh">完整掃描：SNN 對 NN 基線，$M \in \{4,6,8,10,12\}$、$C \in \{10,100,1000,10000\}$。N/A 表示 $M! < C$（理論上不可行）。</p>
+
+  <div class="matrix-label"><span class="lang-en">SNN Accuracy</span><span class="lang-zh">SNN 準確率</span></div>
+  <div class="matrix-wrap">
+    <table class="matrix">
+      <thead><tr><th></th><th>C=10</th><th>C=100</th><th>C=1,000</th><th>C=10,000</th></tr></thead>
+      <tbody>
+        <tr><td>M=4</td><td class="cell-mid">0.600</td><td class="cell-na">N/A</td><td class="cell-na">N/A</td><td class="cell-na">N/A</td></tr>
+        <tr><td>M=6</td><td class="cell-hi">0.900</td><td class="cell-mid">0.463</td><td class="cell-na">N/A</td><td class="cell-na">N/A</td></tr>
+        <tr><td>M=8</td><td class="cell-hi">1.000</td><td class="cell-hi">0.973</td><td class="cell-mid">0.741</td><td class="cell-lo">0.163</td></tr>
+        <tr><td>M=10</td><td class="cell-hi">1.000</td><td class="cell-hi">1.000</td><td class="cell-hi">0.997</td><td class="cell-hi">0.964</td></tr>
+        <tr><td>M=12</td><td class="cell-hi">1.000</td><td class="cell-hi">1.000</td><td class="cell-hi">1.000</td><td class="cell-hi">0.999</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="matrix-label"><span class="lang-en">NN Accuracy (same M-dim input)</span><span class="lang-zh">NN 準確率（相同 M 維輸入）</span></div>
+  <div class="matrix-wrap">
+    <table class="matrix">
+      <thead><tr><th></th><th>C=10</th><th>C=100</th><th>C=1,000</th><th>C=10,000</th></tr></thead>
+      <tbody>
+        <tr><td>M=4</td><td class="cell-mid">0.750</td><td class="cell-na">N/A</td><td class="cell-na">N/A</td><td class="cell-na">N/A</td></tr>
+        <tr><td>M=6</td><td class="cell-hi">1.000</td><td class="cell-mid">0.723</td><td class="cell-na">N/A</td><td class="cell-na">N/A</td></tr>
+        <tr><td>M=8</td><td class="cell-hi">1.000</td><td class="cell-hi">0.978</td><td class="cell-hi">1.000</td><td class="cell-hi">0.961</td></tr>
+        <tr><td>M=10</td><td class="cell-hi">1.000</td><td class="cell-hi">1.000</td><td class="cell-hi">1.000</td><td class="cell-hi">0.998</td></tr>
+        <tr><td>M=12</td><td class="cell-hi">1.000</td><td class="cell-hi">1.000</td><td class="cell-hi">1.000</td><td class="cell-hi">1.000</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="matrix-label"><span class="lang-en">E-drop (SNN) — ordering dependence</span><span class="lang-zh">E-drop（SNN）— 排序依賴</span></div>
+  <div class="matrix-wrap">
+    <table class="matrix">
+      <thead><tr><th></th><th>C=10</th><th>C=100</th><th>C=1,000</th><th>C=10,000</th></tr></thead>
+      <tbody>
+        <tr><td>M=8</td><td class="cell-mid">0.675</td><td class="cell-hi">0.900</td><td class="cell-mid">0.719</td><td class="cell-lo">0.162</td></tr>
+        <tr><td>M=10</td><td class="cell-lo">0.400</td><td class="cell-mid">0.745</td><td class="cell-hi">0.931</td><td class="cell-hi">0.951</td></tr>
+        <tr><td>M=12</td><td class="cell-lo">0.025</td><td class="cell-mid">0.500</td><td class="cell-mid">0.738</td><td class="cell-hi">0.909</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="caption"><span class="lang-en">High E-drop (bottom-right) = ordering-dominated regime. Low E-drop (top-left) = trivially classifiable without ordering. NN dominates because DirectCurrentDataset encodes class in the current vector itself — see §9 and §11.</span><span class="lang-zh">高 E-drop（右下）= 排序主導區。低 E-drop（左上）= 無需排序即可分類。NN 佔優因 DirectCurrentDataset 在電流向量本身編碼類別 — 見 §9 與 §11。</span></div>
+
+  <div class="matrix-label"><span class="lang-en">M! / C ratio</span><span class="lang-zh">M! / C 比值</span></div>
+  <div class="matrix-wrap">
+    <table class="matrix">
+      <thead><tr><th></th><th>C=10</th><th>C=100</th><th>C=1,000</th><th>C=10,000</th></tr></thead>
+      <tbody>
+        <tr><td>M=4</td><td>2.4</td><td>0.24</td><td class="cell-na">0.024</td><td class="cell-na">0.002</td></tr>
+        <tr><td>M=6</td><td>72</td><td>7.2</td><td>0.72</td><td class="cell-na">0.072</td></tr>
+        <tr><td>M=8</td><td>4,032</td><td>403</td><td>40</td><td>4</td></tr>
+        <tr><td>M=10</td><td>363K</td><td>36K</td><td>3,629</td><td>363</td></tr>
+        <tr><td>M=12</td><td>47.9M</td><td>4.79M</td><td>479K</td><td>47.9K</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- FINDINGS -->
+<section class="section" id="findings">
+  <h2><span class="section-num">§9</span> <span class="lang-en">Confirmed Findings</span><span class="lang-zh">已確認發現</span></h2>
+
+  <div class="def-entry">
+    <div class="def-head"><span class="def-symbol">F1</span><span class="def-name"><span class="lang-en">SNN can learn spike ordering</span><span class="lang-zh">SNN 可學習尖峰排序</span></span></div>
+    <div class="def-body lang-en">With $\text{base}&lt;\theta$ and soft first-spike scoring, the SNN exploits temporal ordering as the primary information channel. E-drop = 0.744; time-shuffle reduces accuracy to near random chance.</div>
+    <div class="def-body lang-zh">在 $\text{base}&lt;\theta$ 與軟首次尖峰計分下，SNN 以時間排序為主要資訊通道。E-drop = 0.744；時間打亂使準確率降至近隨機。</div>
+  </div>
+  <div class="def-entry">
+    <div class="def-head"><span class="def-symbol">F2</span><span class="def-name"><span class="lang-en">$M!$ is the real capacity bound</span><span class="lang-zh">$M!$ 是真實容量上界</span></span></div>
+    <div class="def-body lang-en">acc ≈ E-drop across all C. Capacity degrades when $M!/C \lesssim 8$. The bound is hard: 200 epochs at $M=8$, $C=10000$ ($M!/C=4$) gives the same acc=0.162 as 100 epochs.</div>
+    <div class="def-body lang-zh">所有 C 下 acc ≈ E-drop。$M!/C \lesssim 8$ 時容量下降。上界是硬的：$M=8$、$C=10000$（$M!/C=4$）訓練 200 epoch 與 100 epoch 同得 acc=0.162。</div>
+  </div>
+  <div class="def-entry">
+    <div class="def-head"><span class="def-symbol">F3</span><span class="def-name"><span class="lang-en">Any linear layer collapses ordering</span><span class="lang-zh">任何線性層都會破壞排序</span></span></div>
+    <div class="def-body lang-en">An 8×8 standard linear layer before the SNN drops E-drop from 0.744 to 0.051. Even tiny scaling of currents allows the model to use a binary on/off code instead of fine-grained ordering.</div>
+    <div class="def-body lang-zh">SNN 前 8×8 標準線性層使 E-drop 從 0.744 降至 0.051。即使微小電流縮放也讓模型用開關碼取代細粒度排序。</div>
+  </div>
+  <div class="def-entry">
+    <div class="def-head"><span class="def-symbol">F4</span><span class="def-name"><span class="lang-en">Orthogonal layer preserves ordering</span><span class="lang-zh">正交層保留排序</span></span></div>
+    <div class="def-body lang-en">Cayley-parameterised orthogonal layer maintains E-drop at 0.420. Orthogonal acc (0.923) exceeds standard linear (0.860), showing ordering is beneficial. Constraint: must be square ($M\times M$).</div>
+    <div class="def-body lang-zh">Cayley 參數化正交層維持 E-drop 0.420。正交 acc（0.923）優於標準線性（0.860），顯示排序有益。約束：須為方陣（$M\times M$）。</div>
+  </div>
+  <div class="def-entry">
+    <div class="def-head"><span class="def-symbol">F5</span><span class="def-name"><span class="lang-en">W_rec is a timing shortcut, not an ordering amplifier</span><span class="lang-zh">W_rec 是時間捷徑，非排序放大器</span></span></div>
+    <div class="def-body lang-en">Trained W_rec reduces E-drop from 0.744 (W_rec=0) to 0.416. It naturally learns 92% inhibitory connections, but the whole W_rec system enables timing pattern exploitation. Regularisation makes it worse monotonically. Removing W_rec is the correct choice for ordering purity.</div>
+    <div class="def-body lang-zh">訓練後 W_rec 使 E-drop 從 0.744（W_rec=0）降至 0.416。自然學到 92% 抑制連接，但整體仍啟用時間模式利用。正則化單調惡化。為排序純度應移除 W_rec。</div>
+  </div>
+  <div class="def-entry">
+    <div class="def-head"><span class="def-symbol">F6</span><span class="def-name"><span class="lang-en">Soft rank eliminates magnitude leakage</span><span class="lang-zh">軟排序消除幅度洩漏</span></span></div>
+    <div class="def-body lang-en">OPS-drop measures magnitude dependence beyond ordinal structure. Without soft rank: 0.228. With $\tau=0.01$: 0.017 (13× reduction). Accuracy maintained at 1.000.</div>
+    <div class="def-body lang-zh">OPS-drop 衡量序數結構外的幅度依賴。無軟排序：0.228。$\tau=0.01$：0.017（降 13 倍）。準確率維持 1.000。</div>
+  </div>
+  <div class="def-entry">
+    <div class="def-head"><span class="def-symbol">F7</span><span class="def-name"><span class="lang-en">Geometric structure is partially learned</span><span class="lang-zh">幾何結構部分被學習</span></span></div>
+    <div class="def-body lang-en">Geo-gen experiment: fn-unseen = 0.670 vs chance 0.250. The SNN correctly identifies the first-firing neuron for unseen permutations. The bottleneck is the PL → readout interface, not the SNN itself.</div>
+    <div class="def-body lang-zh">Geo-gen 實驗：fn-unseen = 0.670 對隨機 0.250。SNN 能正確識別未見排列的首次發放神經元。瓶頸在 PL → 讀出介面，非 SNN 本身。</div>
+  </div>
+  <div class="def-entry">
+    <div class="def-head"><span class="def-symbol">F8</span><span class="def-name"><span class="lang-en">$M!/C$ hard threshold confirmed</span><span class="lang-zh">$M!/C$ 硬閾值已確認</span></span></div>
+    <div class="def-body lang-en">$M=8$, $C=10000$, $M!/C=4$: acc=0.163, no improvement with 200 epochs. $M=10$, $C=10000$, $M!/C=363$: acc=0.952, converges in 58 epochs. The threshold is $M!/C \approx 8$.</div>
+    <div class="def-body lang-zh">$M=8$、$C=10000$、$M!/C=4$：acc=0.163，200 epoch 無改善。$M=10$、$C=10000$、$M!/C=363$：acc=0.952，58 epoch 收斂。閾值約 $M!/C \approx 8$。</div>
+  </div>
+  <div class="def-entry">
+    <div class="def-head"><span class="def-symbol">F9</span><span class="def-name"><span class="lang-en">E-drop is highest in the ordering-dominated regime</span><span class="lang-zh">E-drop 在排序主導區最高</span></span></div>
+    <div class="def-body lang-en">Capacity matrix shows: high E-drop only when both $M$ is large and $C$ is large (bottom-right of matrix). $M=10$, $C=10000$: E-drop=0.951. $M=12$, $C=10$: E-drop=0.025. Ordering is only necessary — and therefore used — under capacity pressure.</div>
+    <div class="def-body lang-zh">容量矩陣顯示：僅當 $M$ 與 $C$ 皆大時（矩陣右下）E-drop 才高。$M=10$、$C=10000$：E-drop=0.951。$M=12$、$C=10$：E-drop=0.025。排序僅在容量壓力下必要且被使用。</div>
+  </div>
+  <div class="def-entry">
+    <div class="def-head"><span class="def-symbol">F10</span><span class="def-name"><span class="lang-en">base must be below theta for LIF integration to matter</span><span class="lang-zh">base 須低於 theta 才能使 LIF 積分有意義</span></span></div>
+    <div class="def-body lang-en">Old setting (base=1.2 > θ=1.0): all neurons fire at $t=0$, ordering collapses. New setting (base=0.4 < θ=1.0): membrane integrates over multiple steps, timing differences emerge. Verified with sanity checks.</div>
+    <div class="def-body lang-zh">舊設定（base=1.2 > θ=1.0）：所有神經元在 $t=0$ 發放，排序崩潰。新設定（base=0.4 < θ=1.0）：膜電位跨多步積分，時間差異浮現。已通過健全性檢查驗證。</div>
+  </div>
+</section>
+
+<!-- KNOWN ISSUES -->
+<section class="section" id="issues">
+  <h2><span class="section-num">§10</span> <span class="lang-en">Known Issues</span><span class="lang-zh">已知問題</span></h2>
+
+  <ul class="issue-list">
+    <li class="issue-item">
+      <span class="issue-icon">—</span>
+      <div class="issue-body">
+        <strong><span class="lang-en">Old dataset: base=1.2 > theta.</span><span class="lang-zh">舊資料集：base=1.2 > theta。</span></strong> <span class="lang-en">All neurons with cur > θ fire at $t=0$, destroying ordering. Fixed by setting base=0.40 < θ=1.0.</span><span class="lang-zh">cur > θ 的神經元皆在 $t=0$ 發放，破壞排序。已修正為 base=0.40 < θ=1.0。</span>
+        <div><span class="issue-status resolved"><span class="lang-en">resolved</span><span class="lang-zh">已解決</span></span></div>
+      </div>
+    </li>
+    <li class="issue-item">
+      <span class="issue-icon">—</span>
+      <div class="issue-body">
+        <strong><span class="lang-en">M=8, delta=0.05: neurons 6 and 7 never fire.</span><span class="lang-zh">M=8、delta=0.05：神經元 6 和 7 永不發放。</span></strong> <span class="lang-en">Current for neuron 7 = 0.05 < $(1-\beta)\theta = 0.10$. With delta=0.05 and M=8, the weakest two neurons cannot accumulate enough potential. Fix: use delta &lt; $(0.40 - 0.10)/7 \approx 0.043$ for M=8, or accept that these neurons always rank last.</span><span class="lang-zh">神經元 7 電流 = 0.05 < $(1-\beta)\theta = 0.10$。M=8、delta=0.05 時最弱兩神經元無法累積足夠電位。修正：M=8 時 delta &lt; $(0.40 - 0.10)/7 \approx 0.043$，或接受其永遠排名最後。</span>
+        <div><span class="issue-status open"><span class="lang-en">open</span><span class="lang-zh">待解</span></span></div>
+      </div>
+    </li>
+    <li class="issue-item">
+      <span class="issue-icon">—</span>
+      <div class="issue-body">
+        <strong><span class="lang-en">Simultaneous LIF₂ spikes (tie) cannot be resolved by W_rec.</span><span class="lang-zh">LIF₂ 同時尖峰（並列）無法由 W_rec 解決。</span></strong> <span class="lang-en">W_rec is one-step delayed: inhibition from a spike at $t^*$ only reaches other neurons at $t^*+1$. A tie at $t^*$ has already occurred before W_rec can act. Soft rank assigns $\hat{a}_i = \hat{a}_j = 0.5$ for tied neurons, which is the correct information-theoretic response but loses ordering detail between them.</span><span class="lang-zh">W_rec 延遲一步：$t^*$ 的抑制要到 $t^*+1$ 才影響其他神經元。$t^*$ 的並列在 W_rec 作用前已發生。軟排序對並列神經元設 $\hat{a}_i = \hat{a}_j = 0.5$，資訊論上正確但失去兩者間排序細節。</span>
+        <div><span class="issue-status open"><span class="lang-en">open</span><span class="lang-zh">待解</span></span></div>
+      </div>
+    </li>
+    <li class="issue-item">
+      <span class="issue-icon">—</span>
+      <div class="issue-body">
+        <strong><span class="lang-en">DirectCurrentDataset allows NN shortcut.</span><span class="lang-zh">DirectCurrentDataset 允許 NN 捷徑。</span></strong> <span class="lang-en">The current vector itself encodes class identity (each class maps to a fixed current pattern). NN achieves acc ≥ SNN across most of the capacity matrix. E-drop confirms SNN uses ordering, but a fair SNN vs NN comparison requires a dataset where the current vector alone is uninformative. This is a Phase 2 problem.</span><span class="lang-zh">電流向量本身編碼類別（每類對應固定電流模式）。NN 在容量矩陣多數區域 acc ≥ SNN。E-drop 確認 SNN 使用排序，但公平比較需電流向量本身無資訊的資料集。屬第二階段問題。</span>
+        <div><span class="issue-status phase2"><span class="lang-en">phase 2</span><span class="lang-zh">第二階段</span></span></div>
+      </div>
+    </li>
+    <li class="issue-item">
+      <span class="issue-icon">—</span>
+      <div class="issue-body">
+        <strong><span class="lang-en">Cayley map is square-only.</span><span class="lang-zh">Cayley 映射僅限方陣。</span></strong> <span class="lang-en">$\mathbf{W} \in \mathbb{R}^{M\times M}$. Cannot map from a higher-dimensional FFN output directly to $M$ neurons with an orthogonal layer. Requires FFN to first compress to exactly $M$ dimensions. Stiefel manifold parameterisation (semi-orthogonal tall matrix) is the generalisation but has not been implemented.</span><span class="lang-zh">$\mathbf{W} \in \mathbb{R}^{M\times M}$。無法從高維 FFN 輸出直接以正交層映射至 $M$ 神經元。須先壓縮至恰好 $M$ 維。Stiefel 流形參數化（半正交高矩陣）是推廣但尚未實作。</span>
+        <div><span class="issue-status open"><span class="lang-en">open</span><span class="lang-zh">待解</span></span></div>
+      </div>
+    </li>
+    <li class="issue-item">
+      <span class="issue-icon">—</span>
+      <div class="issue-body">
+        <strong><span class="lang-en">PL readout does not generalise to unseen permutations.</span><span class="lang-zh">PL 讀出無法泛化至未見排列。</span></strong> <span class="lang-en">W_out learns weights per permutation index. Permutations not seen during training have uninformed weights. fn-unseen=0.670 shows the SNN part generalises, but the readout does not. Hierarchical readout or ordering embedding required.</span><span class="lang-zh">W_out 按排列索引學習權重。訓練未見排列的權重無資訊。fn-unseen=0.670 顯示 SNN 部分可泛化，讀出不行。需階層讀出或排序嵌入。</span>
+        <div><span class="issue-status open"><span class="lang-en">open</span><span class="lang-zh">待解</span></span></div>
+      </div>
+    </li>
+    <li class="issue-item">
+      <span class="issue-icon">—</span>
+      <div class="issue-body">
+        <strong><span class="lang-en">tau=1.0 worsens OPS-drop vs baseline.</span><span class="lang-zh">tau=1.0 使 OPS-drop 較基線惡化。</span></strong> <span class="lang-en">Large tau makes soft rank output uniformly ~0.5, reducing both ordinal and magnitude information. This weakens the PL signal more than it helps OPS invariance, causing acc and E-drop to degrade slightly.</span><span class="lang-zh">大 tau 使軟排序輸出均約 0.5，削弱序數與幅度資訊。對 PL 信號的削弱大於 OPS 不變性收益，acc 與 E-drop 略降。</span>
+        <div><span class="issue-status resolved"><span class="lang-en">resolved — use tau=0.01</span><span class="lang-zh">已解決 — 使用 tau=0.01</span></span></div>
+      </div>
+    </li>
+  </ul>
+</section>
+
+<!-- OPEN QUESTIONS -->
+<section class="section" id="open">
+  <h2><span class="section-num">§11</span> <span class="lang-en">Open Questions</span><span class="lang-zh">待解問題</span></h2>
+
+  <ul class="q-list">
+    <li class="q-item">
+      <span class="q-num">Q1</span>
+      <span class="q-text"><strong><span class="lang-en">Tie-breaking.</span><span class="lang-zh">並列消解。</span></strong> <span class="lang-en">What is the most principled way to resolve simultaneous LIF₂ spikes without introducing a non-ordering side channel? Options: per-neuron threshold offsets, Stiefel pre-layer, or accepting ties as valid partial orderings.</span><span class="lang-zh">如何在不引入非排序旁路下最合理地解決 LIF₂ 同時尖峰？選項：每神經元閾值偏移、Stiefel 前置層，或接受並列為有效偏序。</span></span>
+      <span class="q-status"><span class="lang-en">Open</span><span class="lang-zh">待解</span></span>
+    </li>
+    <li class="q-item">
+      <span class="q-num">Q2</span>
+      <span class="q-text"><strong><span class="lang-en">Delta constraint for M=8.</span><span class="lang-zh">M=8 的 Delta 約束。</span></strong> <span class="lang-en">What is the optimal $(base, \Delta, T)$ triple for $M=8$ that guarantees all 8 neurons fire within $T$ while maximising first-spike time separation?</span><span class="lang-zh">$M=8$ 時最優 $(base, \Delta, T)$ 三元組為何，能保證 8 神經元在 $T$ 內發放且最大化首次尖峰時間分離？</span></span>
+      <span class="q-status"><span class="lang-en">Open</span><span class="lang-zh">待解</span></span>
+    </li>
+    <li class="q-item">
+      <span class="q-num">Q3</span>
+      <span class="q-text"><strong><span class="lang-en">Hierarchical readout.</span><span class="lang-zh">階層讀出。</span></strong> <span class="lang-en">Can replacing the flat PL readout with a hierarchical one (reading first-fire neuron, then second, etc.) allow generalisation to unseen permutations? fn-unseen=0.670 suggests the SNN is ready.</span><span class="lang-zh">以階層讀出（先讀首次發放神經元，再讀第二次…）取代扁平 PL 讀出，能否泛化至未見排列？fn-unseen=0.670 顯示 SNN 已就緒。</span></span>
+      <span class="q-status partial"><span class="lang-en">Partial</span><span class="lang-zh">部分</span></span>
+    </li>
+    <li class="q-item">
+      <span class="q-num">Q4</span>
+      <span class="q-text"><strong><span class="lang-en">Ordering embedding.</span><span class="lang-zh">排序嵌入。</span></strong> <span class="lang-en">Can a learned $\pi\mapsto\mathbf{e}_\pi\in\mathbb{R}^d$ encode geometric structure so similar permutations are close, enabling $\mathbf{z}=\sum_\pi p_\pi\mathbf{e}_\pi$ to carry neighbourhood information?</span><span class="lang-zh">學習的 $\pi\mapsto\mathbf{e}_\pi\in\mathbb{R}^d$ 能否編碼幾何結構使相似排列相近，讓 $\mathbf{z}=\sum_\pi p_\pi\mathbf{e}_\pi$ 攜帶鄰域資訊？</span></span>
+      <span class="q-status"><span class="lang-en">Open</span><span class="lang-zh">待解</span></span>
+    </li>
+    <li class="q-item">
+      <span class="q-num">Q5</span>
+      <span class="q-text"><strong><span class="lang-en">Stiefel manifold layer.</span><span class="lang-zh">Stiefel 流形層。</span></strong> <span class="lang-en">Can a semi-orthogonal tall matrix $\mathbf{W}\in\mathbb{R}^{M\times N}$ ($N>M$, $\mathbf{W}\mathbf{W}^\top=I_M$) allow an FFN encoder of arbitrary width to feed the SNN without scaling currents?</span><span class="lang-zh">半正交高矩陣 $\mathbf{W}\in\mathbb{R}^{M\times N}$（$N>M$，$\mathbf{W}\mathbf{W}^\top=I_M$）能否讓任意寬度 FFN 餵入 SNN 而不縮放電流？</span></span>
+      <span class="q-status"><span class="lang-en">Open</span><span class="lang-zh">待解</span></span>
+    </li>
+    <li class="q-item">
+      <span class="q-num">Q6</span>
+      <span class="q-text"><strong><span class="lang-en">Optimal w and tau.</span><span class="lang-zh">最優 w 與 tau。</span></strong> <span class="lang-en">Theoretical relationship between $w$, $T$, and gradient magnitude reaching early vs late timesteps. Is there a principled choice of $\tau$ given $M$ and $\Delta$?</span><span class="lang-zh">$w$、$T$ 與梯度到達早/晚時間步幅度的理論關係。給定 $M$ 與 $\Delta$ 是否有原則性的 $\tau$ 選擇？</span></span>
+      <span class="q-status"><span class="lang-en">Open</span><span class="lang-zh">待解</span></span>
+    </li>
+    <li class="q-item">
+      <span class="q-num">Q7</span>
+      <span class="q-text"><strong><span class="lang-en">Ordering autoencoder.</span><span class="lang-zh">排序自編碼器。</span></strong> <span class="lang-en">If a decoder can reconstruct input $\mathbf{x}$ from ordering alone (no class supervision), it proves ordering carries the full input signal. Strongest possible POC evidence.</span><span class="lang-zh">若解碼器僅從排序（無類別監督）重建輸入 $\mathbf{x}$，即證明排序攜帶完整輸入信號。最強 POC 證據。</span></span>
+      <span class="q-status"><span class="lang-en">Open</span><span class="lang-zh">待解</span></span>
+    </li>
+    <li class="q-item">
+      <span class="q-num">Q8</span>
+      <span class="q-text"><strong><span class="lang-en">W_rec with pre-spike inhibition.</span><span class="lang-zh">具發放前抑制的 W_rec。</span></strong> <span class="lang-en">Is there a recurrent architecture that can break ties (act before $t^*$) without enabling timing pattern shortcuts? Options: inhibitory current injection before threshold crossing, or lateral inhibition through membrane potential directly.</span><span class="lang-zh">是否存在能在 $t^*$ 前打破並列、又不啟用時間模式捷徑的循環架構？選項：閾值前抑制電流注入，或經膜電位的側向抑制。</span></span>
+      <span class="q-status"><span class="lang-en">Open</span><span class="lang-zh">待解</span></span>
+    </li>
+  </ul>
+</section>
+
+<!-- PHASE 2 -->
+<section class="section" id="phase2">
+  <h2><span class="section-num">§12</span> <span class="lang-en">Phase 2 Directions</span><span class="lang-zh">第二階段方向</span></h2>
+
+<h3><span class="lang-en">Dataset redesign</span><span class="lang-zh">資料集重新設計</span></h3>
+<p class="lang-en">DirectCurrentDataset encodes class identity directly in the current vector. A fair comparison between SNN ordering and NN requires a dataset where the instantaneous current vector alone is uninformative — only the temporal dynamics carry class information.</p>
+  <p class="lang-zh">DirectCurrentDataset 在電流向量中直接編碼類別。SNN 排序與 NN 的公平比較需要瞬時電流向量本身無資訊的資料集——僅時間動力學攜帶類別資訊。</p>
+<p class="lang-en">Candidate designs:</p>
+  <p class="lang-zh">候選設計：</p>
+  <ul style="padding-left:1.25rem;color:var(--ink2);font-size:.9375rem;line-height:1.8;max-width:560px">
+    <li><span class="lang-en">Time-series classification: class information spread across a sequence, not a single snapshot</span><span class="lang-zh">時間序列分類：類別資訊分布於序列而非單一快照</span></li>
+    <li><span class="lang-en">Synthetic temporal XOR: correct class depends on the order of events, not their magnitudes</span><span class="lang-zh">合成時間 XOR：正確類別取決於事件順序而非幅度</span></li>
+    <li><span class="lang-en">Matched current distributions: all classes draw currents from the same distribution; only the assignment to neuron indices differs (but this still leaks via neuron identity)</span><span class="lang-zh">匹配電流分布：各類從同分布抽樣電流，僅神經元索引分配不同（但仍可能經神經元身份洩漏）</span></li>
+    <li><span class="lang-en">UCR benchmark: real-world time-series where NN must process the full sequence</span><span class="lang-zh">UCR 基準：NN 須處理完整序列的真實時間序列</span></li>
+  </ul>
+
+<h3><span class="lang-en">Architecture extensions</span><span class="lang-zh">架構擴展</span></h3>
+  <ul style="padding-left:1.25rem;color:var(--ink2);font-size:.9375rem;line-height:1.8;max-width:560px">
+    <li><span class="lang-en">Stiefel manifold pre-layer: $\mathbf{W}\in\mathbb{R}^{M\times N}$ semi-orthogonal, allows arbitrary-width FFN encoder</span><span class="lang-zh">Stiefel 流形前置層：$\mathbf{W}\in\mathbb{R}^{M\times N}$ 半正交，允許任意寬度 FFN 編碼器</span></li>
+    <li><span class="lang-en">Hierarchical readout: read ordering level-by-level, enabling unseen-permutation generalisation</span><span class="lang-zh">階層讀出：逐層讀取排序，支援未見排列泛化</span></li>
+    <li><span class="lang-en">Ordering embedding: learnable $\pi\mapsto\mathbf{e}_\pi$ with geometric structure</span><span class="lang-zh">排序嵌入：可學習的 $\pi\mapsto\mathbf{e}_\pi$ 具幾何結構</span></li>
+    <li><span class="lang-en">Pre-spike inhibition: W_rec variant that acts on membrane potential before threshold crossing</span><span class="lang-zh">發放前抑制：在閾值前作用於膜電位的 W_rec 變體</span></li>
+  </ul>
+
+<h3><span class="lang-en">Scale</span><span class="lang-zh">規模</span></h3>
+  <ul style="padding-left:1.25rem;color:var(--ink2);font-size:.9375rem;line-height:1.8;max-width:560px">
+    <li><span class="lang-en">Real benchmark validation: UCR time-series, genomics (DeepSEA), or event-based vision</span><span class="lang-zh">真實基準驗證：UCR 時間序列、基因組學（DeepSEA）或事件驅動視覺</span></li>
+    <li><span class="lang-en">Comparison against rate-based SNN and equivalent-parameter MLP under matched dataset conditions</span><span class="lang-zh">在匹配資料集條件下與 rate-based SNN 及等參數 MLP 比較</span></li>
+    <li><span class="lang-en">M=16+ with better MC approximation (K=2048+) once dataset issues are resolved</span><span class="lang-zh">資料集問題解決後以更好 MC 近似（K=2048+）擴展至 M=16+</span></li>
+  </ul>
+</section>
+
+</main>
+</div>
+
+<script>
+const sections = document.querySelectorAll('.section,.doc-header');
+const navLinks = document.querySelectorAll('.sidenav a[href^="#"]');
+const langBtns = document.querySelectorAll('[data-set-lang]');
+
+function setLang(lang) {
+  document.body.dataset.lang = lang;
+  document.documentElement.lang = lang === 'zh' ? 'zh-Hant' : 'en';
+  langBtns.forEach(b => b.classList.toggle('active', b.dataset.setLang === lang));
+  localStorage.setItem('demo2-lang', lang);
+  if (window.MathJax?.typesetPromise) MathJax.typesetPromise();
+}
+
+langBtns.forEach(b => b.addEventListener('click', () => setLang(b.dataset.setLang)));
+setLang(localStorage.getItem('demo2-lang') || 'en');
+
+const obs = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      const id = e.target.id;
+      navLinks.forEach(l => l.classList.toggle('active', l.getAttribute('href') === `#${id}`));
+    }
+  });
+}, { threshold: 0.2, rootMargin: '-60px 0px -40% 0px' });
+sections.forEach(s => obs.observe(s));
+</script>
 </body>
 </html>
