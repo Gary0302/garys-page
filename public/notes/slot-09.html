@@ -1,12 +1,402 @@
+---
+name: garys-format
+description: >-
+  Generates bilingual (EN/繁中) research checkpoint HTML in Gary's format —
+  sticky sidebar, MathJax equations, symbol tables, proof chains, and capacity
+  matrices. Uses Notion system fonts (ui-sans-serif / SFMono-Regular) and
+  off-white background. Use when the user wants Gary's format, garys-format,
+  research memo HTML, technical checkpoint documents, or sidebar TOC exports.
+disable-model-invocation: true
+---
+
+# Gary's Format
+
+Single-file, self-contained research checkpoint HTML. **This skill is md-only** —
+all CSS and HTML templates are embedded below; no separate `.css` or `.html` files needed.
+HTML block snippets: [blocks.md](blocks.md).
+
+## Design spec (do not deviate)
+
+| Property | Value |
+|----------|-------|
+| Layout | 200px sticky sidebar + 760px main column |
+| Background | `#fefefe` (off-white, not cream) |
+| Body font | `ui-sans-serif` system stack (Notion export) |
+| Label/table font | `SFMono-Regular` / Menlo |
+| Math | MathJax `tex-chtml.js` → CHTML/MathML blocks |
+| Languages | EN + 繁中 toggle, `localStorage` persistence |
+| External fonts | **None** — no Google Fonts |
+
+## Output rules
+
+1. One `.html` file — all CSS inline, images as relative paths.
+2. Copy CSS verbatim from **Complete CSS** section below into `<style>`.
+3. Every sidebar link `href="#id"` must match a real `id` on page.
+4. Translate prose only; keep formulas, symbols, numbers, code shared.
+
+## Document shell
+
+```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Slot 09</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{TITLE}</title>
+<script>
+MathJax = {
+  tex: { inlineMath: [['$','$']], displayMath: [['$$','$$']], tags: 'ams' },
+  options: { skipHtmlTags: ['script','noscript','style','textarea','pre'] }
+};
+</script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js" async></script>
+<style>/* paste Complete CSS section below */</style>
 </head>
-<body>
-  <!-- draft -->
-  <p>Draft slot 09 — replace this entire file on GitHub to publish.</p>
+<body data-lang="en">
+<div class="page">
+<nav class="sidenav" id="sidenav">...</nav>
+<main>...</main>
+</div>
+<script>/* lang switch + IntersectionObserver — see blocks.md */</script>
 </body>
 </html>
+```
+
+## Sidebar
+
+Put language toggle first, then grouped nav:
+
+```html
+<nav class="sidenav" id="sidenav">
+  <div class="lang-switch">
+    <button type="button" class="active" data-set-lang="en">EN</button>
+    <button type="button" data-set-lang="zh">繁中</button>
+  </div>
+  <div class="nav-group">
+    <div class="nav-label"><span class="lang-en">Document</span><span class="lang-zh">文件</span></div>
+    <a href="#header"><span class="lang-en">Overview</span><span class="lang-zh">概覽</span></a>
+  </div>
+  <!-- Reference / Architecture / Evidence / Status groups -->
+</nav>
+```
+
+Typical groups: Document · Reference · Architecture · Evidence · Status.
+
+## Header (minimal metadata)
+
+Only title, subtitle, date/time — no author, affiliation, or hardware lines.
+
+```html
+<header class="doc-header" id="header">
+  <h1 class="doc-title">
+    <span class="lang-en">{TITLE EN}</span>
+    <span class="lang-zh">{TITLE ZH}</span>
+  </h1>
+  <p class="doc-subtitle lang-en">{Summary EN}</p>
+  <p class="doc-subtitle lang-zh">{Summary ZH}</p>
+  <div class="doc-date">
+    <span class="lang-en">June 5, 2026 · 14:37</span>
+    <span class="lang-zh">2026年6月5日 · 14:37</span>
+  </div>
+</header>
+```
+
+## Sections
+
+Section number inline with title (same size, not tiny label above):
+
+```html
+<section class="section" id="symbols">
+  <h2><span class="section-num">§1</span>
+    <span class="lang-en">Symbol Table</span>
+    <span class="lang-zh">符號表</span>
+  </h2>
+  ...
+</section>
+```
+
+Number §1–§N sequentially. Use `h3` for subsections.
+
+## Bilingual pattern
+
+```html
+<!-- inline (headings, nav, table headers) -->
+<span class="lang-en">English</span><span class="lang-zh">繁體中文</span>
+
+<!-- block (paragraphs, def-body) -->
+<p class="lang-en">English paragraph.</p>
+<p class="lang-zh">繁體中文段落。</p>
+
+<!-- paired inside one element -->
+<div class="def-body lang-en">...</div>
+<div class="def-body lang-zh">...</div>
+```
+
+CSS: `body[data-lang="en"] .lang-zh` and `body[data-lang="zh"] .lang-en` are hidden.
+
+Lang switch script (required):
+
+```javascript
+const sections = document.querySelectorAll('.section,.doc-header');
+const navLinks = document.querySelectorAll('.sidenav a[href^="#"]');
+const langBtns = document.querySelectorAll('[data-set-lang]');
+
+function setLang(lang) {
+  document.body.dataset.lang = lang;
+  document.documentElement.lang = lang === 'zh' ? 'zh-Hant' : 'en';
+  langBtns.forEach(b => b.classList.toggle('active', b.dataset.setLang === lang));
+  localStorage.setItem('garys-format-lang', lang);
+  if (window.MathJax?.typesetPromise) MathJax.typesetPromise();
+}
+langBtns.forEach(b => b.addEventListener('click', () => setLang(b.dataset.setLang)));
+setLang(localStorage.getItem('garys-format-lang') || 'en');
+
+const obs = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      const id = e.target.id;
+      navLinks.forEach(l => l.classList.toggle('active', l.getAttribute('href') === `#${id}`));
+    }
+  });
+}, { threshold: 0.2, rootMargin: '-60px 0px -40% 0px' });
+sections.forEach(s => obs.observe(s));
+```
+
+## Typography rules
+
+### Equations vs explanatory text (critical)
+
+| Content | Style |
+|---------|-------|
+| `$$...$$` display math | MathJax CHTML — do NOT override `mjx-container` |
+| `.formula-note` below equations | Body sans `.9375rem`, `color: --ink2`, no italic |
+| `.def-type` (ℤ₊, ℝ₊) | Mono `.875rem`, readable — not tiny caption size |
+
+### Tables & matrices (readable size)
+
+| Element | Size |
+|---------|------|
+| `.tbl` / `.matrix` cells | `.875rem` (14px) |
+| `.tbl th` / `.matrix th` | `.75rem` (12px) |
+| `.matrix-label` | `.8125rem` with `line-height: 1.5` |
+| `.caption` | `.8125rem`, `line-height: 1.65`, no uppercase |
+
+### Value colors (keep these — user likes them)
+
+- `.val-hi` / `.cell-hi` → `--ink` (darkest, emphasis)
+- `.val-mid` / `.cell-mid` → `--ink2`
+- `.val-lo` / `.cell-lo` → `--ink3`
+- `.cell-na` → `--ink4` italic
+
+## Component catalog
+
+| Component | Classes | Section type |
+|-----------|---------|--------------|
+| Symbol definition | `.def-entry` `.def-symbol` `.def-name` `.def-type` `.def-body` | §1 Symbol Table |
+| Parameter guide | `h3` + display math + `.param-box` | §2 |
+| Formula sheet | `.formula-grid` `.formula-row` `.formula-label` `.formula-body` `.formula-note` | §3 |
+| Pipeline | display math pipeline + `.param-box` | §4 |
+| Component notes | `h3` + paragraphs | §5 |
+| Proof chain | `.proof-chain` `.proof-step` `.proof-step-num` `.proof-step-body` | §6 |
+| Results tables | `.tbl` + `.caption` | §7 |
+| Capacity matrix | `.matrix-label` + `.matrix` + `.cell-*` | §8 |
+| Findings | `.def-entry` with F1, F2… symbols | §9 |
+| Known issues | `.issue-list` `.issue-item` `.issue-status` | §10 |
+| Open questions | `.q-list` `.q-item` `.q-status` | §11 |
+| Phase 2 | `h3` + bullet lists | §12 |
+
+Full HTML snippets: [blocks.md](blocks.md).
+
+## Standard document outline (12 sections)
+
+1. Symbol Table
+2. Parameter Guide
+3. Formula Sheet
+4. Full Pipeline
+5. Component Notes
+6. Proof Chain
+7. Key Experimental Results
+8. Capacity Matrix
+9. Confirmed Findings
+10. Known Issues
+11. Open Questions
+12. Phase 2 Directions
+
+Adapt section count to content; keep numbering contiguous.
+
+## MoE-style labeled paragraphs (optional add-on)
+
+For architecture memos, use bold label + colon:
+
+```html
+<p><strong>Method</strong>: Description.</p>
+<p><strong>Figure 1</strong>: Caption (arXiv:XXXX).</p>
+<blockquote>🎯 <strong>Core question</strong>: …</blockquote>
+```
+
+## Workflow checklist
+
+```
+- [ ] Plan section ids + sidebar groups
+- [ ] Write bilingual header (title, subtitle, date only)
+- [ ] Build sidebar with lang-switch + nav groups
+- [ ] Fill sections: h2 with §N inline, h3 subsections
+- [ ] Add def-entry / formula-row / tbl / matrix as needed
+- [ ] Pair every prose string with lang-en + lang-zh
+- [ ] Paste Complete CSS section verbatim into `<style>`
+- [ ] Add lang-switch + IntersectionObserver scripts
+- [ ] Verify: toggle EN/繁中, sidebar highlight, scroll-to-section, mobile hides sidebar
+```
+
+## Anti-patterns
+
+- Google Fonts (EB Garamond, JetBrains Mono)
+- KaTeX instead of MathJax for this format
+- Tiny `.5625rem` table labels or matrix captions
+- Italic gray `.formula-note` text
+- Separate tiny `§N` div above h2
+- Author/affiliation/hardware in header
+- Duplicate `id` attributes
+- Translating math formulas or variable names
+
+## Sharing (md-only)
+
+To share this skill, copy into `~/.cursor/skills/garys-format/`:
+
+- `SKILL.md` — **required**; must start with `---` YAML frontmatter on line 1 (see top of this file)
+- `blocks.md` — optional HTML block snippets
+
+No `.css` or `.html` companion files required. Do **not** rename `blocks.md` to `SKILL.md` — only `SKILL.md` carries the frontmatter Cursor needs.
+
+## Complete CSS (paste into `<style>`)
+
+Copy everything inside the fence below verbatim:
+
+```css
+/* Gary's format — research memo layout with Notion export fonts */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth;font-size:16px;-webkit-print-color-adjust:exact}
+:root{
+  --bg:#fefefe;--bg2:#f9f9f7;--bg3:#f3f3f1;--bg4:#ececea;
+  --ink:#1a1a18;--ink2:#4a4a46;--ink3:#8a8a84;--ink4:#b8b8b0;
+  --rule:#d8d6d0;--rule2:#eceae4;
+  --sans:ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI Variable Display","Segoe UI",Helvetica,"Apple Color Emoji","Noto Sans Arabic","Noto Sans Hebrew",Arial,sans-serif,"Segoe UI Emoji","Segoe UI Symbol";
+  --mono:"SFMono-Regular",Menlo,Consolas,"PT Mono","Liberation Mono",Courier,monospace;
+  --page:760px;--side:200px
+}
+body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:1.0625rem;line-height:1.75;-webkit-font-smoothing:antialiased}
+body[data-lang="zh"]{font-family:ui-sans-serif,-apple-system,"PingFang TC","Noto Sans CJK TC","Microsoft JhengHei",Arial,sans-serif}
+body[data-lang="en"] .lang-zh,body[data-lang="zh"] .lang-en{display:none!important}
+.lang-switch{display:flex;gap:.35rem;margin-bottom:2rem}
+.lang-switch button{font-family:var(--mono);font-size:.625rem;letter-spacing:.08em;text-transform:uppercase;padding:.35rem .6rem;border:1px solid var(--rule);background:transparent;color:var(--ink3);cursor:pointer;border-radius:3px;transition:color .15s,border-color .15s,background .15s}
+.lang-switch button:hover{color:var(--ink);border-color:var(--ink2)}
+.lang-switch button.active{color:var(--ink);border-color:var(--ink);background:var(--bg2)}
+.page{display:grid;grid-template-columns:var(--side) var(--page);max-width:calc(var(--side) + var(--page) + 6rem);margin:0 auto;padding:0 3rem;align-items:start}
+.sidenav{position:sticky;top:4rem;padding-right:2.5rem;padding-top:6rem;font-family:var(--mono);font-size:.625rem;letter-spacing:.08em;text-transform:uppercase}
+.sidenav a{display:block;color:var(--ink3);text-decoration:none;padding:.3rem 0;border-left:1px solid transparent;padding-left:.75rem;transition:color .15s,border-color .15s;line-height:1.4}
+.sidenav a:hover{color:var(--ink);border-left-color:var(--rule)}
+.sidenav a.active{color:var(--ink);border-left-color:var(--ink)}
+.nav-group{margin-bottom:1.5rem}
+.nav-label{color:var(--ink3);font-size:.5625rem;letter-spacing:.12em;margin-bottom:.25rem;padding-left:.75rem}
+main{border-left:1px solid var(--rule);padding:0 0 8rem 4rem}
+.doc-header{padding:6rem 0 4rem;border-bottom:1px solid var(--rule);margin-bottom:4rem;scroll-margin-top:3rem}
+.doc-title{font-size:2.75rem;font-weight:600;line-height:1.1;letter-spacing:-.02em;margin-bottom:1rem;color:var(--ink)}
+.doc-subtitle{font-size:1.0625rem;color:var(--ink2);max-width:520px;line-height:1.6;margin-bottom:1.5rem}
+.doc-date{font-family:var(--mono);font-size:.8125rem;letter-spacing:.04em;color:var(--ink3)}
+.section{padding:3.5rem 0;border-bottom:1px solid var(--rule2);scroll-margin-top:3rem}
+.section:last-child{border-bottom:none}
+h2{font-size:1.5rem;font-weight:600;letter-spacing:-.01em;margin-bottom:1.75rem;line-height:1.2;color:var(--ink)}
+h2 .section-num{font-family:var(--mono);font-weight:500;color:var(--ink2);margin-right:.4em}
+h3{font-size:1.0625rem;font-weight:600;margin:2rem 0 .75rem;letter-spacing:-.005em;color:var(--ink)}
+h4{font-family:var(--mono);font-size:.75rem;font-weight:500;letter-spacing:.05em;color:var(--ink2);margin:1.5rem 0 .5rem;text-transform:uppercase}
+p{color:var(--ink2);margin-bottom:1rem;max-width:600px}
+p:last-child{margin-bottom:0}
+strong{font-weight:600;color:var(--ink)}
+.labeled{margin-bottom:1rem;max-width:600px;color:var(--ink2)}
+.labeled strong{color:var(--ink)}
+blockquote{margin:1.5rem 0;padding-left:1rem;border-left:3px solid var(--ink);color:var(--ink2);max-width:600px;font-size:1rem;line-height:1.7}
+.figure-block{margin:1.5rem 0;max-width:100%}
+.figure-block img{max-width:100%;height:auto}
+.figure-caption{font-family:var(--mono);font-size:.5625rem;letter-spacing:.08em;color:var(--ink3);margin-top:.5rem;text-transform:uppercase;max-width:600px}
+.def-entry{padding:1.5rem 0;border-bottom:1px solid var(--rule2)}
+.def-entry:last-child{border-bottom:none}
+.def-head{display:flex;align-items:baseline;gap:1rem;margin-bottom:.5rem;flex-wrap:wrap}
+.def-symbol{font-family:var(--mono);font-size:.8125rem;color:var(--ink);font-weight:500;background:var(--bg2);padding:.1rem .5rem;border-radius:3px;white-space:nowrap}
+.def-name{font-weight:500;color:var(--ink);font-size:1.0625rem}
+.def-type{font-family:var(--mono);font-size:.875rem;letter-spacing:.02em;text-transform:none;color:var(--ink2);margin-left:auto}
+.def-body{color:var(--ink2);font-size:.9375rem;max-width:560px;line-height:1.7}
+.def-formula{margin:.75rem 0 .25rem;padding:.75rem 1rem;background:var(--bg2);border-left:2px solid var(--rule);font-size:.9375rem;overflow-x:auto}
+.formula-grid{display:grid;gap:0}
+.formula-row{display:grid;grid-template-columns:1fr 2fr;gap:2rem;padding:1.25rem 0;border-bottom:1px solid var(--rule2);align-items:start}
+.formula-row:last-child{border-bottom:none}
+.formula-label{font-family:var(--mono);font-size:.625rem;letter-spacing:.1em;text-transform:uppercase;color:var(--ink3);padding-top:.2rem;line-height:1.5}
+.formula-label strong{display:block;color:var(--ink2);font-weight:600;text-transform:none;letter-spacing:0;font-family:var(--sans);font-size:.875rem;margin-bottom:.2rem}
+.formula-body{overflow-x:auto}
+.formula-body mjx-container[jax="CHTML"][display="true"]{margin:.75rem 0}
+.formula-note{font-family:var(--sans);font-size:.9375rem;font-style:normal;font-weight:400;color:var(--ink2);line-height:1.7;margin-top:.75rem;max-width:560px}
+.formula-note code{font-family:var(--mono);font-size:.8125rem}
+.tbl{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:.875rem;margin:1.5rem 0}
+.tbl thead tr{border-bottom:2px solid var(--ink)}
+.tbl th{text-align:left;padding:.55rem .85rem;font-weight:400;font-size:.75rem;letter-spacing:.08em;text-transform:uppercase;color:var(--ink3);padding-bottom:.65rem}
+.tbl td{padding:.65rem .85rem;border-bottom:1px solid var(--rule2);color:var(--ink2);vertical-align:middle;font-size:.875rem}
+.tbl tbody tr:last-child td{border-bottom:none}
+.val-hi{color:var(--ink);font-weight:500}
+.val-mid{color:var(--ink2)}
+.val-lo{color:var(--ink3)}
+.val-note{color:var(--ink3);font-family:var(--sans);font-size:.875rem}
+.matrix-wrap{overflow-x:auto;margin:1.5rem 0}
+.matrix{border-collapse:collapse;font-family:var(--mono);font-size:.875rem}
+.matrix th{padding:.55rem .95rem;font-size:.75rem;letter-spacing:.06em;text-transform:uppercase;color:var(--ink3);font-weight:400;text-align:center;border-bottom:1px solid var(--rule2)}
+.matrix td{padding:.6rem .95rem;text-align:center;border-bottom:1px solid var(--rule2);border-right:1px solid var(--rule2);font-size:.875rem;min-width:80px}
+.matrix td:first-child{text-align:left;color:var(--ink2);border-right:2px solid var(--rule);font-weight:500}
+.matrix tr:last-child td{border-bottom:none}
+.cell-hi{color:var(--ink);font-weight:500}
+.cell-mid{color:var(--ink2)}
+.cell-lo{color:var(--ink3)}
+.cell-na{color:var(--ink4);font-style:italic}
+.matrix-label{font-family:var(--mono);font-size:.8125rem;letter-spacing:.06em;text-transform:uppercase;color:var(--ink3);margin-bottom:.6rem;margin-top:1.5rem;line-height:1.5}
+.proof-chain{margin:1.5rem 0}
+.proof-step{display:grid;grid-template-columns:2.5rem 1fr;gap:0 1.25rem;margin-bottom:0}
+.proof-step-num{font-family:var(--mono);font-size:.625rem;color:var(--ink3);padding-top:.25rem;letter-spacing:.05em;text-align:right}
+.proof-step-body{padding:1rem 0 1rem 1rem;border-left:1px solid var(--rule);margin-bottom:0}
+.proof-step:last-child .proof-step-body{border-left-color:transparent}
+.proof-step-title{font-size:.9375rem;font-weight:600;color:var(--ink);margin-bottom:.25rem}
+.proof-step-evidence{font-family:var(--mono);font-size:.6875rem;color:var(--ink3);margin-top:.35rem}
+.issue-list{list-style:none;margin:1rem 0}
+.issue-item{display:grid;grid-template-columns:1.5rem 1fr;gap:0 .75rem;padding:.75rem 0;border-bottom:1px solid var(--rule2);align-items:start}
+.issue-item:last-child{border-bottom:none}
+.issue-icon{font-family:var(--mono);font-size:.625rem;color:var(--ink3);padding-top:.15rem}
+.issue-body{font-size:.9375rem;color:var(--ink2);line-height:1.6}
+.issue-body strong{color:var(--ink);font-weight:600}
+.issue-body code{font-family:var(--mono);font-size:.8125rem;background:var(--bg2);padding:.1em .35em;border-radius:2px;color:var(--ink)}
+.issue-status{font-family:var(--mono);font-size:.5rem;letter-spacing:.1em;text-transform:uppercase;padding:.2rem .5rem;border:1px solid var(--rule);color:var(--ink3);display:inline-block;margin-top:.4rem}
+.issue-status.resolved{border-color:var(--ink2);color:var(--ink2)}
+.issue-status.open{border-color:var(--ink4)}
+.issue-status.phase2{border-color:var(--ink3)}
+.q-list{list-style:none}
+.q-item{display:grid;grid-template-columns:2rem 1fr auto;gap:0 1rem;padding:1rem 0;border-bottom:1px solid var(--rule2);align-items:baseline}
+.q-item:last-child{border-bottom:none}
+.q-num{font-family:var(--mono);font-size:.5625rem;color:var(--ink3);padding-top:.2rem}
+.q-text{font-size:.9375rem;color:var(--ink2)}
+.q-text strong{color:var(--ink);font-weight:600}
+.q-status{font-family:var(--mono);font-size:.5rem;letter-spacing:.1em;text-transform:uppercase;padding:.2rem .5rem;border:1px solid var(--rule);color:var(--ink3);white-space:nowrap}
+.q-status.answered{border-color:var(--ink2);color:var(--ink2)}
+.q-status.partial{border-color:var(--ink3)}
+code{font-family:var(--mono);font-size:.8125rem;background:var(--bg2);padding:.1em .35em;border-radius:2px;color:var(--ink)}
+.rule{height:1px;background:var(--rule);margin:2rem 0}
+.caption{font-family:var(--mono);font-size:.8125rem;letter-spacing:.04em;color:var(--ink3);margin-top:.6rem;line-height:1.65;max-width:600px}
+.param-box{background:var(--bg2);padding:1rem 1.25rem;margin:1rem 0;font-family:var(--mono);font-size:.75rem;line-height:1.9;border-left:2px solid var(--rule)}
+.param-key{color:var(--ink2)}
+.param-val{color:var(--ink)}
+.param-note{color:var(--ink3)}
+@media(max-width:900px){
+  .page{grid-template-columns:1fr;padding:0 1.5rem}
+  .sidenav{display:none}
+  main{border-left:none;padding-left:0}
+  .formula-row{grid-template-columns:1fr;gap:.5rem}
+  .q-item{grid-template-columns:2rem 1fr}
+  .q-status{display:none}
+  .issue-item{grid-template-columns:1fr}
+  .issue-icon{display:none}
+}
+```
