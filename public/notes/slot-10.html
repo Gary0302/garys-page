@@ -1,13 +1,479 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-Hant">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Slot 10</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI 作為 SMR 深度防禦的數位層：台灣引進小型模組化反應爐的技術備忘錄</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
+  onload="renderMathInElement(document.body, {delimiters:[
+    {left:'$$',right:'$$',display:true},
+    {left:'$',right:'$',display:false}
+  ]})"></script>
+<style>
+*, *::before, *::after { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body {
+  font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+  font-size: 16px;
+  line-height: 1.75;
+  color: #37352f;
+  background: #ffffff;
+}
+article {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 80px 48px 120px;
+}
+/* ── Typography ── */
+h1 {
+  font-size: 2.2em;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+  margin: 0 0 12px;
+  color: #1a1a1a;
+}
+.subtitle {
+  font-size: 1.05em;
+  color: #6b6b6b;
+  margin-bottom: 8px;
+  font-weight: 400;
+}
+.meta {
+  font-size: 0.85em;
+  color: #9b9b9b;
+  margin-bottom: 48px;
+  padding-bottom: 24px;
+  border-bottom: 1px solid #e9e9e7;
+}
+h2 {
+  font-size: 1.4em;
+  font-weight: 600;
+  margin: 48px 0 16px;
+  color: #1a1a1a;
+  letter-spacing: -0.01em;
+}
+h3 {
+  font-size: 1.1em;
+  font-weight: 600;
+  margin: 28px 0 10px;
+  color: #37352f;
+}
+p { margin: 0 0 16px; }
+/* ── Callout ── */
+.callout {
+  display: flex;
+  gap: 12px;
+  background: #f7f6f3;
+  border-radius: 6px;
+  padding: 16px 18px;
+  margin: 20px 0;
+}
+.callout.blue { background: #eaf3fb; }
+.callout.yellow { background: #fdf8e1; }
+.callout.red { background: #fdecea; }
+.callout.green { background: #edfaf1; }
+.callout-icon { font-size: 1.2em; flex-shrink: 0; margin-top: 1px; }
+.callout-body { font-size: 0.95em; line-height: 1.65; }
+.callout-body strong { font-weight: 600; }
+/* ── Table ── */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 20px 0 28px;
+  font-size: 0.93em;
+}
+th {
+  background: #f7f6f3;
+  font-weight: 600;
+  text-align: left;
+  padding: 10px 14px;
+  border-bottom: 2px solid #e9e9e7;
+  color: #37352f;
+}
+td {
+  padding: 9px 14px;
+  border-bottom: 1px solid #e9e9e7;
+  vertical-align: top;
+}
+tr:last-child td { border-bottom: none; }
+tr:hover td { background: #fafaf9; }
+/* ── Code ── */
+code {
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+  font-size: 0.85em;
+  background: #f1f0ee;
+  padding: 2px 5px;
+  border-radius: 3px;
+  color: #e03e3e;
+}
+pre {
+  background: #1e1e1e;
+  border-radius: 6px;
+  padding: 20px 22px;
+  overflow-x: auto;
+  margin: 20px 0;
+}
+pre code {
+  background: none;
+  color: #d4d4d4;
+  font-size: 0.88em;
+  padding: 0;
+  border-radius: 0;
+}
+/* ── Divider ── */
+hr {
+  border: none;
+  border-top: 1px solid #e9e9e7;
+  margin: 40px 0;
+}
+/* ── Two-column layout ── */
+.two-col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin: 20px 0;
+}
+.col-box {
+  background: #f7f6f3;
+  border-radius: 6px;
+  padding: 16px 18px;
+  font-size: 0.93em;
+}
+.col-box h4 {
+  font-size: 0.9em;
+  font-weight: 600;
+  margin: 0 0 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #6b6b6b;
+}
+/* ── Result table highlight ── */
+.result-good { color: #0f7b55; font-weight: 600; }
+.result-neutral { color: #37352f; }
+/* ── Section number ── */
+.section-num {
+  display: inline-block;
+  background: #37352f;
+  color: #fff;
+  font-size: 0.72em;
+  font-weight: 600;
+  padding: 2px 7px;
+  border-radius: 3px;
+  margin-right: 8px;
+  vertical-align: middle;
+  letter-spacing: 0.03em;
+}
+/* ── Blockquote ── */
+blockquote {
+  border-left: 3px solid #37352f;
+  margin: 20px 0;
+  padding: 4px 0 4px 18px;
+  color: #6b6b6b;
+  font-style: italic;
+}
+ul, ol { margin: 0 0 16px; padding-left: 24px; }
+li { margin-bottom: 6px; }
+</style>
 </head>
 <body>
-  <!-- draft -->
-  <p>Draft slot 10 — replace this entire file on GitHub to publish.</p>
-  <script src="/notes/notes-nav.js" defer></script>
+<article>
+
+<!-- ── HEADER ── -->
+<h1>AI 作為 SMR 深度防禦的數位層</h1>
+<p class="subtitle">台灣引進小型模組化反應爐的 AI 監控技術備忘錄</p>
+<p class="meta">Fu-Chun Yang（楊富鈞）&ensp;·&ensp;UC Santa Cruz, Applied Mathematics&ensp;·&ensp;2026 年 6 月</p>
+
+<!-- ── ABSTRACT ── -->
+<div class="callout blue">
+  <span class="callout-icon">📋</span>
+  <div class="callout-body">
+    <strong>摘要</strong><br>
+    本備忘錄提出以 Physics-Informed Neural Network（PINN）為核心的 AI 監控架構，為台灣未來引進 SMR 提供一層額外的軟體安全保障。實驗結果顯示，此架構在一回路冷卻系統上達到零漏報（Recall = 100%）、90.5% 異常定位準確率，並可區分設備故障與感測器故障。核心主張：台灣作為 SMR 後進引進國，有機會在談判階段要求數位接口標準，直接從智慧化運營開始，跳過傳統核電廠數十年的數位化改造包袱。
+  </div>
+</div>
+
+<!-- ── SECTION 1 ── -->
+<h2><span class="section-num">§1</span>為什麼台灣引進 SMR 需要 AI 監控層</h2>
+
+<p>台灣的能源情境在全球 SMR 引進國中具有獨特性。AI 與半導體產業的快速擴張使電力需求持續攀升，同時社會對核安的高度敏感使任何事故的容忍空間極低。這兩個因素疊加，使得「比傳統核電廠更早、更精準的異常預警」不只是技術加分項，而是社會可接受度的必要條件。</p>
+
+<div class="two-col">
+  <div class="col-box">
+    <h4>傳統核電廠的安全設計邏輯</h4>
+    硬體冗餘 → 多重實體屏障 → 被動安全系統<br><br>
+    問題：異常往往在硬體保護系統啟動時才被發現，處置時間壓縮。
+  </div>
+  <div class="col-box">
+    <h4>AI 監控層加入後</h4>
+    軟體早期預警 → 操作員介入 → 硬體保護系統（備援）<br><br>
+    目標：在硬體保護系統啟動<em>之前</em>就發出警告，讓操作員有更長的處置窗口。
+  </div>
+</div>
+
+<p>這個概念在核安術語中稱為 <strong>Defense in Depth（深度防禦）的數位補強層</strong>。SMR 的本質安全設計（passive safety）已在硬體層提供強健保障，AI 監控層在此基礎上再加一層主動偵測，兩者互補而非替代。</p>
+
+<div class="callout yellow">
+  <span class="callout-icon">🇹🇼</span>
+  <div class="callout-body">
+    <strong>台灣的特殊優勢</strong>：作為 SMR 後進引進國，台灣在與 GE Hitachi、X-energy 等供應商談判時，可要求將「數位接口標準」及「AI 監控相容性」列為引進條件。這是傳統核電廠改造所無法做到的事。
+  </div>
+</div>
+
+<!-- ── SECTION 2 ── -->
+<h2><span class="section-num">§2</span>PINN 方法論：為什麼不用普通神經網路</h2>
+
+<h3>2.1 問題的本質</h3>
+
+<p>核電廠異常偵測面臨一個根本矛盾：訓練資料中異常案例極少（核電廠正常運轉時間佔 99% 以上），但對偵測的要求卻是零漏報。純資料驅動的神經網路在這個場景下有兩個致命缺陷：</p>
+
+<ul>
+  <li><strong>外推不可靠</strong>：在訓練資料範圍之外的操作條件下，預測結果可能偏離物理現實</li>
+  <li><strong>無法解釋</strong>：偵測到異常後，不知道是哪個子系統出問題</li>
+</ul>
+
+<h3>2.2 PINN 的核心想法</h3>
+
+<p>Physics-Informed Neural Network 將物理方程式直接嵌入訓練的 loss function：</p>
+
+$$\mathcal{L}_{\text{total}} = \mathcal{L}_{\text{data}} + \lambda \cdot \mathcal{L}_{\text{physics}}$$
+
+<p>其中物理 loss 強制模型滿足核心守恆方程式。以一回路能量守恆為例：</p>
+
+$$\mathcal{L}_{\text{physics}} = \left( Q - \dot{m} \cdot C_p \cdot (T_{\text{out}} - T_{\text{in}}) \right)^2$$
+
+<p>訓練時同時最小化資料誤差與物理方程殘差，使模型被強制學到物理上合理的解。</p>
+
+<h3>2.3 可學習物理參數的特殊價值</h3>
+
+<p>PINN 架構允許將物理常數（如比熱容 $C_p$、熱傳係數 $UA$、泵增益）設為可學習參數。這帶來一個在實際運營中極具價值的能力：</p>
+
+<blockquote>
+  反應爐在高溫高壓下的物理參數會隨運轉時間與工況偏移。PINN 可以在正常運轉中持續識別這些參數的實際值，不需要停爐重新標定。
+</blockquote>
+
+<!-- ── SECTION 3 ── -->
+<h2><span class="section-num">§3</span>概念驗證實驗：一回路冷卻系統</h2>
+
+<h3>3.1 系統建模範圍</h3>
+
+<p>本實驗以 SMR 一回路（Primary Loop）為對象，建模三條物理方程式：</p>
+
+<table>
+  <tr><th>方程式</th><th>數學形式</th><th>物理意義</th></tr>
+  <tr><td>能量守恆</td><td>$Q = \dot{m} C_p (T_{\text{out}} - T_{\text{in}})$</td><td>爐心功率與冷卻水溫升的關係</td></tr>
+  <tr><td>泵特性曲線</td><td>$\dot{m} = g \cdot N + \epsilon$</td><td>主泵轉速與流量的關係</td></tr>
+  <tr><td>蒸汽產生器熱傳</td><td>$Q_{\text{sg}} = UA \cdot \Delta T$</td><td>熱傳係數與熱傳量的關係</td></tr>
+</table>
+
+<p>三種模擬異常類型：主泵退化（流量下降）、蒸汽產生器結垢（$UA$ 下降）、$T_{\text{out}}$ 感測器漂移。</p>
+
+<h3>3.2 異常定位機制設計</h3>
+
+<p>本實驗的關鍵設計選擇：<strong>不用 argmax 硬分類，而是用物理殘差的組合模式定位異常來源</strong>。</p>
+
+<table>
+  <tr><th>故障類型</th><th>觸發的殘差</th><th>物理原因</th></tr>
+  <tr>
+    <td>主泵退化</td>
+    <td>僅泵特性殘差</td>
+    <td>真實流量與轉速預期值不符，但 $T_{\text{out}}$、$Q_{\text{sg}}$ 彼此仍自洽</td>
+  </tr>
+  <tr>
+    <td>蒸汽產生器結垢</td>
+    <td>僅熱傳殘差</td>
+    <td>$UA$ 實際下降，流量與溫度正常</td>
+  </tr>
+  <tr>
+    <td>感測器漂移</td>
+    <td>能量守恆 + 熱傳<br>同時違反</td>
+    <td>$T_{\text{out}}$ 同時出現在兩條方程式，雙殘差同步是任何單一設備故障都無法產生的特徵</td>
+  </tr>
+</table>
+
+<div class="callout green">
+  <span class="callout-icon">💡</span>
+  <div class="callout-body">
+    <strong>關鍵洞察</strong>：感測器故障的「雙殘差同步」特徵讓系統能區分「感測器壞了（換感測器）」vs「設備壞了（可能需要停爐）」。這兩種情況的處置成本差距巨大，操作員需要第一時間知道。
+  </div>
+</div>
+
+<!-- ── SECTION 4 ── -->
+<h2><span class="section-num">§4</span>實驗結果</h2>
+
+<h3>4.1 學到的物理參數</h3>
+
+<table>
+  <tr><th>參數</th><th>真值</th><th>PINN 學到的值</th><th>誤差</th></tr>
+  <tr>
+    <td>比熱容 $C_p$</td>
+    <td>4182 J/(kg·K)</td>
+    <td class="result-good">4184</td>
+    <td class="result-good">0.04%</td>
+  </tr>
+  <tr>
+    <td>熱傳係數 $UA$</td>
+    <td>2.50 × 10⁶ W/K</td>
+    <td class="result-good">2.41 × 10⁶</td>
+    <td>3.5%</td>
+  </tr>
+  <tr>
+    <td>泵增益</td>
+    <td>450</td>
+    <td class="result-good">441</td>
+    <td>2.0%</td>
+  </tr>
+</table>
+
+<h3>4.2 偵測效能：PINN vs 普通 NN</h3>
+
+<table>
+  <tr><th>指標</th><th>普通 NN</th><th>PINN</th><th>說明</th></tr>
+  <tr>
+    <td>偵測 F1</td>
+    <td>0.982</td>
+    <td class="result-good">0.974</td>
+    <td>略低，但 PINN 提供了普通 NN 完全沒有的能力</td>
+  </tr>
+  <tr>
+    <td>Recall（漏報率）</td>
+    <td>0.991</td>
+    <td class="result-good">1.000（零漏報）</td>
+    <td>核能領域最關鍵指標</td>
+  </tr>
+  <tr>
+    <td>誤報率</td>
+    <td>0.019</td>
+    <td class="result-good">0.014</td>
+    <td>降低 26%，減少 alarm fatigue</td>
+  </tr>
+  <tr>
+    <td>外推 RMSE</td>
+    <td>2.17°C</td>
+    <td class="result-good">1.72°C</td>
+    <td>未見過的功率區間，PINN 更穩定</td>
+  </tr>
+  <tr>
+    <td>異常定位能力</td>
+    <td>❌ 無</td>
+    <td class="result-good">✓ 90.5% 準確</td>
+    <td>PINN 的核心優勢</td>
+  </tr>
+</table>
+
+<h3>4.3 異常定位準確率</h3>
+
+<table>
+  <tr><th>異常類型</th><th>定位準確率</th><th>說明</th></tr>
+  <tr>
+    <td>蒸汽產生器結垢</td>
+    <td class="result-good">99.5%</td>
+    <td>$UA$ 下降只影響熱傳方程，信號極乾淨</td>
+  </tr>
+  <tr>
+    <td>主泵退化</td>
+    <td class="result-good">87.6%</td>
+    <td>偶爾與感測器漂移混淆（流量→$T_{\text{out}}$的間接影響）</td>
+  </tr>
+  <tr>
+    <td>感測器漂移</td>
+    <td class="result-good">84.3%</td>
+    <td>雙殘差特徵清晰，少數邊界案例難以區分</td>
+  </tr>
+  <tr>
+    <td><strong>整體</strong></td>
+    <td class="result-good"><strong>90.5%</strong></td>
+    <td>十次裡九次能正確指出是哪個子系統</td>
+  </tr>
+</table>
+
+<div class="callout red">
+  <span class="callout-icon">⚠️</span>
+  <div class="callout-body">
+    <strong>重要設計原則</strong>：對於落在已知三種故障模式之外的殘差組合，系統不硬猜，而是回報「建議人工複查」。在核能領域，一個誠實的「不確定」比一個自信的錯誤答案更有價值。
+  </div>
+</div>
+
+<!-- ── SECTION 5 ── -->
+<h2><span class="section-num">§5</span>對台灣引進 SMR 的具體意義</h2>
+
+<h3>5.1 引進談判時的技術槓桿</h3>
+
+<p>台灣在與國際 SMR 供應商談判時，可將以下技術要求列為引進條件：</p>
+
+<ul>
+  <li><strong>數位接口標準</strong>：要求感測器資料以標準化格式輸出，相容 AI 監控系統</li>
+  <li><strong>Digital Twin 相容設計</strong>：在反應爐設計階段就預留 AI 整合接口</li>
+  <li><strong>模擬器資料授權</strong>：要求供應商提供高保真模擬器（RELAP5 或 SAM 等）資料，用於訓練本地 AI 模型</li>
+</ul>
+
+<h3>5.2 操作人員培訓的新可能</h3>
+
+<p>台灣核能人才在非核政策期間斷層嚴重。數位孿生技術可讓操作員在虛擬環境中接受高保真訓練，在實體電廠建成之前就積累操作經驗。</p>
+
+<h3>5.3 社會接受度的技術背書</h3>
+
+<p>AI 監控系統提供持續、透明、可驗證的安全紀錄，有助於建立公眾信任。這對台灣的核能社會溝通議題尤其重要。</p>
+
+<!-- ── SECTION 6 ── -->
+<h2><span class="section-num">§6</span>下一步：需要清大合作的地方</h2>
+
+<p>本實驗使用合成資料驗證了方法論的可行性。要讓這個框架真正具備核工業說服力，需要以下資源：</p>
+
+<table>
+  <tr><th>需求</th><th>說明</th><th>清大可提供的資源</th></tr>
+  <tr>
+    <td>核工業標準模擬器資料</td>
+    <td>RELAP5 或 SAM 產生的高保真一回路模擬資料</td>
+    <td>原科院 SMR 研究小組的模擬設施</td>
+  </tr>
+  <tr>
+    <td>真實感測器資料</td>
+    <td>核二、核三或清大研究用反應爐的運轉資料</td>
+    <td>清大原子科學技術發展中心</td>
+  </tr>
+  <tr>
+    <td>核安法規框架</td>
+    <td>台灣 AI 監控系統進入核安審查的路徑評估</td>
+    <td>原科院核安專業</td>
+  </tr>
+</table>
+
+<div class="callout blue">
+  <span class="callout-icon">🤝</span>
+  <div class="callout-body">
+    <strong>合作提案</strong>：本備忘錄的方法論與實驗代碼已完整實作，可在取得模擬器資料後立即擴展到多輸出、多物理耦合的完整一回路模型。下一步建議以清大 SMR 模擬資料作為驗證平台，進行 Phase 3 的正式驗證實驗。
+  </div>
+</div>
+
+<hr>
+
+<!-- ── APPENDIX ── -->
+<h2><span class="section-num">附</span>技術實作摘要</h2>
+
+<h3>模型架構</h3>
+
+<pre><code>class SMR_PINN(nn.Module):
+    # 輸入：[Q, T_in, N, P]（功率、入口溫度、泵轉速、壓力）
+    # 輸出：[T_out, mdot, Q_sg]（出口溫度、流量、熱傳量）
+    # 可學習物理參數：Cp, UA, pump_gain
+    # 架構：4 → 64 → 64 → 32 → 3（Tanh 激活）</code></pre>
+
+<h3>關鍵實作經驗</h3>
+
+<ul>
+  <li><strong>參數尺度問題</strong>：所有可學習物理參數必須歸一化至 $O(1)$ 量級，否則 Adam 的固定步長使參數幾乎無法移動。本實驗在 <code>pump_gain</code> 參數上遭遇此問題並修正（主泵定位率從 68% 回升至 87.6%）。</li>
+  <li><strong>Collocation Points</strong>：Physics loss 必須在超出訓練資料分布的無標籤點上計算，才能讓物理約束真正延伸到外推區域。</li>
+  <li><strong>定位機制</strong>：殘差計算直接套用學到的物理參數於量測值，不再經過神經網路，確保定位邏輯的物理可解釋性。</li>
+</ul>
+
+<p class="meta" style="margin-top:48px; margin-bottom:0; border-top: 1px solid #e9e9e7; padding-top: 24px;">
+  完整實驗代碼：<code>phase1_data.py</code>、<code>phase1_experiment.py</code>、<code>phase2_data.py</code>、<code>phase2_experiment.py</code><br>
+  運算資源：NVIDIA H100 80GB &ensp;·&ensp; PyTorch 2.x
+</p>
+
+</article>
 </body>
 </html>
