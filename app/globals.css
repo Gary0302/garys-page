@@ -8,6 +8,14 @@
   .text-balance {
     text-wrap: balance;
   }
+  .bg-grid-fade {
+    background-image:
+      linear-gradient(to right, rgba(19, 127, 236, 0.06) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(19, 127, 236, 0.06) 1px, transparent 1px);
+    background-size: 3rem 3rem;
+    mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.9), transparent);
+    -webkit-mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.9), transparent);
+  }
 }
 
 @keyframes fade-in-up {
