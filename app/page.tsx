@@ -1,27 +1,66 @@
 'use client'
 
+import { useState } from "react"
 import Image from "next/image"
 import Link from "next/link"
-import { Linkedin, Github, Award, Code, GraduationCap, Languages, Mail } from "lucide-react"
-import { Button } from "@/components/ui/button"
+import {
+  Linkedin,
+  Github,
+  Award,
+  Code,
+  GraduationCap,
+  Languages,
+  Mail,
+  Menu,
+  X,
+  User,
+  FileText,
+  Trophy,
+  Lightbulb,
+  Activity,
+  FolderGit2,
+  ExternalLink,
+} from "lucide-react"
 import { GitHubCalendar } from "@/components/github-calendar"
 import { GitHubProjects } from "@/components/github-projects"
 import { LanguageToggle } from "@/components/language-toggle"
 import { ThemeToggle } from "@/components/theme-toggle"
 import { useLanguage } from "@/contexts/language-context"
 
+function SectionHeading({ icon: Icon, children }: { icon: React.ElementType; children: React.ReactNode }) {
+  return (
+    <h3 className="flex items-center gap-3 text-2xl font-bold text-gray-900 dark:text-white mb-6 border-b border-gray-200 dark:border-gray-700 pb-3">
+      <span className="flex items-center justify-center w-9 h-9 rounded-lg bg-primary/10 text-primary">
+        <Icon className="w-5 h-5" aria-hidden="true" />
+      </span>
+      {children}
+    </h3>
+  )
+}
+
 export default function Portfolio() {
   const { t } = useLanguage()
+  const [menuOpen, setMenuOpen] = useState(false)
+
+  const navItems = [
+    { href: "#about", label: t("section.about") },
+    { href: "#education", label: t("section.education") },
+    { href: "#publications", label: t("section.publications") },
+    { href: "#skills", label: t("section.skills") },
+    { href: "#competitions", label: t("section.competitions") },
+    { href: "#github-activity", label: t("section.activity") },
+    { href: "#projects", label: t("section.projects") },
+  ]
 
   return (
     <div className="bg-background-light dark:bg-background-dark font-display text-gray-800 dark:text-gray-200">
       <div className="flex flex-col min-h-screen overscroll-y-none">
-        <header className="sticky top-0 z-10 w-full bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-sm border-b border-gray-200 dark:border-gray-800">
+        <header className="sticky top-0 z-30 w-full bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-sm border-b border-gray-200 dark:border-gray-800">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex items-center justify-between h-16">
-              <div className="flex items-center gap-4">
+              <a href="#hero" className="flex items-center gap-3 cursor-pointer">
                 <div className="w-8 h-8 text-primary">
-                  <svg fill="none" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+                  <svg fill="none" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
                     <g clipPath="url(#clip0_6_319)">
                       <path d="M8.57829 8.57829C5.52816 11.6284 3.451 15.5145 2.60947 19.7452C1.76794 23.9758 2.19984 28.361 3.85056 32.3462C5.50128 36.3314 8.29667 39.7376 11.8832 42.134C15.4698 44.5305 19.6865 45.8096 24 45.8096C28.3135 45.8096 32.5302 44.5305 36.1168 42.134C39.7033 39.7375 42.4987 36.3314 44.1494 32.3462C45.8002 28.361 46.2321 23.9758 45.3905 19.7452C44.549 15.5145 42.4718 11.6284 39.4217 8.57829L24 24L8.57829 8.57829Z" fill="currentColor"></path>
                     </g>
@@ -32,147 +71,208 @@ export default function Portfolio() {
                     </defs>
                   </svg>
                 </div>
-                <h1 className="text-xl font-bold text-gray-900 dark:text-white">Portfolio</h1>
-              </div>
+                <h1 className="text-xl font-bold text-gray-900 dark:text-white">Gary Yang</h1>
+              </a>
               <div className="flex items-center gap-2">
                 <nav className="hidden lg:flex items-center space-x-4">
-                  <a className="text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-primary dark:hover:text-primary transition-colors" href="#about">About</a>
-                  <a className="text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-primary dark:hover:text-primary transition-colors" href="#education">Education</a>
-                  <a className="text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-primary dark:hover:text-primary transition-colors" href="#publications">Publications</a>
-                  <a className="text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-primary dark:hover:text-primary transition-colors" href="#languages">Languages</a>
-                  <a className="text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-primary dark:hover:text-primary transition-colors" href="#skills">Skills</a>
-                  <a className="text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-primary dark:hover:text-primary transition-colors" href="#competitions">Competitions</a>
-                  <a className="text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-primary dark:hover:text-primary transition-colors" href="#achievements">Achievements</a>
-                  <a className="text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-primary dark:hover:text-primary transition-colors" href="#inventions">Inventions</a>
-                  <a className="text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-primary dark:hover:text-primary transition-colors" href="#github-activity">Activity</a>
-                  <a className="text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-primary dark:hover:text-primary transition-colors" href="#projects">Projects</a>
-                  <Link className="text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-primary dark:hover:text-primary transition-colors" href="/notes">Notes</Link>
+                  {navItems.map((item) => (
+                    <a
+                      key={item.href}
+                      className="text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-primary dark:hover:text-primary transition-colors duration-200"
+                      href={item.href}
+                    >
+                      {item.label}
+                    </a>
+                  ))}
+                  <Link
+                    className="text-sm font-medium px-3 py-1.5 rounded-full bg-primary/10 text-primary hover:bg-primary/20 transition-colors duration-200"
+                    href="/notes"
+                  >
+                    {t("notes.title")}
+                  </Link>
                 </nav>
                 <LanguageToggle />
                 <ThemeToggle />
+                <button
+                  type="button"
+                  className="lg:hidden inline-flex items-center justify-center w-10 h-10 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors duration-200 cursor-pointer"
+                  aria-label={menuOpen ? "Close menu" : "Open menu"}
+                  aria-expanded={menuOpen}
+                  onClick={() => setMenuOpen((open) => !open)}
+                >
+                  {menuOpen ? <X className="w-5 h-5" aria-hidden="true" /> : <Menu className="w-5 h-5" aria-hidden="true" />}
+                </button>
               </div>
             </div>
+            {menuOpen && (
+              <nav className="lg:hidden pb-4 border-t border-gray-200 dark:border-gray-800 pt-3 grid grid-cols-2 gap-1">
+                {navItems.map((item) => (
+                  <a
+                    key={item.href}
+                    className="px-3 py-2 rounded-lg text-sm font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-primary transition-colors duration-200"
+                    href={item.href}
+                    onClick={() => setMenuOpen(false)}
+                  >
+                    {item.label}
+                  </a>
+                ))}
+                <Link
+                  className="px-3 py-2 rounded-lg text-sm font-medium text-primary hover:bg-primary/10 transition-colors duration-200"
+                  href="/notes"
+                  onClick={() => setMenuOpen(false)}
+                >
+                  {t("notes.title")}
+                </Link>
+              </nav>
+            )}
           </div>
         </header>
         <main className="flex-grow">
           <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
-            <section className="flex flex-col md:flex-row items-center gap-8 md:gap-12" id="hero">
-              <div className="w-40 h-40 rounded-full overflow-hidden flex-shrink-0 shadow-lg">
+            <section className="flex flex-col md:flex-row items-center gap-8 md:gap-12 scroll-mt-24 animate-fade-in-up" id="hero">
+              <div className="w-40 h-40 rounded-full overflow-hidden flex-shrink-0 shadow-lg ring-4 ring-primary/20">
                 <Image
                   alt={t("profile.name1")}
                   className="w-full h-full object-cover"
                   src="/IMG_5214.JPG"
                   width={160}
                   height={160}
+                  priority
                 />
               </div>
               <div className="text-center md:text-left">
-                <h2 className="text-4xl font-bold text-gray-900 dark:text-white">{t("profile.name1")}</h2>
-                <p className="mt-2 text-lg text-primary font-medium">{t("profile.title")}</p>
-                <div className="mt-4 flex gap-4 justify-center md:justify-start">
-                  <a href="https://github.com/Gary0302" target="_blank" rel="noopener noreferrer" className="text-gray-600 dark:text-gray-300 hover:text-primary dark:hover:text-primary transition-colors">
-                    <Github className="w-6 h-6" />
+                <h2 className="text-4xl sm:text-5xl font-bold text-gray-900 dark:text-white">
+                  {t("profile.name1")}{" "}
+                  <span className="block sm:inline text-2xl sm:text-3xl font-medium text-gray-500 dark:text-gray-400">{t("profile.name2")}</span>
+                </h2>
+                <p className="mt-3 text-sm sm:text-base text-primary font-semibold tracking-widest uppercase">{t("profile.title")}</p>
+                <div className="mt-5 flex gap-3 justify-center md:justify-start">
+                  <a
+                    href="https://github.com/Gary0302"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label="GitHub"
+                    title="GitHub"
+                    className="flex items-center justify-center w-11 h-11 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:text-primary hover:bg-primary/10 transition-colors duration-200"
+                  >
+                    <Github className="w-5 h-5" aria-hidden="true" />
                   </a>
-                  <a href="www.linkedin.com/in/gary-yang-fu-chun-yang" target="_blank" rel="noopener noreferrer" className="text-gray-600 dark:text-gray-300 hover:text-primary dark:hover:text-primary transition-colors">
-                    <Linkedin className="w-6 h-6" />
+                  <a
+                    href="https://www.linkedin.com/in/gary-yang-fu-chun-yang"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label="LinkedIn"
+                    title="LinkedIn"
+                    className="flex items-center justify-center w-11 h-11 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:text-primary hover:bg-primary/10 transition-colors duration-200"
+                  >
+                    <Linkedin className="w-5 h-5" aria-hidden="true" />
                   </a>
-                  <a href="mailto:garyyang2388@gmail.com" target="_blank" rel="noopener noreferrer" className="text-gray-600 dark:text-gray-300 hover:text-primary dark:hover:text-primary transition-colors">
-                    <Mail className="w-6 h-6" />
+                  <a
+                    href="mailto:yanggary2388@gmail.com"
+                    aria-label="Email (personal)"
+                    title="yanggary2388@gmail.com"
+                    className="flex items-center justify-center w-11 h-11 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:text-primary hover:bg-primary/10 transition-colors duration-200"
+                  >
+                    <Mail className="w-5 h-5" aria-hidden="true" />
                   </a>
-                  <a href="mailto:fyang55@ucsc.edu" target="_blank" rel="noopener noreferrer" className="text-gray-600 dark:text-gray-300 hover:text-primary dark:hover:text-primary transition-colors">
-                    <Mail className="w-6 h-6" />
+                  <a
+                    href="mailto:fyang55@ucsc.edu"
+                    aria-label="Email (UCSC)"
+                    title="fyang55@ucsc.edu"
+                    className="flex items-center justify-center w-11 h-11 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:text-primary hover:bg-primary/10 transition-colors duration-200"
+                  >
+                    <GraduationCap className="w-5 h-5" aria-hidden="true" />
                   </a>
                 </div>
-                
               </div>
             </section>
-            <div className="mt-16 space-y-12">
-              <section id="about">
-                <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-4 border-b border-gray-200 dark:border-gray-700 pb-2">About</h3>
-                <p className="text-gray-600 dark:text-gray-400 leading-relaxed">
+            <div className="mt-16 space-y-16">
+              <section id="about" className="scroll-mt-24">
+                <SectionHeading icon={User}>{t("section.about")}</SectionHeading>
+                <p className="text-gray-600 dark:text-gray-400 leading-relaxed max-w-prose">
                   {t("profile.bio")}
                 </p>
               </section>
-              <section id="education">
-                <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-4 border-b border-gray-200 dark:border-gray-700 pb-2">{t("section.education")}</h3>
-                <div>
-                  <h4 className="text-lg font-semibold text-gray-800 dark:text-gray-200">{t("education.ucsc")}</h4>
-                  <p className="text-md text-gray-600 dark:text-gray-400">{t("education.ucsc.details")}</p>
-                </div>
-                <div className="mt-4">
-                  <h4 className="text-lg font-semibold text-gray-800 dark:text-gray-200">{t("education.highschool")}</h4>
-                  <p className="text-md text-gray-600 dark:text-gray-400">{t("education.highschool.details")}</p>
-                </div>
+              <section id="education" className="scroll-mt-24">
+                <SectionHeading icon={GraduationCap}>{t("section.education")}</SectionHeading>
+                <ol className="relative border-l-2 border-primary/20 ml-2 space-y-8">
+                  <li className="pl-6 relative">
+                    <span className="absolute -left-[7px] top-2 w-3 h-3 rounded-full bg-primary" aria-hidden="true"></span>
+                    <h4 className="text-lg font-semibold text-gray-800 dark:text-gray-200">{t("education.ucsc")}</h4>
+                    <p className="text-md text-gray-600 dark:text-gray-400">{t("education.ucsc.details")}</p>
+                  </li>
+                  <li className="pl-6 relative">
+                    <span className="absolute -left-[7px] top-2 w-3 h-3 rounded-full bg-primary/40" aria-hidden="true"></span>
+                    <h4 className="text-lg font-semibold text-gray-800 dark:text-gray-200">{t("education.highschool")}</h4>
+                    <p className="text-md text-gray-600 dark:text-gray-400">{t("education.highschool.details")}</p>
+                  </li>
+                </ol>
               </section>
-              <section id="publications">
-                <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-4 border-b border-gray-200 dark:border-gray-700 pb-2">{t("section.publications")}</h3>
-                <div className="bg-gray-50 dark:bg-gray-800/50 p-6 rounded-lg border border-gray-200 dark:border-gray-700">
+              <section id="publications" className="scroll-mt-24">
+                <SectionHeading icon={FileText}>{t("section.publications")}</SectionHeading>
+                <div className="bg-gray-50 dark:bg-gray-800/50 p-6 rounded-lg border border-gray-200 dark:border-gray-700 hover:border-primary/40 transition-colors duration-200">
                   <div className="flex items-start gap-2 mb-2">
                     <span className="text-xs text-primary font-medium px-3 py-1 bg-primary/10 rounded-full">{t("publication.newinml.badge1")}</span>
                   </div>
                   <h4 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-2">{t("publication.newinml.title")}</h4>
                   <p className="text-md text-gray-600 dark:text-gray-400 mb-3">{t("publication.newinml.details")}</p>
                   <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">{t("publication.newinml.description")}</p>
-                  <a href="https://arxiv.org/abs/2511.03945" className="text-sm text-primary hover:underline">{t("publication.newinml.url")}</a>
+                  <a
+                    href="https://arxiv.org/abs/2511.03945"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1 text-sm text-primary hover:underline"
+                  >
+                    {t("publication.newinml.url")}
+                    <ExternalLink className="w-3.5 h-3.5" aria-hidden="true" />
+                  </a>
                 </div>
               </section>
-              <section id="languages">
-                <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-4 border-b border-gray-200 dark:border-gray-700 pb-2">{t("section.languages")}</h3>
+              <section id="languages" className="scroll-mt-24">
+                <SectionHeading icon={Languages}>{t("section.languages")}</SectionHeading>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  <div className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-800/50 rounded-lg">
-                    <div className="w-10 h-10 flex items-center justify-center bg-primary/10 rounded-full text-primary font-bold">中</div>
-                    <div className="flex-grow">
-                      <p className="text-sm font-medium text-gray-900 dark:text-white">{t("language.mandarin")}</p>
+                  {[
+                    { initial: "中", key: "language.mandarin" },
+                    { initial: "台", key: "language.taiwanese" },
+                    { initial: "EN", key: "language.english" },
+                    { initial: "日", key: "language.japanese" },
+                  ].map((lang) => (
+                    <div
+                      key={lang.key}
+                      className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-800/50 rounded-lg border border-transparent hover:border-primary/30 transition-colors duration-200"
+                    >
+                      <div className="w-10 h-10 flex items-center justify-center bg-primary/10 rounded-full text-primary font-bold flex-shrink-0">{lang.initial}</div>
+                      <p className="text-sm font-medium text-gray-900 dark:text-white">{t(lang.key)}</p>
                     </div>
-                  </div>
-                  <div className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-800/50 rounded-lg">
-                    <div className="w-10 h-10 flex items-center justify-center bg-primary/10 rounded-full text-primary font-bold">台</div>
-                    <div className="flex-grow">
-                      <p className="text-sm font-medium text-gray-900 dark:text-white">{t("language.taiwanese")}</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-800/50 rounded-lg">
-                    <div className="w-10 h-10 flex items-center justify-center bg-primary/10 rounded-full text-primary font-bold">EN</div>
-                    <div className="flex-grow">
-                      <p className="text-sm font-medium text-gray-900 dark:text-white">{t("language.english")}</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-800/50 rounded-lg">
-                    <div className="w-10 h-10 flex items-center justify-center bg-primary/10 rounded-full text-primary font-bold">日</div>
-                    <div className="flex-grow">
-                      <p className="text-sm font-medium text-gray-900 dark:text-white">{t("language.japanese")}</p>
-                    </div>
-                  </div>
+                  ))}
                 </div>
               </section>
-              <section id="skills">
-                <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-4 border-b border-gray-200 dark:border-gray-700 pb-2">{t("section.skills")}</h3>
+              <section id="skills" className="scroll-mt-24">
+                <SectionHeading icon={Code}>{t("section.skills")}</SectionHeading>
                 <div className="space-y-6">
                   <div>
                     <h4 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-3">{t("skills.programming")}</h4>
                     <div className="flex flex-wrap gap-2">
-                      <span className="px-3 py-1 text-sm font-medium bg-primary/10 text-primary rounded-full">{t("skills.python")}</span>
-                      <span className="px-3 py-1 text-sm font-medium bg-primary/10 text-primary rounded-full">{t("skills.javascript")}</span>
-                      <span className="px-3 py-1 text-sm font-medium bg-primary/10 text-primary rounded-full">{t("skills.sql")}</span>
-                      <span className="px-3 py-1 text-sm font-medium bg-primary/10 text-primary rounded-full">{t("skills.mongodb")}</span>
+                      {["skills.python", "skills.javascript", "skills.sql", "skills.mongodb"].map((key) => (
+                        <span key={key} className="px-3 py-1 text-sm font-medium bg-primary/10 text-primary rounded-full">{t(key)}</span>
+                      ))}
                     </div>
                   </div>
                   <div>
                     <h4 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-3">{t("skills.certifications")}</h4>
                     <div className="flex flex-wrap gap-2">
-                      <span className="px-3 py-1 text-sm font-medium bg-primary/10 text-primary rounded-full">{t("skills.comptia")}</span>
-                      <span className="px-3 py-1 text-sm font-medium bg-primary/10 text-primary rounded-full">{t("skills.apcs")}</span>
-                      <span className="px-3 py-1 text-sm font-medium bg-primary/10 text-primary rounded-full">{t("skills.ceh")}</span>
-                      <span className="px-3 py-1 text-sm font-medium bg-primary/10 text-primary rounded-full">{t("skills.tqc")}</span>
+                      {["skills.comptia", "skills.apcs", "skills.ceh", "skills.tqc"].map((key) => (
+                        <span key={key} className="px-3 py-1 text-sm font-medium bg-primary/10 text-primary rounded-full">{t(key)}</span>
+                      ))}
                     </div>
                   </div>
                 </div>
               </section>
-              <section id="competitions">
-                <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-4 border-b border-gray-200 dark:border-gray-700 pb-2">{t("section.competitions")}</h3>
+              <section id="competitions" className="scroll-mt-24">
+                <SectionHeading icon={Trophy}>{t("section.competitions")}</SectionHeading>
                 <div className="space-y-6">
-                  <div className="bg-gray-50 dark:bg-gray-800/50 p-6 rounded-lg">
-                    <div className="flex items-start justify-between mb-2">
+                  <div className="bg-gray-50 dark:bg-gray-800/50 p-6 rounded-lg border border-gray-200 dark:border-gray-700 hover:border-primary/40 transition-colors duration-200">
+                    <div className="flex flex-wrap items-start justify-between mb-2 gap-2">
                       <h4 className="text-lg font-semibold text-gray-800 dark:text-gray-200">{t("competition.cruzhacks.title")}</h4>
                       <span className="text-sm text-primary font-medium px-3 py-1 bg-primary/10 rounded-full">{t("competition.cruzhacks.badge1")}</span>
                     </div>
@@ -181,12 +281,12 @@ export default function Portfolio() {
                     <div className="flex flex-wrap gap-2 mb-3">
                       <span className="text-sm text-primary font-medium px-3 py-1 bg-primary/10 rounded-full">{t("competition.cruzhacks.badge2")}</span>
                     </div>
-                    <div className="flex gap-4">
-                      <a href="https://devpost.com/software/studybuddy-6u0g5x" className="text-sm text-primary hover:underline">{t("competition.cruzhacks.url")}</a>
-                      <a href="https://github.com/Gary0302/StudyBuddy" className="text-sm text-primary hover:underline">{t("competition.cruzhacks.github")}</a>
+                    <div className="flex flex-wrap gap-4">
+                      <a href="https://devpost.com/software/studybuddy-6u0g5x" target="_blank" rel="noopener noreferrer" className="text-sm text-primary hover:underline">{t("competition.cruzhacks.url")}</a>
+                      <a href="https://github.com/Gary0302/StudyBuddy" target="_blank" rel="noopener noreferrer" className="text-sm text-primary hover:underline">{t("competition.cruzhacks.github")}</a>
                     </div>
                   </div>
-                  <div className="bg-gray-50 dark:bg-gray-800/50 p-6 rounded-lg">
+                  <div className="bg-gray-50 dark:bg-gray-800/50 p-6 rounded-lg border border-gray-200 dark:border-gray-700 hover:border-primary/40 transition-colors duration-200">
                     <div className="flex flex-wrap items-start justify-between mb-2 gap-2">
                       <h4 className="text-lg font-semibold text-gray-800 dark:text-gray-200">{t("competition.science.title")}</h4>
                       <span className="text-sm text-primary font-medium px-3 py-1 bg-primary/10 rounded-full">{t("competition.science.badge1")}</span>
@@ -197,9 +297,9 @@ export default function Portfolio() {
                       <span className="text-sm text-primary font-medium px-3 py-1 bg-primary/10 rounded-full">{t("competition.science.badge2")}</span>
                       <span className="text-sm text-primary font-medium px-3 py-1 bg-primary/10 rounded-full">{t("competition.science.badge3")}</span>
                     </div>
-                    <a href="https://www.nknu.edu.tw/var/file/0/1000/img/513/mobile/index.html" className="text-sm text-primary hover:underline">{t("competition.science.url")}</a>
+                    <a href="https://www.nknu.edu.tw/var/file/0/1000/img/513/mobile/index.html" target="_blank" rel="noopener noreferrer" className="text-sm text-primary hover:underline">{t("competition.science.url")}</a>
                   </div>
-                  <div className="bg-gray-50 dark:bg-gray-800/50 p-6 rounded-lg">
+                  <div className="bg-gray-50 dark:bg-gray-800/50 p-6 rounded-lg border border-gray-200 dark:border-gray-700 hover:border-primary/40 transition-colors duration-200">
                     <div className="flex flex-wrap items-start justify-between mb-2 gap-2">
                       <h4 className="text-lg font-semibold text-gray-800 dark:text-gray-200">{t("competition.icdl.title")}</h4>
                       <span className="text-sm text-primary font-medium px-3 py-1 bg-primary/10 rounded-full">{t("competition.icdl.badge1")}</span>
@@ -212,81 +312,62 @@ export default function Portfolio() {
                   </div>
                 </div>
               </section>
-              <section id="achievements">
-                <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-4 border-b border-gray-200 dark:border-gray-700 pb-2">{t("section.achievements")}</h3>
-                <ul className="space-y-3 list-disc list-inside text-gray-600 dark:text-gray-400">
-                  <li>{t("achievement.music")}</li>
-                  <li>{t("achievement.leadership")}</li>
-                  <li>{t("achievement.folk")}</li>
-                  <li>{t("achievement.ai")}</li>
-                  <li>{t("achievement.cruzhacks")}</li>
-                  <li>{t("achievement.publication")}</li>
+              <section id="achievements" className="scroll-mt-24">
+                <SectionHeading icon={Award}>{t("section.achievements")}</SectionHeading>
+                <ul className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  {[
+                    "achievement.publication",
+                    "achievement.cruzhacks",
+                    "achievement.music",
+                    "achievement.leadership",
+                    "achievement.folk",
+                    "achievement.ai",
+                  ].map((key) => (
+                    <li key={key} className="flex items-start gap-3 p-3 bg-gray-50 dark:bg-gray-800/50 rounded-lg text-gray-600 dark:text-gray-400">
+                      <Award className="w-4 h-4 mt-1 text-primary flex-shrink-0" aria-hidden="true" />
+                      <span className="text-sm leading-relaxed">{t(key)}</span>
+                    </li>
+                  ))}
                 </ul>
               </section>
-              <section id="inventions">
-                <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-4 border-b border-gray-200 dark:border-gray-700 pb-2">{t("section.inventions")}</h3>
-                <ul className="space-y-3 list-disc list-inside text-gray-600 dark:text-gray-400">
-                  <li>{t("invention.fan")}</li>
-                  <li>{t("invention.mop")}</li>
-                  <li>{t("invention.insulin")}</li>
-                  <li>{t("invention.wifi")}</li>
+              <section id="inventions" className="scroll-mt-24">
+                <SectionHeading icon={Lightbulb}>{t("section.inventions")}</SectionHeading>
+                <ul className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  {["invention.fan", "invention.mop", "invention.insulin", "invention.wifi"].map((key) => (
+                    <li key={key} className="flex items-start gap-3 p-3 bg-gray-50 dark:bg-gray-800/50 rounded-lg text-gray-600 dark:text-gray-400">
+                      <Lightbulb className="w-4 h-4 mt-1 text-primary flex-shrink-0" aria-hidden="true" />
+                      <span className="text-sm leading-relaxed">{t(key)}</span>
+                    </li>
+                  ))}
                 </ul>
               </section>
-              <section id="github-activity">
-                <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-6 border-b border-gray-200 dark:border-gray-700 pb-2">{t("section.activity")}</h3>
+              <section id="github-activity" className="scroll-mt-24">
+                <SectionHeading icon={Activity}>{t("section.activity")}</SectionHeading>
                 <GitHubCalendar username="Gary0302" />
               </section>
-              <section id="projects">
-                <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-6 border-b border-gray-200 dark:border-gray-700 pb-2">{t("section.projects")}</h3>
+              <section id="projects" className="scroll-mt-24">
+                <SectionHeading icon={FolderGit2}>{t("section.projects")}</SectionHeading>
                 <div className="space-y-12">
                   <GitHubProjects username="Gary0302" limit={6} />
                 </div>
               </section>
-              {/* <section id="contact">
-                <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-4 border-b border-gray-200 dark:border-gray-700 pb-2">Contact</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="flex items-center gap-3 p-4 bg-gray-50 dark:bg-gray-800/50 rounded-lg">
-                    <svg className="w-5 h-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                    </svg>
-                    <div>
-                      <p className="text-xs text-gray-500 dark:text-gray-400">Personal</p>
-                      <a href="mailto:gary@garyyang.in" className="text-sm text-gray-900 dark:text-white hover:text-primary transition-colors">gary@garyyang.in</a>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-3 p-4 bg-gray-50 dark:bg-gray-800/50 rounded-lg">
-                    <svg className="w-5 h-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                    </svg>
-                    <div>
-                      <p className="text-xs text-gray-500 dark:text-gray-400">Gmail</p>
-                      <a href="mailto:yanggary2388@gmail.com" className="text-sm text-gray-900 dark:text-white hover:text-primary transition-colors">yanggary2388@gmail.com</a>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-3 p-4 bg-gray-50 dark:bg-gray-800/50 rounded-lg">
-                    <svg className="w-5 h-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                    </svg>
-                    <div>
-                      <p className="text-xs text-gray-500 dark:text-gray-400">UCSC</p>
-                      <a href="mailto:fyang55@ucsc.edu" className="text-sm text-gray-900 dark:text-white hover:text-primary transition-colors">fyang55@ucsc.edu</a>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-3 p-4 bg-gray-50 dark:bg-gray-800/50 rounded-lg">
-                    <Linkedin className="w-5 h-5 text-primary" />
-                    <div>
-                      <p className="text-xs text-gray-500 dark:text-gray-400">LinkedIn</p>
-                      <a href="www.linkedin.com/in/gary-yang-fu-chun-yang" target="_blank" rel="noopener noreferrer" className="text-sm text-gray-900 dark:text-white hover:text-primary transition-colors">fu-chun-yang</a>
-                    </div>
-                  </div>
-                </div>
-              </section> */}
             </div>
           </div>
         </main>
         <footer className="bg-background-light dark:bg-background-dark border-t border-gray-200 dark:border-gray-800">
-          <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8 text-center text-sm text-gray-500 dark:text-gray-400">
+          <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-3 text-sm text-gray-500 dark:text-gray-400">
             <p>{t("footer.copyright")}</p>
+            <div className="flex items-center gap-4">
+              <a href="https://github.com/Gary0302" target="_blank" rel="noopener noreferrer" aria-label="GitHub" className="hover:text-primary transition-colors duration-200">
+                <Github className="w-4 h-4" aria-hidden="true" />
+              </a>
+              <a href="https://www.linkedin.com/in/gary-yang-fu-chun-yang" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn" className="hover:text-primary transition-colors duration-200">
+                <Linkedin className="w-4 h-4" aria-hidden="true" />
+              </a>
+              <a href="mailto:yanggary2388@gmail.com" aria-label="Email" className="hover:text-primary transition-colors duration-200">
+                <Mail className="w-4 h-4" aria-hidden="true" />
+              </a>
+            </div>
           </div>
         </footer>
       </div>

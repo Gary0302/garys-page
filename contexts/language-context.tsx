@@ -21,8 +21,9 @@ const translations: Translations = {
     "profile.more": "More about Me",
 
     // Section titles
-    "section.education": "EDUCATION",
-    "section.languages": "LANGUAGES",
+    "section.about": "About",
+    "section.education": "Education",
+    "section.languages": "Languages",
     "section.skills": "Technical Skills",
     "section.competitions": "Competitions",
     "section.achievements": "Achievements",
@@ -142,6 +143,7 @@ const translations: Translations = {
     "profile.more": "了解更多",
 
     // Section titles
+    "section.about": "關於我",
     "section.education": "教育背景",
     "section.languages": "語言能力",
     "section.skills": "程式技能",

@@ -8,9 +8,17 @@ import { ThemeProvider } from "@/components/theme-provider"
 const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://garyyang.in"),
   title: "Gary Yang | Portfolio",
-  description: "Applied Mathematics & Data Science Portfolio",
-    generator: 'v0.dev'
+  description:
+    "Gary Yang (Fu-Chun Yang) — Applied Mathematics student at UC Santa Cruz. Data science, AI research, and full-stack development. Published at ICML 2025 Workshop.",
+  openGraph: {
+    title: "Gary Yang | Portfolio",
+    description:
+      "Applied Mathematics @ UC Santa Cruz — data science, AI research, and full-stack development.",
+    type: "website",
+    images: ["/IMG_5214.JPG"],
+  },
 }
 
 export default function RootLayout({
