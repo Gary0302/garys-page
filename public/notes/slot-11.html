@@ -1,13 +1,563 @@
-<!DOCTYPE html>
-<html lang="en">
+<!doctype html>
+<html lang="zh-Hant">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Slot 11</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LIF M! Ordering Space — Research Checkpoint</title>
+<script>
+window.MathJax = {
+  tex: { inlineMath: [['\\(','\\)']], displayMath: [['\\[','\\]']] },
+  options: { skipHtmlTags: ['script','noscript','style','textarea','pre','code'] }
+};
+</script>
+<script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+<style>
+:root {
+  --bg: #fefefe; --text: #2f3437; --muted: #787774; --faint: #9b9a97;
+  --line: #e9e9e7; --soft: #f7f6f3; --soft2: #fbfbfa;
+  --blue: #337ea9; --green: #448361; --red: #d44c47; --amber: #d9730d; --purple: #9065b0;
+  --sidebar: 200px; --main: 760px;
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body { margin: 0; background: var(--bg); color: var(--text);
+  font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+  font-size: 16px; line-height: 1.62; }
+body[data-lang="en"] .lang-zh { display: none !important; }
+body[data-lang="zh"] .lang-en { display: none !important; }
+a { color: inherit; text-decoration: none; }
+.page { width: calc(var(--sidebar) + var(--main) + 44px); max-width: calc(100vw - 32px); margin: 0 auto;
+  display: grid; grid-template-columns: var(--sidebar) minmax(0, var(--main)); gap: 44px; align-items: start; }
+.sidebar { position: sticky; top: 0; height: 100vh; overflow-y: auto; padding: 28px 0 36px; border-right: 1px solid var(--line); }
+.lang-switch { display: inline-flex; gap: 4px; padding: 3px; margin: 0 18px 24px 0; background: var(--soft); border: 1px solid var(--line); border-radius: 7px; }
+.lang-switch button { border: 0; background: transparent; color: var(--muted); padding: 5px 8px;
+  font: 600 12px/1.2 SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace; border-radius: 5px; cursor: pointer; }
+.lang-switch button.active { color: var(--text); background: #fff; box-shadow: 0 1px 2px rgba(0,0,0,.08); }
+.nav-group { margin: 0 14px 20px 0; }
+.nav-label { margin: 0 0 7px 8px; color: var(--faint); font: 600 12px/1.4 SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace; text-transform: uppercase; letter-spacing: .04em; }
+.nav-link { display: block; padding: 6px 8px; margin: 1px 0; color: var(--muted); font-size: 13px; border-radius: 5px; border-right: 3px solid transparent; }
+.nav-link:hover { background: var(--soft); color: var(--text); }
+.nav-link.active { background: var(--soft); color: var(--text); font-weight: 600; border-right-color: var(--text); }
+.main { width: 760px; max-width: 100%; padding: 52px 0 120px; }
+.title-block { padding-bottom: 34px; margin-bottom: 34px; border-bottom: 1px solid var(--line); }
+h1 { font-size: 2.12rem; line-height: 1.18; letter-spacing: -0.035em; margin: 0 0 10px; font-weight: 720; }
+.subtitle { font-size: 1.03rem; color: var(--muted); max-width: 680px; margin: 0 0 12px; }
+.date-line { color: var(--faint); font: 500 12.5px/1.4 SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace; }
+section { scroll-margin-top: 28px; margin: 0 0 52px; }
+h2 { font-size: 1.42rem; line-height: 1.3; letter-spacing: -0.018em; margin: 0 0 19px; font-weight: 700; padding-bottom: 8px; border-bottom: 1px solid var(--line); }
+h2 .section-num { color: var(--muted); font-weight: 650; margin-right: 8px; }
+h3 { font-size: 1.06rem; line-height: 1.4; margin: 28px 0 10px; font-weight: 680; }
+p { margin: 8px 0 13px; } strong { font-weight: 680; }
+code, .mono { font-family: SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace; font-size: .88em; background: var(--soft); border-radius: 4px; padding: .12em .32em; }
+.callout { margin: 18px 0; padding: 14px 16px; border-left: 3px solid #c7c6c3; background: var(--soft2); border-radius: 3px; }
+.callout.good { border-left-color: var(--green); } .callout.warn { border-left-color: var(--amber); } .callout.core { border-left-color: var(--blue); } .callout.bad { border-left-color: var(--red); }
+.tag { display: inline-block; padding: 2px 7px; margin: 0 4px 3px 0; border-radius: 999px; border: 1px solid var(--line); background: var(--soft);
+  font: 600 12px/1.45 SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace; }
+.tag.ok { color: var(--green); } .tag.open { color: var(--amber); } .tag.no { color: var(--red); } .tag.phase { color: var(--purple); }
+.def-entry { display: grid; grid-template-columns: 150px 1fr; gap: 14px; padding: 10px 0; border-bottom: 1px solid var(--line); }
+.def-entry .term { font: 600 13px/1.5 SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace; }
+.formula-row { display: grid; grid-template-columns: 170px 1fr; gap: 16px; align-items: start; padding: 11px 0; border-bottom: 1px solid var(--line); }
+.formula-row .label { color: var(--muted); font: 600 12.5px/1.45 SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace; }
+.formula-row .formula { overflow-x: auto; }
+.tbl-wrap { overflow-x: auto; margin: 14px 0 20px; }
+.tbl { width: 100%; border-collapse: collapse; font-family: SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace; font-size: 12.5px; line-height: 1.45; }
+.tbl th, .tbl td { padding: 8px 9px; text-align: left; vertical-align: top; border-bottom: 1px solid var(--line); }
+.tbl th { color: var(--muted); background: var(--soft2); font-weight: 700; } .tbl td.num, .tbl th.num { text-align: right; white-space: nowrap; }
+.matrix { overflow-x: auto; padding: 12px 14px; margin: 12px 0 18px; border: 1px solid var(--line); background: var(--soft2); border-radius: 6px; font: 500 13px/1.65 SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace; }
+.proof-chain { margin: 16px 0; padding: 4px 0 4px 14px; border-left: 2px solid var(--line); }
+.proof-step { position: relative; margin: 0 0 13px; padding: 0 0 0 10px; }
+.proof-step::before { content: ""; position: absolute; left: -19px; top: .63em; width: 7px; height: 7px; border-radius: 50%; background: #c7c6c3; }
+.issue-list, .q-list { margin: 12px 0; padding: 0; list-style: none; }
+.issue-list li, .q-list li { padding: 10px 0; border-bottom: 1px solid var(--line); }
+.status { display: inline-block; min-width: 68px; margin-right: 8px; font: 700 11.5px/1.4 SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace; text-transform: uppercase; }
+.status.resolved, .status.answered { color: var(--green); } .status.open, .status.partial { color: var(--amber); } .status.phase2 { color: var(--purple); }
+.kpi-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 9px; margin: 15px 0 20px; }
+.kpi { border: 1px solid var(--line); border-radius: 7px; padding: 12px; background: var(--soft2); }
+.kpi .v { font: 700 19px/1.2 SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace; }
+.kpi .k { color: var(--muted); font-size: 12px; margin-top: 5px; }
+.flow { margin: 16px 0 20px; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+.flow-row { display: grid; grid-template-columns: 135px 1fr; border-bottom: 1px solid var(--line); }
+.flow-row:last-child { border-bottom: 0; }
+.flow-key { padding: 10px 12px; background: var(--soft2); color: var(--muted); font: 650 12px/1.45 SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace; }
+.flow-val { padding: 10px 13px; }
+.small { color: var(--muted); font-size: 13px; }
+hr { border: 0; border-top: 1px solid var(--line); margin: 28px 0; }
+@media (max-width: 1000px) {
+  .page { display: block; width: min(760px, calc(100vw - 28px)); max-width: none; }
+  .sidebar { position: relative; height: auto; border-right: 0; border-bottom: 1px solid var(--line); padding: 18px 0; margin-bottom: 8px; }
+  .nav-group { display: none; } .main { width: 100%; padding-top: 30px; }
+}
+@media (max-width: 620px) {
+  .def-entry, .formula-row, .flow-row { grid-template-columns: 1fr; gap: 3px; }
+  .kpi-grid { grid-template-columns: 1fr; } h1 { font-size: 1.76rem; }
+}
+</style>
 </head>
-<body>
-  <!-- draft -->
-  <p>Draft slot 11 — replace this entire file on GitHub to publish.</p>
-  <script src="/notes/notes-nav.js" defer></script>
-</body>
-</html>
+<body data-lang="zh">
+
+<div class="page">
+<aside class="sidebar">
+  <div class="lang-switch" aria-label="Language"><button type="button" data-set-lang="en">EN</button><button type="button" data-set-lang="zh">繁中</button></div>
+  <div class="nav-group"><div class="nav-label"><span class="lang-en">Document</span><span class="lang-zh">文件</span></div>
+    <a class="nav-link" href="#overview"><span class="lang-en">§1 Overview</span><span class="lang-zh">§1 全局總覽</span></a>
+    <a class="nav-link" href="#status"><span class="lang-en">§17 Status</span><span class="lang-zh">§17 目前狀態</span></a>
+    <a class="nav-link" href="#conclusion"><span class="lang-en">§18 Conclusion</span><span class="lang-zh">§18 小結論</span></a>
+  </div>
+  <div class="nav-group"><div class="nav-label"><span class="lang-en">Reference</span><span class="lang-zh">Reference</span></div>
+    <a class="nav-link" href="#symbols"><span class="lang-en">§2 Symbols</span><span class="lang-zh">§2 符號表</span></a>
+    <a class="nav-link" href="#data"><span class="lang-en">§3 Data</span><span class="lang-zh">§3 資料</span></a>
+    <a class="nav-link" href="#evidence"><span class="lang-en">§16 Evidence</span><span class="lang-zh">§16 核心證據</span></a>
+  </div>
+  <div class="nav-group"><div class="nav-label"><span class="lang-en">Architecture</span><span class="lang-zh">架構</span></div>
+    <a class="nav-link" href="#jepa"><span class="lang-en">§4 JEPA front end</span><span class="lang-zh">§4 JEPA 前端</span></a>
+    <a class="nav-link" href="#scores"><span class="lang-en">§5 Score geometry</span><span class="lang-zh">§5 Score 幾何</span></a>
+    <a class="nav-link" href="#lif"><span class="lang-en">§6 LIF timing</span><span class="lang-zh">§6 LIF timing</span></a>
+    <a class="nav-link" href="#ordering"><span class="lang-en">§7 Ordering state</span><span class="lang-zh">§7 Ordering state</span></a>
+    <a class="nav-link" href="#actuator"><span class="lang-en">§8 Actuator</span><span class="lang-zh">§8 Actuator</span></a>
+    <a class="nav-link" href="#functional"><span class="lang-en">§9 Functional field</span><span class="lang-zh">§9 Functional field</span></a>
+    <a class="nav-link" href="#endtoend"><span class="lang-en">§12 End-to-end loop</span><span class="lang-zh">§12 完整迴圈</span></a>
+  </div>
+  <div class="nav-group"><div class="nav-label"><span class="lang-en">Learning</span><span class="lang-zh">學習</span></div>
+    <a class="nav-link" href="#ranking"><span class="lang-en">§10 Ranking control</span><span class="lang-zh">§10 Ranking control</span></a>
+    <a class="nav-link" href="#residual"><span class="lang-en">§11 JEPA residual route</span><span class="lang-zh">§11 JEPA residual 路線</span></a>
+    <a class="nav-link" href="#training"><span class="lang-en">§13 Training data/losses</span><span class="lang-zh">§13 Training data / loss</span></a>
+    <a class="nav-link" href="#complexity"><span class="lang-en">§14 Complexity</span><span class="lang-zh">§14 複雜度</span></a>
+    <a class="nav-link" href="#bottleneck"><span class="lang-en">§15 Bottleneck</span><span class="lang-zh">§15 真正瓶頸</span></a>
+  </div>
+</aside>
+<main class="main">
+<header class="title-block">
+<h1><span class="lang-en">LIF \(M!\) Ordering Space — Research Checkpoint</span><span class="lang-zh">LIF \(M!\) Ordering Space — 目前研究 Checkpoint</span></h1>
+<p class="subtitle lang-en">A mathematical, system-level explanation of the current architecture: from JEPA input and continuous LIF geometry to factorial ordering states, functional prediction, adjacent updates, and the remaining addressing bottleneck.</p>
+<p class="subtitle lang-zh">從 JEPA 輸入、continuous LIF 幾何、\(M!\) ordering state、functional prediction、adjacent update，到目前真正 addressing bottleneck 的完整數學架構說明。</p>
+<div class="date-line">2026-08-26 21:39 · Asia/Taipei</div>
+</header>
+
+<section id="overview">
+<h2><span class="section-num">§1</span><span class="lang-en">Current system in one picture</span><span class="lang-zh">目前系統一張圖看完</span></h2>
+<p class="lang-en">The project is no longer one monolithic “SNN model.” It is best understood as four mathematically distinct modules: <strong>representation</strong>, <strong>functional evaluation</strong>, <strong>action selection</strong>, and <strong>temporal actuation</strong>. The main progress came from separating these modules so that one component cannot silently solve the job of another.</p>
+<p class="lang-zh">現在這個研究已經不是一個混在一起的「SNN model」。最乾淨的理解方式，是把它拆成四個數學上不同的模組：<strong>representation</strong>、<strong>functional evaluation</strong>、<strong>action selection</strong>、<strong>temporal actuation</strong>。真正的重要進展，就是把這四件事拆開，避免某個大模型偷偷把其他模組的工作全部做掉。</p>
+<div class="flow">
+<div class="flow-row"><div class="flow-key">1 · input</div><div class="flow-val">\(x_{\rm context},x_{\rm target}\rightarrow z,\ y\)</div></div>
+<div class="flow-row"><div class="flow-key">2 · geometry</div><div class="flow-val">\(z\rightarrow u\rightarrow s\rightarrow D_{ij}=s_i-s_j\rightarrow P_{ij}=\operatorname{sign}(D_{ij})\rightarrow\pi\)</div></div>
+<div class="flow-row"><div class="flow-key">3 · timing</div><div class="flow-val">\(s/I\rightarrow t_1^*,\ldots,t_M^*\rightarrow\pi=\operatorname{argsort}(t^*)\)</div></div>
+<div class="flow-row"><div class="flow-key">4 · prediction</div><div class="flow-val">\((x,\pi)\rightarrow\hat y(x,\pi)\rightarrow L(x,\pi)=\ell(y,\hat y)\)</div></div>
+<div class="flow-row"><div class="flow-key">5 · local field</div><div class="flow-val">\(U_k=L(x,\pi)-L(x,\operatorname{swap}_k\pi)\)</div></div>
+<div class="flow-row"><div class="flow-key">6 · decision</div><div class="flow-val">\(\hat a\approx \arg\max_{a\in\{0,\ldots,M-1\}}U_a\)</div></div>
+<div class="flow-row"><div class="flow-key">7 · update</div><div class="flow-val">\(\hat a\rightarrow\) mathematical current edit \(\rightarrow\) real LIF timing \(\rightarrow\pi_{r+1}\)</div></div>
+<div class="flow-row"><div class="flow-key">8 · repeat</div><div class="flow-val">\(\pi_r\rightarrow L_r\rightarrow U^{(r)}\rightarrow a_r\rightarrow\pi_{r+1}\rightarrow L_{r+1}\rightarrow\cdots\)</div></div>
+</div>
+<div class="callout core"><p class="lang-en"><strong>Current strongest separation:</strong> the factorial state substrate and the M6 LIF actuator are real and well controlled. The unresolved problem is the <em>functional address decoder</em>: how to infer which local edge is useful without an \(M!\)-sized key or a generic universal learner.</p><p class="lang-zh"><strong>目前最重要的分離：</strong>\(M!\) state substrate 與 M6 的 LIF actuator 已經是很扎實的部分。真正還沒解掉的是 <em>functional address decoder</em>：怎麼不用 \(M!\)-size key、也不用 generic 萬能模型，就知道「現在到底該走哪一條 local edge」。</p></div>
+<div class="kpi-grid">
+<div class="kpi"><div class="v">\(6!=720\)</div><div class="k"><span class="lang-en">M6 nominal ordering states</span><span class="lang-zh">M6 nominal ordering states</span></div></div>
+<div class="kpi"><div class="v">\(3600/3600\)</div><div class="k"><span class="lang-en">directed adjacent edges actuated</span><span class="lang-zh">directed adjacent edges 已控制</span></div></div>
+<div class="kpi"><div class="v">\(518400/518400\)</div><div class="k"><span class="lang-en">M6 ordered source→target paths after stabilization</span><span class="lang-zh">穩定化後 M6 source→target paths</span></div></div>
+</div>
+</section>
+
+<section id="symbols">
+<h2><span class="section-num">§2</span><span class="lang-en">Symbols and state spaces</span><span class="lang-zh">符號與 state space</span></h2>
+<div class="def-entry"><div class="term">\(M\)</div><div class="meaning"><span class="lang-en">Number of LIF neurons in one ordering group.</span><span class="lang-zh">一個 ordering group 裡的 LIF neuron 數量。</span></div></div>
+<div class="def-entry"><div class="term">\(x\)</div><div class="meaning"><span class="lang-en">Task sample / Moving-Shapes sequence.</span><span class="lang-zh">task sample／Moving-Shapes sequence。</span></div></div>
+<div class="def-entry"><div class="term">\(z\)</div><div class="meaning"><span class="lang-en">Frozen task/context latent used by the ordering/prediction pipeline.</span><span class="lang-zh">frozen task/context latent，供 ordering / prediction pipeline 使用。</span></div></div>
+<div class="def-entry"><div class="term">\(u\)</div><div class="meaning"><span class="lang-en">Low-dimensional coordinate feeding the mechanistic score map; primary geometric dimension is \(M-1\).</span><span class="lang-zh">進入 mechanistic score map 的低維座標；主要 intrinsic dimension 是 \(M-1\)。</span></div></div>
+<div class="def-entry"><div class="term">\(s_i\)</div><div class="meaning"><span class="lang-en">Continuous neuron score/current coordinate.</span><span class="lang-zh">continuous neuron score / current coordinate。</span></div></div>
+<div class="def-entry"><div class="term">\(D_{ij}\)</div><div class="meaning">\(D_{ij}=s_i-s_j\). <span class="lang-en">Continuous pair margin.</span><span class="lang-zh">continuous pair margin。</span></div></div>
+<div class="def-entry"><div class="term">\(P_{ij}\)</div><div class="meaning">\(P_{ij}=\operatorname{sign}(D_{ij})\). <span class="lang-en">Discrete pair ordering relation.</span><span class="lang-zh">離散 pair ordering relation。</span></div></div>
+<div class="def-entry"><div class="term">\(\pi\)</div><div class="meaning"><span class="lang-en">Permutation induced by first-spike order.</span><span class="lang-zh">由 first-spike order 形成的 permutation。</span></div></div>
+<div class="def-entry"><div class="term">\(t_i^*\)</div><div class="meaning"><span class="lang-en">First spike time of neuron \(i\).</span><span class="lang-zh">neuron \(i\) 的第一次 spike time。</span></div></div>
+<div class="def-entry"><div class="term">\(L(x,\pi)\)</div><div class="meaning"><span class="lang-en">Frozen task prediction loss under ordering \(\pi\).</span><span class="lang-zh">ordering \(\pi\) 下的 frozen task prediction loss。</span></div></div>
+<div class="def-entry"><div class="term">\(U_k\)</div><div class="meaning">\(U_k=L(x,\pi)-L(x,\operatorname{swap}_k\pi)\). <span class="lang-en">True local utility.</span><span class="lang-zh">真實 local utility。</span></div></div>
+<div class="def-entry"><div class="term">\(e\)</div><div class="meaning">\(e=y-\hat y\). <span class="lang-en">JEPA prediction residual.</span><span class="lang-zh">JEPA prediction residual。</span></div></div>
+<div class="def-entry"><div class="term">\(\Delta e_k\)</div><div class="meaning">\(e(\pi^{(k)})-e(\pi)\). <span class="lang-en">Residual-space effect of action \(k\).</span><span class="lang-zh">action \(k\) 在 residual space 裡的 effect。</span></div></div>
+</section>
+
+<section id="data">
+<h2><span class="section-num">§3</span><span class="lang-en">Training data and experimental units</span><span class="lang-zh">Training data 與實驗單位</span></h2>
+<p class="lang-en">The common formal task is the frozen Moving-Shapes JEPA line. The selected functional/navigation lineage uses 100,000 train, 10,000 validation, and 10,000 test samples, with formal seeds 0/1/2. M6 is the primary mechanism-discovery size.</p>
+<p class="lang-zh">目前共用的 formal task 是 frozen Moving-Shapes JEPA lineage。selected functional / navigation 線使用 train 100,000、validation 10,000、test 10,000，formal seeds 為 0/1/2；M6 是主要 mechanism-discovery 尺度。</p>
+<div class="tbl-wrap"><table class="tbl">
+<thead><tr><th><span class="lang-en">Data object</span><span class="lang-zh">資料物件</span></th><th><span class="lang-en">Meaning</span><span class="lang-zh">意義</span></th><th><span class="lang-en">Used for</span><span class="lang-zh">用途</span></th></tr></thead>
+<tbody>
+<tr><td><code>task sample x</code></td><td><span class="lang-en">Moving-Shapes context/target sample</span><span class="lang-zh">Moving-Shapes context / target sample</span></td><td>JEPA prediction</td></tr>
+<tr><td><code>(x, π)</code></td><td><span class="lang-en">same sample evaluated at a specified ordering state</span><span class="lang-zh">同一 sample 在指定 ordering state 下的 counterfactual</span></td><td>\(L(x,\pi)\)</td></tr>
+<tr><td><code>(x, π, k)</code></td><td><span class="lang-en">one adjacent candidate edge</span><span class="lang-zh">一條 adjacent candidate edge</span></td><td>\(U_k\), ranking labels</td></tr>
+<tr><td><code>(y,\hat y,e,\Delta e)</code></td><td><span class="lang-en">JEPA residual decomposition record</span><span class="lang-zh">JEPA residual decomposition record</span></td><td><span class="lang-en">residual/action-effect mechanism audit</span><span class="lang-zh">residual / action-effect mechanism audit</span></td></tr>
+</tbody></table></div>
+<p class="lang-en">One true evaluator call yields \(L(x,\pi)\). Utilities and pairwise ranking labels can then be derived algebraically from already-evaluated candidate losses; they are not new independent task observations. This distinction prevents factorial supervision from becoming a hidden key.</p>
+<p class="lang-zh">一次真正 evaluator call 才產生 \(L(x,\pi)\)。utilities、pairwise ranking labels 可以由已經算過的 candidate losses 代數推導，它們不是新的 independent task observations。這個 distinction 用來防止 factorial supervision 偷偷變成 hidden key。</p>
+</section>
+
+<section id="jepa">
+<h2><span class="section-num">§4</span><span class="lang-en">JEPA front end: prediction defines function</span><span class="lang-zh">JEPA 前端：prediction objective 定義「有用」</span></h2>
+<p class="lang-en">Permutation states are not intrinsically good or bad. JEPA supplies the task objective. Conceptually:</p>
+<p class="lang-zh">permutation states 本身沒有「好或壞」。真正讓它有 functional meaning 的是 JEPA prediction objective：</p>
+<div class="formula-row"><div class="label">context encode</div><div class="formula">\[z=E_{\rm ctx}(x_{\rm context})\]</div></div>
+<div class="formula-row"><div class="label">target encode</div><div class="formula">\[y=E_{\rm tgt}(x_{\rm target})\]</div></div>
+<div class="formula-row"><div class="label">prediction</div><div class="formula">\[\hat y(x,\pi)=F_{\rm pred}(z,\mathcal R(\pi))\]</div></div>
+<div class="formula-row"><div class="label">task loss</div><div class="formula">\[L(x,\pi)=\ell(y,\hat y(x,\pi))\]</div></div>
+<p class="lang-en">The exact frozen loss \(\ell\) is authoritative. If the implementation contains normalization, cosine geometry, or auxiliary terms, it must not be silently replaced by MSE.</p>
+<p class="lang-zh">真正的 frozen loss \(\ell\) 必須以 implementation 為準。如果實際包含 normalization、cosine geometry 或其他項目，就不能擅自當成 MSE。</p>
+<div class="callout good"><p class="lang-en"><strong>Established:</strong> ordering has predictive signal, and the frozen task induces a real counterfactual functional landscape over permutation states.</p><p class="lang-zh"><strong>已成立：</strong>ordering 有 predictive signal，而且 frozen task 確實在 permutation states 上形成真實 counterfactual functional landscape。</p></div>
+<div class="proof-chain">
+<div class="proof-step">\[L(x,\pi)\quad\text{is primary}\]</div>
+<div class="proof-step">\[U_k=L(x,\pi)-L(x,\pi^{(k)})\quad\text{is derived}\]</div>
+<div class="proof-step">\[a^*=\arg\max(0,U_1,\ldots,U_{M-1})\quad\text{is the local oracle}\]</div>
+</div>
+</section>
+
+<section id="scores">
+<h2><span class="section-num">§5</span><span class="lang-en">Continuous score geometry before spikes</span><span class="lang-zh">Spike 前的 continuous score geometry</span></h2>
+<p class="lang-en">Ordering is invariant to a common score shift, so the intrinsic score geometry has at most \(M-1\) degrees of freedom.</p>
+<p class="lang-zh">所有 score 一起加 common shift 不會改 ordering，所以 intrinsic score geometry 最多只有 \(M-1\) 個自由度。</p>
+<div class="formula-row"><div class="label">centering</div><div class="formula">\[
+P=I-\frac1M11^\top,\qquad \bar s=Ps,\qquad 1^\top\bar s=0.
+\]</div></div>
+<p class="lang-en">The mechanism-first line prefers a fixed/constrained map rather than a generic MLP:</p>
+<p class="lang-zh">mechanism-first 路線偏好 fixed / constrained map，而不是 generic MLP：</p>
+<div class="formula-row"><div class="label">orthogonal map</div><div class="formula">\[
+s=W_{\rm orth}u,\quad W_{\rm orth}\in\mathbb R^{M\times(M-1)},\quad
+W_{\rm orth}^\top W_{\rm orth}=I,\quad 1^\top W_{\rm orth}=0.
+\]</div></div>
+<p class="lang-en">For M6, \(u\in\mathbb R^5\) and \(W\in\mathbb R^{6\times5}\). Hyperplanes \(s_i=s_j\) divide the centered 5-D space into ordering chambers. All 720 M6 permutations are reachable at \(d=5\).</p>
+<p class="lang-zh">M6 時 \(u\in\mathbb R^5\)、\(W\in\mathbb R^{6\times5}\)。超平面 \(s_i=s_j\) 把 centered 5-D space 切成 ordering chambers；\(d=5\) 時全部 720 permutations 都可 reach。</p>
+<div class="formula-row"><div class="label">pair margins</div><div class="formula">\[D_{ij}=s_i-s_j\]</div></div>
+<div class="formula-row"><div class="label">pair signs</div><div class="formula">\[P_{ij}=\operatorname{sign}(D_{ij})\]</div></div>
+<p class="lang-en">M6 has \(\binom62=15\) pair margins, but they are redundant: \(D_{12}+D_{23}=D_{13}\). The intrinsic dimension remains five.</p>
+<p class="lang-zh">M6 雖然有 \(\binom62=15\) 個 pair margins，但它們是 redundant，例如 \(D_{12}+D_{23}=D_{13}\)。intrinsic dimension 仍然是 5。</p>
+</section>
+
+<section id="lif">
+<h2><span class="section-num">§6</span><span class="lang-en">LIF timing map</span><span class="lang-zh">LIF timing map</span></h2>
+<div class="formula-row"><div class="label">ODE</div><div class="formula">\[\tau\frac{dV}{dt}=-V+RI\]</div></div>
+<div class="formula-row"><div class="label">solution</div><div class="formula">\[V(t)=RI(1-e^{-t/\tau})\]</div></div>
+<div class="formula-row"><div class="label">first spike</div><div class="formula">\[
+t^*(I)=-\tau\ln\left(1-\frac{V_{\rm th}}{RI}\right),\qquad RI>V_{\rm th}.
+\]</div></div>
+<p class="lang-en">In the valid regime, \(t^*\) decreases monotonically with current:</p>
+<p class="lang-zh">在有效區間內，\(t^*\) 對 current 單調遞減：</p>
+<div class="formula-row"><div class="label">order</div><div class="formula">\[I_i>I_j\iff t_i^*<t_j^*\]</div></div>
+<p class="lang-en">Therefore shared monotone LIF physically realizes score ordering in time. Exact/event timing matters because coarse discrete timesteps collapse distinct crossings into ties.</p>
+<p class="lang-zh">所以 shared monotone LIF 的角色，是把 score ordering 物理化到時間軸。exact/event timing 很重要，因為粗 timestep 會把其實不同的 crossings 壓成 ties。</p>
+<div class="callout core"><p class="lang-en">The current clean role of LIF is temporal realization and local actuation. A specifically LIF-only functional advantage has not yet been established.</p><p class="lang-zh">目前 LIF 最乾淨的角色是 temporal realization + local actuation；「只有 LIF 才有的額外 functional advantage」尚未成立。</p></div>
+</section>
+
+<section id="ordering">
+<h2><span class="section-num">§7</span><span class="lang-en">Permutation state and factorial capacity</span><span class="lang-zh">Permutation state 與 factorial capacity</span></h2>
+<div class="formula-row"><div class="label">hard state</div><div class="formula">\[\pi=\operatorname{argsort}(t_1^*,\ldots,t_M^*)\]</div></div>
+<div class="formula-row"><div class="label">nominal states</div><div class="formula">\[C_{\rm nominal}=M!\]</div></div>
+<div class="formula-row"><div class="label">nominal bits</div><div class="formula">\[B_{\rm nominal}=\log_2(M!)\]</div></div>
+<div class="matrix">\[
+M=6:\qquad 6!=720,\qquad \log_2(720)\approx9.49\ {\rm bits}.
+\]</div>
+<p class="lang-en">Nominal capacity is not the same as reachable, used, effective, controllable, or functional capacity. Ordering cannot create information:</p>
+<p class="lang-zh">nominal capacity 不等於 reachable / used / effective / controllable / functional capacity。ordering 不能創造資訊：</p>
+<div class="formula-row"><div class="label">information bound</div><div class="formula">\[I(Y;\pi)\le I(Y;s)\]</div></div>
+<p class="lang-en">The possible value of \(M!\) is combinatorial organization, not free information.</p>
+<p class="lang-zh">\(M!\) 可能帶來的是 combinatorial organization，不是免費資訊。</p>
+</section>
+
+<section id="actuator">
+<h2><span class="section-num">§8</span><span class="lang-en">Mathematical adjacent-swap LIF actuator</span><span class="lang-zh">數學化 adjacent-swap LIF actuator</span></h2>
+<div class="formula-row"><div class="label">action</div><div class="formula">\[\pi^{(k)}=\operatorname{swap}_k(\pi)\]</div></div>
+<p class="lang-en">Let \(u=\pi_k\), \(v=\pi_{k+1}\) and currently \(I_u>I_v\). Take:</p>
+<p class="lang-zh">令 \(u=\pi_k\)、\(v=\pi_{k+1}\)，目前 \(I_u>I_v\)。取：</p>
+<div class="formula-row"><div class="label">midpoint</div><div class="formula">\[\mu=\frac{I_u+I_v}{2}\]</div></div>
+<div class="formula-row"><div class="label">current edit</div><div class="formula">\[I'_u=\mu-\epsilon,\qquad I'_v=\mu+\epsilon\]</div></div>
+<p class="lang-en">Choose \(\epsilon\) within neighbor and spike-feasibility margins. Then only the target pair reverses and shared monotone LIF gives:</p>
+<p class="lang-zh">只要 \(\epsilon\) 落在 neighbor / spike-feasibility margins 內，就只會翻轉 target pair：</p>
+<div class="formula-row"><div class="label">guarantee</div><div class="formula">\[\pi'=\operatorname{swap}_k(\pi)\]</div></div>
+<div class="formula-row"><div class="label">M6 edges</div><div class="formula">\[6!\times5=720\times5=3600\]</div></div>
+<p class="lang-en">The analytic actuator passed all 3600 directed edges. The minimal learned actuator selected five rank-conditioned scalar margins. After target-independent stabilization, the ordered source-target path audit passed:</p>
+<p class="lang-zh">analytic actuator 通過全部 3600 directed edges；minimal learned actuator 只需要 5 個 rank-conditioned scalar margins。加上 target-independent stabilization 後：</p>
+<div class="matrix">\[720\times720=518{,}400,\qquad 518{,}400/518{,}400.\]</div>
+<div class="callout good"><p class="lang-en"><strong>Interpretation:</strong> at M6, physical execution of a correct local move is no longer the main bottleneck.</p><p class="lang-zh"><strong>解讀：</strong>至少在 M6，「正確 local move 能不能被 LIF 真的執行」已經不是主要瓶頸。</p></div>
+</section>
+
+<section id="functional">
+<h2><span class="section-num">§9</span><span class="lang-en">Task-induced functional field</span><span class="lang-zh">Task 誘導出的 functional field</span></h2>
+<div class="formula-row"><div class="label">no-op</div><div class="formula">\[U_0=0\]</div></div>
+<div class="formula-row"><div class="label">edge utility</div><div class="formula">\[
+U_k(x,\pi)=L(x,\pi)-L(x,\operatorname{swap}_k\pi).
+\]</div></div>
+<div class="formula-row"><div class="label">local oracle</div><div class="formula">\[
+a^*(x,\pi)=\arg\max_{a\in\{0,\ldots,M-1\}}U_a.
+\]</div></div>
+<div class="formula-row"><div class="label">antisymmetry</div><div class="formula">\[
+U(A\to B)=L(A)-L(B)=-U(B\to A).
+\]</div></div>
+<div class="formula-row"><div class="label">cycle sum</div><div class="formula">\[
+\sum_{(A\to B)\in{\rm cycle}}U(A\to B)=0.
+\]</div></div>
+<p class="lang-en">This exact potential structure is why learned scalar potentials are attractive: \(\hat U(A\to B)=V(A)-V(B)\) guarantees antisymmetry and zero circulation.</p>
+<p class="lang-zh">這也是 scalar potential 很有吸引力的原因：若 \(\hat U(A\to B)=V(A)-V(B)\)，antisymmetry 與 zero circulation 自動成立。</p>
+<h3><span class="lang-en">Functional headroom remains strong</span><span class="lang-zh">functional headroom 並沒有隨 M 消失</span></h3>
+<div class="tbl-wrap"><table class="tbl">
+<thead><tr><th>M</th><th class="num">normalized oracle headroom</th><th class="num">beneficial-state rate</th></tr></thead>
+<tbody>
+<tr><td>6</td><td class="num">1.2328</td><td class="num">0.9130</td></tr>
+<tr><td>8</td><td class="num">1.2407</td><td class="num">0.9501</td></tr>
+<tr><td>10</td><td class="num">1.2378</td><td class="num">0.9773</td></tr>
+<tr><td>12</td><td class="num">1.3228</td><td class="num">0.9853</td></tr>
+</tbody></table></div>
+<p class="lang-en">At M12, about 98.5% of sampled states still have at least one beneficial adjacent move. The issue is not absence of useful actions.</p>
+<p class="lang-zh">M12 sampled states 裡約 98.5% 仍至少有一條 beneficial adjacent move，所以問題不是「沒有 useful action」。</p>
+</section>
+
+<section id="ranking">
+<h2><span class="section-num">§10</span><span class="lang-en">What one-step ranking has already shown</span><span class="lang-zh">One-step ranking 已經證明什麼</span></h2>
+<p class="lang-en">The M6 potential-ranked controller is useful as a control: compositional state information contains real one-step action signal.</p>
+<p class="lang-zh">M6 potential-ranked controller 現在最適合當 control：它證明 compositional state information 的確含有真實 one-step action signal。</p>
+<div class="formula-row"><div class="label">E1 input</div><div class="formula">\[
+q=[z,\bar s,D,P(\pi)],\qquad 5+6+15+15=41.
+\]</div></div>
+<p class="lang-en">The selected controller used 6,913 parameters with hidden width 64, without a 720-way head or factorial lookup.</p>
+<p class="lang-zh">selected controller 是 6,913 parameters、hidden width 64，沒有 720-way head 或 factorial lookup。</p>
+<div class="formula-row"><div class="label">potential</div><div class="formula">\[V_\phi(q)\in\mathbb R\]</div></div>
+<div class="formula-row"><div class="label">predicted edge</div><div class="formula">\[\hat U_k=V_\phi(q)-V_\phi(q^{(k)})\]</div></div>
+<div class="tbl-wrap"><table class="tbl">
+<thead><tr><th>metric</th><th class="num">value</th></tr></thead>
+<tbody>
+<tr><td>mean gain</td><td class="num">0.02219</td></tr>
+<tr><td>navigation efficiency \(\eta\)</td><td class="num">0.5703</td></tr>
+<tr><td>harmful rate</td><td class="num">0.1080</td></tr>
+<tr><td>beneficial precision</td><td class="num">0.8201</td></tr>
+<tr><td>listwise top-1</td><td class="num">0.6530</td></tr>
+<tr><td>NDCG</td><td class="num">0.9012</td></tr>
+</tbody></table></div>
+<p class="lang-en">The important result is one-step learnability, not final closed-loop success. Once the policy updates \(\pi\), it changes its own input distribution; a first-step success does not guarantee recursive safety.</p>
+<p class="lang-zh">真正重要的是 one-step learnability，不是把這個 controller 當 final closed-loop success。一旦 policy update \(\pi\)，它就改變自己的 input distribution；第一步有效不代表後面 recursive safety 也成立。</p>
+</section>
+
+<section id="residual">
+<h2><span class="section-num">§11</span><span class="lang-en">Current mechanistic direction: JEPA residual action-effect factorization</span><span class="lang-zh">目前機制方向：JEPA residual action-effect factorization</span></h2>
+<p class="lang-en">Instead of directly learning scalar \(U_k\), expose the current JEPA error and the vector effect of one action:</p>
+<p class="lang-zh">目前改成不要直接硬學 scalar \(U_k\)，而是把 JEPA 現在錯在哪裡、以及一個 action 對 error vector 做了什麼拆開：</p>
+<div class="formula-row"><div class="label">residual</div><div class="formula">\[e(x,\pi)=y(x)-\hat y(x,\pi)\]</div></div>
+<div class="formula-row"><div class="label">action effect</div><div class="formula">\[\Delta e_k=e(x,\pi^{(k)})-e(x,\pi)\]</div></div>
+<p class="lang-en">If the verified frozen loss is sum squared error:</p>
+<p class="lang-zh">如果 verified frozen loss 是 sum squared error：</p>
+<div class="formula-row"><div class="label">SSE</div><div class="formula">\[L=\|e\|_2^2\]</div></div>
+<div class="formula-row"><div class="label">exact utility</div><div class="formula">\[
+\boxed{U_k=-2e^\top\Delta e_k-\|\Delta e_k\|_2^2}
+\]</div></div>
+<p class="lang-en">For mean-MSE:</p><p class="lang-zh">若是 mean-MSE：</p>
+<div class="formula-row"><div class="label">mean-MSE</div><div class="formula">\[
+U_k=\frac{-2e^\top\Delta e_k-\|\Delta e_k\|^2}{d_e}.
+\]</div></div>
+<div class="formula-row"><div class="label">beneficial</div><div class="formula">\[
+U_k>0\iff e^\top\Delta e_k<-\frac12\|\Delta e_k\|^2.
+\]</div></div>
+<p class="lang-en">This explains why the same action can flip from helpful to harmful across contexts: \(\Delta e_k\) may be similar while the current residual \(e\) changes direction. Scalar globality therefore does not automatically imply a globally complex action mechanism.</p>
+<p class="lang-zh">這可以解釋為什麼同一 action 在不同 context 會從 helpful 翻成 harmful：\(\Delta e_k\) 可能很類似，但 current residual \(e\) 的方向不同。所以 scalar globality 不代表 action mechanism 必然也 global。</p>
+<div class="callout warn"><p class="lang-en"><strong>Evidence boundary:</strong> you stated that the 2.7 formal run and strict audit are complete, but its metrics/flags were not provided in this source set. This report therefore documents the 2.7 mathematics without inventing the formal scientific result.</p><p class="lang-zh"><strong>證據邊界：</strong>你已說 2.7 formal 與 strict audit 完成，但目前提供給我的內容沒有 2.7 實際 metrics / flags；所以這份報告會寫完整 2.7 數學架構，但不自行猜它的 formal scientific result。</p></div>
+</section>
+
+<section id="endtoend">
+<h2><span class="section-num">§12</span><span class="lang-en">Full mathematical loop: input → prediction → update → prediction → update</span><span class="lang-zh">完整數學迴圈：input → prediction → update → 再 prediction → 再 update</span></h2>
+<h3>Step 1 · <span class="lang-en">task sample</span><span class="lang-zh">task sample</span></h3>
+\[x=(x_{\rm context},x_{\rm target}).\]
+<h3>Step 2 · <span class="lang-en">task representations</span><span class="lang-zh">task representations</span></h3>
+\[z=E_{\rm ctx}(x_{\rm context}),\qquad y=E_{\rm tgt}(x_{\rm target}).\]
+<h3>Step 3 · <span class="lang-en">open ordering geometry</span><span class="lang-zh">打開 ordering geometry</span></h3>
+\[u=C(z),\qquad s=W_{\rm orth}u,\]
+\[W_{\rm orth}^\top W_{\rm orth}=I,\qquad 1^\top W_{\rm orth}=0.\]
+<p class="lang-en">The exact frozen \(C\) is implementation-defined; the mechanism rule is that this coordinate map cannot become an unconstrained factorial-memory network.</p>
+<p class="lang-zh">實際 frozen \(C\) 以 implementation 為準；mechanism rule 是這個 coordinate map 不能變成 unconstrained factorial-memory network。</p>
+<h3>Step 4 · <span class="lang-en">relational state</span><span class="lang-zh">relational state</span></h3>
+\[D_{ij}=s_i-s_j,\qquad P_{ij}=\operatorname{sign}(D_{ij}).\]
+<h3>Step 5 · <span class="lang-en">real LIF timing</span><span class="lang-zh">real LIF timing</span></h3>
+\[s/I\longrightarrow t_i^*=-\tau\ln\left(1-\frac{V_{\rm th}}{RI_i}\right),\]
+\[\pi_r=\operatorname{argsort}(t_1^*,\ldots,t_M^*).\]
+<h3>Step 6 · <span class="lang-en">prediction at current state</span><span class="lang-zh">目前 state 下 prediction</span></h3>
+\[\hat y_r=F_{\rm pred}(z,\mathcal R(\pi_r)),\qquad L_r=\ell(y,\hat y_r).\]
+<h3>Step 7 · <span class="lang-en">local candidate field</span><span class="lang-zh">local candidate field</span></h3>
+\[\pi_r^{(k)}=\operatorname{swap}_k(\pi_r),\qquad L_{r,k}=L(x,\pi_r^{(k)}),\]
+\[U_{r,k}=L_r-L_{r,k},\qquad k=1,\ldots,M-1.\]
+<h3>Step 8 · <span class="lang-en">decision</span><span class="lang-zh">decision</span></h3>
+\[a_r^*=\arg\max(0,U_{r,1},\ldots,U_{r,M-1}).\]
+<p class="lang-en">Autonomous operation replaces true \(U\) with a compact estimate \(\hat U\). This is the unresolved address decoder.</p>
+<p class="lang-zh">Autonomous operation 需要用 compact estimate \(\hat U\) 取代真實 \(U\)。這就是目前尚未解掉的 address decoder。</p>
+<h3>Step 9 · <span class="lang-en">physical update</span><span class="lang-zh">physical update</span></h3>
+<p class="lang-en">For \(a_r=k\), \(u=\pi_{r,k}\), \(v=\pi_{r,k+1}\):</p><p class="lang-zh">若 \(a_r=k\)，\(u=\pi_{r,k}\)、\(v=\pi_{r,k+1}\)：</p>
+\[\mu_r=\frac{I_u+I_v}{2},\qquad I'_u=\mu_r-\epsilon_k,\qquad I'_v=\mu_r+\epsilon_k.\]
+\[\pi_{r+1}=\operatorname{swap}_k(\pi_r)\]
+<p class="lang-en">after the target-independent stabilization and exact LIF timing.</p><p class="lang-zh">在 target-independent stabilization + exact LIF timing 後成立。</p>
+<h3>Step 10 · <span class="lang-en">predict again</span><span class="lang-zh">再 prediction 一次</span></h3>
+\[\hat y_{r+1}=F_{\rm pred}(z,\mathcal R(\pi_{r+1})),\qquad L_{r+1}=\ell(y,\hat y_{r+1}).\]
+\[\pi_{r+1}\rightarrow U_{r+1,k}\rightarrow a_{r+1}\rightarrow\pi_{r+2}\rightarrow L_{r+2}\rightarrow\cdots\]
+<div class="callout core"><p class="lang-en">This is the exact distinction between <strong>one-step actionability</strong> and <strong>closed-loop navigability</strong>: the policy changes the state it will see next.</p><p class="lang-zh">這就是 <strong>one-step actionability</strong> 跟 <strong>closed-loop navigability</strong> 的精確差別：policy 會改變它下一步自己要看到的 state。</p></div>
+</section>
+
+<section id="training">
+<h2><span class="section-num">§13</span><span class="lang-en">What is trained, and with what loss?</span><span class="lang-zh">到底哪些東西有 training？training data / loss 是什麼？</span></h2>
+<h3>A · JEPA / predictor training</h3>
+<p class="lang-en">The predictor is trained on Moving-Shapes context/target prediction and then frozen for counterfactual landscape studies.</p>
+<p class="lang-zh">predictor 先在 Moving-Shapes context/target prediction 上 training，之後 functional landscape 系列都 freeze。</p>
+\[\mathcal L_{\rm JEPA}=E_x[\ell(y(x),\hat y(x))].\]
+<p class="lang-en">Formal selected split: 100k train / 10k validation / 10k test. The exact \(\ell\) must follow source implementation.</p>
+<p class="lang-zh">selected formal split：100k train / 10k validation / 10k test。實際 \(\ell\) 必須跟 source implementation 一致。</p>
+
+<h3>B · Counterfactual functional labels</h3>
+\[L_0=L(x,\pi),\qquad L_k=L(x,\operatorname{swap}_k\pi),\]
+\[U_k=L_0-L_k.\]
+<p class="lang-en">There is no supervised permutation class. Ranking labels are derived from candidate losses:</p>
+<p class="lang-zh">沒有 supervised permutation class。ranking labels 是由 candidate losses 導出：</p>
+\[y_{ab}=\operatorname{sign}(L_b-L_a).\]
+
+<h3>C · Potential ranking losses</h3>
+<p class="lang-en">A representative pairwise objective is:</p><p class="lang-zh">代表性的 pairwise objective：</p>
+\[\mathcal L_{\rm pair}=\sum_{a<b}\operatorname{softplus}\{-y_{ab}(\hat U_a-\hat U_b)\}.\]
+<p class="lang-en">Listwise versions rank all actions jointly; harm/regret-aware variants put extra cost on selecting truly harmful candidates. Validation, not test, selects temperature/weights.</p>
+<p class="lang-zh">listwise 版本一次 rank 全部 actions；harm/regret-aware 會對真正 harmful candidate 額外加權。temperature / weights 用 validation 選，不用 test。</p>
+
+<h3>D · LIF actuator learning</h3>
+<p class="lang-en">The actuator never learns task utility. It receives a desired adjacent edge and uses only structural swap supervision. M6's selected learned actuator has five rank-conditioned scalar margins:</p>
+<p class="lang-zh">actuator 完全不學 task utility；它收到 desired adjacent edge，只做 structural swap supervision。M6 selected learned actuator 只有五個 rank-conditioned scalar margins：</p>
+\[\epsilon=\epsilon_k,\qquad k=1,\ldots,5.\]
+
+<h3>E · JEPA residual-effect training target</h3>
+<p class="lang-en">If the residual route requires a learned effect model, its primary target is the vector \(\Delta e_k\), not scalar utility:</p>
+<p class="lang-zh">如果 JEPA residual 路線需要 learned effect model，primary target 是 vector \(\Delta e_k\)，不是 scalar utility：</p>
+\[\mathcal L_{\Delta e}=E\|\widehat{\Delta e}_k-\Delta e_k\|_2^2.\]
+<p class="lang-en">Utility is then reconstructed by the verified loss geometry:</p><p class="lang-zh">utility 再由 verified loss geometry 重建：</p>
+\[\hat U_k=F_\ell(e,\widehat{\Delta e}_k).\]
+</section>
+
+<section id="complexity">
+<h2><span class="section-num">§14</span><span class="lang-en">Complexity and the anti-universal-key rule</span><span class="lang-zh">複雜度與 anti-universal-key rule</span></h2>
+<div class="tbl-wrap"><table class="tbl">
+<thead><tr><th><span class="lang-en">Operation</span><span class="lang-zh">操作</span></th><th>complexity</th><th><span class="lang-en">Meaning</span><span class="lang-zh">意義</span></th></tr></thead>
+<tbody>
+<tr><td>score state</td><td>\(O(M)\)</td><td>M continuous values</td></tr>
+<tr><td>pair differences</td><td>\(O(M^2)\)</td><td>\(\binom M2\) relational margins</td></tr>
+<tr><td>hard decode</td><td>\(O(M\log M)\)</td><td><span class="lang-en">sort spike times</span><span class="lang-zh">排序 spike times</span></td></tr>
+<tr><td>candidate actions</td><td>\(M-1\)</td><td>adjacent swaps</td></tr>
+<tr><td>one analytic swap</td><td>\(O(1)\) local edit</td><td><span class="lang-en">target pair current edit</span><span class="lang-zh">target pair current edit</span></td></tr>
+<tr><td>nominal states</td><td>\(M!\)</td><td><span class="lang-en">implicit chambers, not output neurons</span><span class="lang-zh">implicit chambers，不是 output neurons</span></td></tr>
+</tbody></table></div>
+<ul class="issue-list">
+<li><span class="status resolved">forbid</span>\(O(M!)\) permutation embeddings / logits / lookup tables</li>
+<li><span class="status resolved">forbid</span><span class="lang-en">M>6 factorial training enumeration</span><span class="lang-zh">M>6 factorial training enumeration</span></li>
+<li><span class="status resolved">forbid</span><span class="lang-en">large generic controller as the real mechanism</span><span class="lang-zh">large generic controller 成為真正 mechanism</span></li>
+<li><span class="status open">watch</span><span class="lang-en">dense polynomial/global structures that are polynomial but scientifically non-compact</span><span class="lang-zh">dense polynomial / global structures，雖然 polynomial 但可能科學上仍不 compact</span></li>
+</ul>
+</section>
+
+<section id="bottleneck">
+<h2><span class="section-num">§15</span><span class="lang-en">The remaining bottleneck, mathematically</span><span class="lang-zh">現在真正瓶頸，用數學講清楚</span></h2>
+<ul class="q-list">
+<li><span class="status answered">answered</span><strong><span class="lang-en">Can the state exist?</span><span class="lang-zh">state 能不能存在？</span></strong><br>\(M=6,d=5\Rightarrow720/720\).</li>
+<li><span class="status answered">answered</span><strong><span class="lang-en">Can LIF execute a requested local move?</span><span class="lang-zh">LIF 能不能執行指定 local move？</span></strong><br>\(3600/3600\) adjacent edges; stabilized \(518400/518400\) paths.</li>
+<li><span class="status open">open</span><strong><span class="lang-en">Can a compact mechanism know which move is functionally correct?</span><span class="lang-zh">小型 mechanism 能不能知道哪一條 move 對 task 是對的？</span></strong></li>
+</ul>
+<h3><span class="lang-en">Local action does not imply local decision</span><span class="lang-zh">Local action 不代表 local decision</span></h3>
+<div class="tbl-wrap"><table class="tbl">
+<thead><tr><th>M</th><th class="num">pair relations \(N\)</th><th class="num">q90 dependency</th><th class="num">q90/N</th></tr></thead>
+<tbody>
+<tr><td>6</td><td class="num">15</td><td class="num">6*</td><td class="num">0.40</td></tr>
+<tr><td>8</td><td class="num">28</td><td class="num">15</td><td class="num">0.54</td></tr>
+<tr><td>10</td><td class="num">45</td><td class="num">28</td><td class="num">0.62</td></tr>
+<tr><td>12</td><td class="num">66</td><td class="num">45</td><td class="num">0.68</td></tr>
+</tbody></table></div>
+<p class="small lang-en">* M6 q90 used a conservative repair; M8–M12 are the stronger evidence for the globalizing trend.</p>
+<p class="small lang-zh">* M6 q90 經過保守 repair；globalizing trend 主要以 M8–M12 為較強證據。</p>
+<p class="lang-en">The unresolved source question is whether this globality is intrinsic to the task, introduced by ordering, or produced by collapsing a vector prediction error into scalar utility. A direct coordinate-linear instrument had held-out \(R^2\approx0\) and sign accuracy near 0.5, so it did not answer that question.</p>
+<p class="lang-zh">還沒回答的是：globality 是 task 本來就 global、ordering 造成，還是把 vector prediction error 壓成 scalar utility 後產生？direct coordinate-linear instrument 的 held-out \(R^2\approx0\)、sign accuracy 近 0.5，所以沒有回答成功。</p>
+<div class="callout core"><p class="lang-en">The JEPA residual route therefore asks whether a global-looking scalar \(U_k\) factors into a current error state \(e\) and a simpler action-effect vector \(\Delta e_k\).</p><p class="lang-zh">因此 JEPA residual 路線改問：看起來很 global 的 scalar \(U_k\)，是否其實可以拆成 current error state \(e\) 與更簡單的 action-effect vector \(\Delta e_k\)。</p></div>
+</section>
+
+<section id="evidence">
+<h2><span class="section-num">§16</span><span class="lang-en">Evidence that matters to the current architecture</span><span class="lang-zh">真正會影響目前架構的核心證據</span></h2>
+<div class="tbl-wrap"><table class="tbl">
+<thead><tr><th><span class="lang-en">Claim</span><span class="lang-zh">命題</span></th><th><span class="lang-en">Evidence</span><span class="lang-zh">證據</span></th><th>Status</th></tr></thead>
+<tbody>
+<tr><td><span class="lang-en">M6 full ordering geometry</span><span class="lang-zh">M6 full ordering geometry</span></td><td>\(d=5\Rightarrow720/720\)</td><td><span class="tag ok">established</span></td></tr>
+<tr><td><span class="lang-en">M6 local actuation</span><span class="lang-zh">M6 local actuation</span></td><td>\(3600/3600\)</td><td><span class="tag ok">established</span></td></tr>
+<tr><td><span class="lang-en">M6 stabilized path actuation</span><span class="lang-zh">M6 stabilized path actuation</span></td><td>\(518400/518400\)</td><td><span class="tag ok">established</span></td></tr>
+<tr><td><span class="lang-en">Task-induced functional landscape</span><span class="lang-zh">task-induced functional landscape</span></td><td><span class="lang-en">oracle headroom remains strong M6–M12</span><span class="lang-zh">oracle headroom 在 M6–M12 保持強</span></td><td><span class="tag ok">established</span></td></tr>
+<tr><td><span class="lang-en">Oracle action executed by real LIF</span><span class="lang-zh">oracle action 被 real LIF 執行</span></td><td>exact execution 1.0</td><td><span class="tag ok">established</span></td></tr>
+<tr><td><span class="lang-en">One-step ranking signal</span><span class="lang-zh">one-step ranking signal</span></td><td>\(\eta\approx0.57\), harmful \(\approx0.108\)</td><td><span class="tag ok">established</span></td></tr>
+<tr><td><span class="lang-en">Compact direct pair/rank utility law</span><span class="lang-zh">compact direct pair/rank utility law</span></td><td><span class="lang-en">insufficient</span><span class="lang-zh">不足</span></td><td><span class="tag no">not established</span></td></tr>
+<tr><td><span class="lang-en">Bounded local/sparse/low-rank dependency at M8–M12</span><span class="lang-zh">M8–M12 bounded local/sparse/low-rank dependency</span></td><td><span class="lang-en">not supported</span><span class="lang-zh">未支持</span></td><td><span class="tag no">not established</span></td></tr>
+<tr><td><span class="lang-en">Globality source: task vs ordering</span><span class="lang-zh">globality 來源：task vs ordering</span></td><td><span class="lang-en">measurement instrument insufficient</span><span class="lang-zh">measurement instrument 不足</span></td><td><span class="tag open">open</span></td></tr>
+<tr><td><span class="lang-en">Compact JEPA residual action-effect law</span><span class="lang-zh">compact JEPA residual action-effect law</span></td><td><span class="lang-en">2.7 metrics not supplied here</span><span class="lang-zh">此處尚未提供 2.7 metrics</span></td><td><span class="tag phase">pending evidence</span></td></tr>
+</tbody></table></div>
+<div class="matrix">
+lif11/results-nrp-formal-0817/FULL_RESULT_REPORT.md
+lif23/results-nrp-formal-0823-r3/FULL_RESULT_REPORT.md
+lif24/fetched-2_4-KTPnka/FULL_RESULT_REPORT.md
+lif26/fetched-2_6-0823-r1-repaired/FULL_RESULT_2_6.md
+lif27/fetched-2_7-0826-r1/FULL_RESULT_2_7.md   # path supplied; detailed metrics not included in this source set
+</div>
+</section>
+
+<section id="status">
+<h2><span class="section-num">§17</span><span class="lang-en">What the architecture is now</span><span class="lang-zh">所以現在的架構到底是什麼</span></h2>
+<ul class="issue-list">
+<li><span class="status resolved">resolved</span><span class="lang-en"><strong>State substrate:</strong> centered continuous score geometry → first-spike permutation.</span><span class="lang-zh"><strong>State substrate：</strong>centered continuous score geometry → first-spike permutation。</span></li>
+<li><span class="status resolved">resolved</span><span class="lang-en"><strong>State write/update:</strong> adjacent mathematical current edit → stabilized real LIF actuation.</span><span class="lang-zh"><strong>State write/update：</strong>adjacent mathematical current edit → stabilized real LIF actuation。</span></li>
+<li><span class="status resolved">resolved</span><span class="lang-en"><strong>Task value:</strong> frozen JEPA/task predictor defines \(L(x,\pi)\); utility is an exact loss difference.</span><span class="lang-zh"><strong>Task value：</strong>frozen JEPA/task predictor 定義 \(L(x,\pi)\)；utility 是 exact loss difference。</span></li>
+<li><span class="status partial">partial</span><span class="lang-en"><strong>One-step address decoder:</strong> real signal exists, but the compact direct law is not final.</span><span class="lang-zh"><strong>One-step address decoder：</strong>確實有 signal，但 compact direct law 還不是 final。</span></li>
+<li><span class="status open">open</span><span class="lang-en"><strong>Recursive address decoder:</strong> must remain safe after its own updates change the state distribution.</span><span class="lang-zh"><strong>Recursive address decoder：</strong>自己的 update 改變 state distribution 後仍要保持安全。</span></li>
+<li><span class="status phase2">current</span><span class="lang-en"><strong>Current mechanistic hypothesis:</strong> \(e+\Delta e_k+\) known JEPA loss geometry.</span><span class="lang-zh"><strong>目前 mechanistic hypothesis：</strong>\(e+\Delta e_k+\) known JEPA loss geometry。</span></li>
+</ul>
+<h3><span class="lang-en">What changed conceptually</span><span class="lang-zh">一路上真正改掉的是什麼</span></h3>
+<div class="proof-chain">
+<div class="proof-step"><span class="lang-en"><strong>Capacity:</strong> from “can \(M!\) exist?” to full M6 geometry.</span><span class="lang-zh"><strong>Capacity：</strong>從「\(M!\) 能不能存在？」到 full M6 geometry。</span></div>
+<div class="proof-step"><span class="lang-en"><strong>Control:</strong> from direct code addressing to adjacent graph moves.</span><span class="lang-zh"><strong>Control：</strong>從 direct code addressing 改成 adjacent graph moves。</span></div>
+<div class="proof-step"><span class="lang-en"><strong>Mechanism:</strong> from generic temporal mapping to mathematical LIF actuation.</span><span class="lang-zh"><strong>Mechanism：</strong>從 generic temporal mapping 改成 mathematical LIF actuation。</span></div>
+<div class="proof-step"><span class="lang-en"><strong>Function:</strong> from “different permutation” to “lower frozen JEPA loss.”</span><span class="lang-zh"><strong>Function：</strong>從「permutation 不同」改成「frozen JEPA loss 真的下降」。</span></div>
+<div class="proof-step"><span class="lang-en"><strong>Anti-key:</strong> no factorial head/lookup, no large generic learner as the mechanism.</span><span class="lang-zh"><strong>Anti-key：</strong>不准 factorial head/lookup，不讓 large generic learner 成為 mechanism。</span></div>
+<div class="proof-step"><span class="lang-en"><strong>Current decomposition:</strong> study what the action does in JEPA residual space instead of forcing \(\pi\) to directly predict scalar \(U\).</span><span class="lang-zh"><strong>目前 decomposition：</strong>研究 action 在 JEPA residual space 做了什麼，而不是硬逼 \(\pi\) 直接 predict scalar \(U\)。</span></div>
+</div>
+</section>
+
+<section id="conclusion">
+<h2><span class="section-num">§18</span><span class="lang-en">Small conclusion</span><span class="lang-zh">目前的小結論</span></h2>
+<div class="callout good"><p class="lang-en"><strong>1.</strong> A small continuous LIF score geometry can support a factorial number of discrete first-spike ordering states. At M6, five intrinsic score dimensions are enough for all 720 permutations.</p><p class="lang-zh"><strong>1.</strong> 少量 continuous LIF score geometry 可以支撐 factorial 數量的 first-spike ordering states。M6 只需要 5 個 intrinsic score dimensions，就能形成完整 720 permutations。</p></div>
+<div class="callout good"><p class="lang-en"><strong>2.</strong> The state space is physically writable: a tiny mathematical LIF actuator executes adjacent moves, and stabilized M6 path control is complete.</p><p class="lang-zh"><strong>2.</strong> 這個 state space 是真的可寫入：很小的 mathematical LIF actuator 可以執行 adjacent moves，而且 stabilized M6 path control 已完整通過。</p></div>
+<div class="callout good"><p class="lang-en"><strong>3.</strong> The frozen JEPA/task objective gives the ordering graph real functional structure. Useful local moves remain abundant up to M12.</p><p class="lang-zh"><strong>3.</strong> frozen JEPA/task objective 確實讓 ordering graph 有真實 functional structure；useful local moves 到 M12 仍然很多。</p></div>
+<div class="callout warn"><p class="lang-en"><strong>4.</strong> The hard part is functional addressing: deciding which edge is useful with a compact scalable law, not generating the states or executing M6 swaps.</p><p class="lang-zh"><strong>4.</strong> 現在最難的是 functional addressing：如何用 compact scalable law 判斷哪條 edge 有用；不是產生 states，也不是執行 M6 swaps。</p></div>
+<div class="callout core"><p class="lang-en"><strong>5.</strong> The current mechanistic question is whether scalar edge utility is complicated only because it combines a current JEPA residual \(e\) with an action correction \(\Delta e_k\). If \(\Delta e_k\) is compact, global decision context does not imply a global action mechanism.</p><p class="lang-zh"><strong>5.</strong> 現在最值得問的是：scalar edge utility 看起來複雜，會不會只是因為它把 current JEPA residual \(e\) 和 action correction \(\Delta e_k\) 組合在一起？如果 \(\Delta e_k\) 很 compact，那 decision 需要 global context 並不代表 action mechanism 也 global。</p></div>
+<hr>
+<p class="lang-en"><strong>One-sentence mental model:</strong> a compact factorial state substrate and a reliable local write mechanism already exist; the open question is whether the task admits a compact read/address law, possibly in JEPA residual geometry rather than permutation identity alone.</p>
+<p class="lang-zh"><strong>一句話心智模型：</strong>「compact factorial state substrate + reliable local write mechanism」已經存在；現在真正未知的是 task 有沒有 compact read/address law，而這個 law 可能要從 JEPA residual geometry 找，不一定只靠 permutation identity。</p>
+</section>
+
+</main></div>
+<script>
+(function () {
+  const body = document.body;
+  const saved = localStorage.getItem("garys-lang");
+  const lang = saved === "en" || saved === "zh" ? saved : "zh";
+  function setLang(next) {
+    body.setAttribute("data-lang", next);
+    localStorage.setItem("garys-lang", next);
+    document.querySelectorAll("[data-set-lang]").forEach(btn => {
+      btn.classList.toggle("active", btn.getAttribute("data-set-lang") === next);
+    });
+  }
+  document.querySelectorAll("[data-set-lang]").forEach(btn => {
+    btn.addEventListener("click", () => setLang(btn.getAttribute("data-set-lang")));
+  });
+  setLang(lang);
+
+  const links = [...document.querySelectorAll(".nav-link")];
+  const byId = new Map(links.map(a => [a.getAttribute("href").slice(1), a]));
+  const sections = [...document.querySelectorAll("main section[id]")];
+  function activate(id) {
+    links.forEach(a => a.classList.remove("active"));
+    const a = byId.get(id);
+    if (a) a.classList.add("active");
+  }
+  const observer = new IntersectionObserver((entries) => {
+    const visible = entries.filter(e => e.isIntersecting)
+      .sort((a,b) => Math.abs(a.boundingClientRect.top) - Math.abs(b.boundingClientRect.top));
+    if (visible.length) activate(visible[0].target.id);
+  }, { rootMargin: "-12% 0px -72% 0px", threshold: [0, .1, .25] });
+  sections.forEach(s => observer.observe(s));
+  if (sections.length) activate(sections[0].id);
+})();
+</script>
+</body></html>
