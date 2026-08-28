@@ -1,13 +1,451 @@
-<!DOCTYPE html>
-<html lang="en">
+<!doctype html>
+<html lang="zh-Hant">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Slot 12</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Gary's LIF Ordering System — Navigator, Gradients, 3-Series, snnTorch Comparison</title>
+<script>
+window.MathJax = {
+  tex: { inlineMath: [['\\(','\\)']], displayMath: [['\\[','\\]']] },
+  options: { skipHtmlTags: ['script','noscript','style','textarea','pre','code'] }
+};
+</script>
+<script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+<style>
+:root {
+  --bg: #fefefe; --text: #2f3437; --muted: #787774; --faint: #9b9a97;
+  --line: #e9e9e7; --soft: #f7f6f3; --soft2: #fbfbfa;
+  --blue: #337ea9; --green: #448361; --red: #d44c47; --amber: #d9730d; --purple: #9065b0;
+  --sidebar: 200px; --main: 760px;
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body { margin: 0; background: var(--bg); color: var(--text);
+  font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+  font-size: 16px; line-height: 1.62; }
+body[data-lang="en"] .lang-zh { display: none !important; }
+body[data-lang="zh"] .lang-en { display: none !important; }
+a { color: inherit; text-decoration: none; }
+.page { width: calc(var(--sidebar) + var(--main) + 44px); max-width: calc(100vw - 32px); margin: 0 auto;
+  display: grid; grid-template-columns: var(--sidebar) minmax(0, var(--main)); gap: 44px; align-items: start; }
+.sidebar { position: sticky; top: 0; height: 100vh; overflow-y: auto; padding: 28px 0 36px; border-right: 1px solid var(--line); }
+.lang-switch { display: inline-flex; gap: 4px; padding: 3px; margin: 0 18px 24px 0; background: var(--soft); border: 1px solid var(--line); border-radius: 7px; }
+.lang-switch button { border: 0; background: transparent; color: var(--muted); padding: 5px 8px;
+  font: 600 12px/1.2 SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace; border-radius: 5px; cursor: pointer; }
+.lang-switch button.active { color: var(--text); background: #fff; box-shadow: 0 1px 2px rgba(0,0,0,.08); }
+.nav-group { margin: 0 14px 20px 0; }
+.nav-label { margin: 0 0 7px 8px; color: var(--faint); font: 600 12px/1.4 SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace; text-transform: uppercase; letter-spacing: .04em; }
+.nav-link { display: block; padding: 6px 8px; margin: 1px 0; color: var(--muted); font-size: 13px; border-radius: 5px; border-right: 3px solid transparent; }
+.nav-link:hover { background: var(--soft); color: var(--text); }
+.nav-link.active { background: var(--soft); color: var(--text); font-weight: 600; border-right-color: var(--text); }
+.main { width: 760px; max-width: 100%; padding: 52px 0 120px; }
+.title-block { padding-bottom: 34px; margin-bottom: 34px; border-bottom: 1px solid var(--line); }
+h1 { font-size: 2.12rem; line-height: 1.18; letter-spacing: -0.035em; margin: 0 0 10px; font-weight: 720; }
+.subtitle { font-size: 1.03rem; color: var(--muted); max-width: 680px; margin: 0 0 12px; }
+.date-line { color: var(--faint); font: 500 12.5px/1.4 SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace; }
+section { scroll-margin-top: 28px; margin: 0 0 52px; }
+h2 { font-size: 1.42rem; line-height: 1.3; letter-spacing: -0.018em; margin: 0 0 19px; font-weight: 700; padding-bottom: 8px; border-bottom: 1px solid var(--line); }
+h2 .section-num { color: var(--muted); font-weight: 650; margin-right: 8px; }
+h3 { font-size: 1.06rem; line-height: 1.4; margin: 28px 0 10px; font-weight: 680; }
+p { margin: 8px 0 13px; } strong { font-weight: 680; }
+code, .mono { font-family: SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace; font-size: .88em; background: var(--soft); border-radius: 4px; padding: .12em .32em; }
+.callout { margin: 18px 0; padding: 14px 16px; border-left: 3px solid #c7c6c3; background: var(--soft2); border-radius: 3px; }
+.callout.good { border-left-color: var(--green); } .callout.warn { border-left-color: var(--amber); } .callout.core { border-left-color: var(--blue); } .callout.bad { border-left-color: var(--red); }
+.tag { display: inline-block; padding: 2px 7px; margin: 0 4px 3px 0; border-radius: 999px; border: 1px solid var(--line); background: var(--soft);
+  font: 600 12px/1.45 SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace; }
+.tag.ok { color: var(--green); } .tag.open { color: var(--amber); } .tag.no { color: var(--red); } .tag.phase { color: var(--purple); }
+.def-entry { display: grid; grid-template-columns: 150px 1fr; gap: 14px; padding: 10px 0; border-bottom: 1px solid var(--line); }
+.def-entry .term { font: 600 13px/1.5 SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace; }
+.formula-row { display: grid; grid-template-columns: 170px 1fr; gap: 16px; align-items: start; padding: 11px 0; border-bottom: 1px solid var(--line); }
+.formula-row .label { color: var(--muted); font: 600 12.5px/1.45 SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace; }
+.formula-row .formula { overflow-x: auto; }
+.tbl-wrap { overflow-x: auto; margin: 14px 0 20px; }
+.tbl { width: 100%; border-collapse: collapse; font-family: SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace; font-size: 12.5px; line-height: 1.45; }
+.tbl th, .tbl td { padding: 8px 9px; text-align: left; vertical-align: top; border-bottom: 1px solid var(--line); }
+.tbl th { color: var(--muted); background: var(--soft2); font-weight: 700; } .tbl td.num, .tbl th.num { text-align: right; white-space: nowrap; }
+.matrix { overflow-x: auto; padding: 12px 14px; margin: 12px 0 18px; border: 1px solid var(--line); background: var(--soft2); border-radius: 6px; font: 500 13px/1.65 SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace; }
+.proof-chain { margin: 16px 0; padding: 4px 0 4px 14px; border-left: 2px solid var(--line); }
+.proof-step { position: relative; margin: 0 0 13px; padding: 0 0 0 10px; }
+.proof-step::before { content: ""; position: absolute; left: -19px; top: .63em; width: 7px; height: 7px; border-radius: 50%; background: #c7c6c3; }
+.issue-list, .q-list { margin: 12px 0; padding: 0; list-style: none; }
+.issue-list li, .q-list li { padding: 10px 0; border-bottom: 1px solid var(--line); }
+.status { display: inline-block; min-width: 68px; margin-right: 8px; font: 700 11.5px/1.4 SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace; text-transform: uppercase; }
+.status.resolved, .status.answered { color: var(--green); } .status.open, .status.partial { color: var(--amber); } .status.phase2 { color: var(--purple); }
+.kpi-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 9px; margin: 15px 0 20px; }
+.kpi { border: 1px solid var(--line); border-radius: 7px; padding: 12px; background: var(--soft2); }
+.kpi .v { font: 700 19px/1.2 SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace; }
+.kpi .k { color: var(--muted); font-size: 12px; margin-top: 5px; }
+.flow { margin: 16px 0 20px; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+.flow-row { display: grid; grid-template-columns: 135px 1fr; border-bottom: 1px solid var(--line); }
+.flow-row:last-child { border-bottom: 0; }
+.flow-key { padding: 10px 12px; background: var(--soft2); color: var(--muted); font: 650 12px/1.45 SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace; }
+.flow-val { padding: 10px 13px; }
+.small { color: var(--muted); font-size: 13px; }
+hr { border: 0; border-top: 1px solid var(--line); margin: 28px 0; }
+@media (max-width: 1000px) {
+  .page { display: block; width: min(760px, calc(100vw - 28px)); max-width: none; }
+  .sidebar { position: relative; height: auto; border-right: 0; border-bottom: 1px solid var(--line); padding: 18px 0; margin-bottom: 8px; }
+  .nav-group { display: none; } .main { width: 100%; padding-top: 30px; }
+}
+@media (max-width: 620px) {
+  .def-entry, .formula-row, .flow-row { grid-template-columns: 1fr; gap: 3px; }
+  .kpi-grid { grid-template-columns: 1fr; } h1 { font-size: 1.76rem; }
+}
+</style>
 </head>
-<body>
-  <!-- draft -->
-  <p>Draft slot 12 — replace this entire file on GitHub to publish.</p>
-  <script src="/notes/notes-nav.js" defer></script>
+
+<body data-lang="zh">
+<div class="page">
+<aside class="sidebar">
+  <div class="lang-switch" aria-label="Language"><button type="button" data-set-lang="en">EN</button><button type="button" data-set-lang="zh">繁中</button></div>
+  <div class="nav-group"><div class="nav-label"><span class="lang-en">System</span><span class="lang-zh">系統</span></div>
+    <a class="nav-link" href="#overview"><span class="lang-en">§1 Definition</span><span class="lang-zh">§1 定義</span></a>
+    <a class="nav-link" href="#equation"><span class="lang-en">§2 LIF equation</span><span class="lang-zh">§2 LIF 方程</span></a>
+    <a class="nav-link" href="#variables"><span class="lang-en">§3 Variables</span><span class="lang-zh">§3 變數</span></a>
+    <a class="nav-link" href="#first-spike"><span class="lang-en">§4 Exact first spike</span><span class="lang-zh">§4 Exact first spike</span></a>
+    <a class="nav-link" href="#ordering"><span class="lang-en">§5 M! space</span><span class="lang-zh">§5 M! 空間</span></a>
+  </div>
+  <div class="nav-group"><div class="nav-label"><span class="lang-en">Navigator</span><span class="lang-zh">Navigator</span></div>
+    <a class="nav-link" href="#navigator"><span class="lang-en">§6 5-D Navigator</span><span class="lang-zh">§6 5-D Navigator</span></a>
+    <a class="nav-link" href="#loss"><span class="lang-en">§7 Loss</span><span class="lang-zh">§7 Loss</span></a>
+    <a class="nav-link" href="#gradient"><span class="lang-en">§8 Gradient flow</span><span class="lang-zh">§8 梯度流程</span></a>
+    <a class="nav-link" href="#controls"><span class="lang-en">§9 Learnable controls</span><span class="lang-zh">§9 可學 controls</span></a>
+  </div>
+  <div class="nav-group"><div class="nav-label"><span class="lang-en">Experiments</span><span class="lang-zh">3-Series</span></div>
+    <a class="nav-link" href="#exp30"><span class="lang-en">§10 Exp 3.0</span><span class="lang-zh">§10 Exp 3.0</span></a>
+    <a class="nav-link" href="#exp31"><span class="lang-en">§11 Exp 3.1</span><span class="lang-zh">§11 Exp 3.1</span></a>
+    <a class="nav-link" href="#exp32"><span class="lang-en">§12 Exp 3.2</span><span class="lang-zh">§12 Exp 3.2</span></a>
+    <a class="nav-link" href="#exp33"><span class="lang-en">§13 Exp 3.3</span><span class="lang-zh">§13 Exp 3.3</span></a>
+  </div>
+  <div class="nav-group"><div class="nav-label"><span class="lang-en">snnTorch</span><span class="lang-zh">snnTorch</span></div>
+    <a class="nav-link" href="#snntorch"><span class="lang-en">§14 snn.Leaky</span><span class="lang-zh">§14 snn.Leaky</span></a>
+    <a class="nav-link" href="#comparison"><span class="lang-en">§15 Deep comparison</span><span class="lang-zh">§15 深度比較</span></a>
+    <a class="nav-link" href="#rleaky"><span class="lang-en">§16 RLeaky vs 3.3</span><span class="lang-zh">§16 RLeaky vs 3.3</span></a>
+  </div>
+  <div class="nav-group"><div class="nav-label"><span class="lang-en">Boundary</span><span class="lang-zh">結論</span></div>
+    <a class="nav-link" href="#claims"><span class="lang-en">§17 Claims & params</span><span class="lang-zh">§17 Claims 與參數量</span></a>
+    <a class="nav-link" href="#conclusion"><span class="lang-en">§18 Conclusion</span><span class="lang-zh">§18 小結</span></a>
+  </div>
+</aside>
+
+<main class="main">
+<header class="title-block">
+  <h1><span class="lang-en">Gary's LIF Ordering System</span><span class="lang-zh">Gary's LIF Ordering System</span></h1>
+  <p class="subtitle"><span class="lang-en">Factorial first-spike states, the 5-D Navigator, exact gradient addressing, learnable LIF parameters, the 3.0–3.3 series, and a careful comparison with snnTorch.</span><span class="lang-zh">Factorial first-spike states、5-D Navigator、exact gradient addressing、learnable LIF parameters、3.0–3.3 系列，以及與 snnTorch LIF 的完整差異。</span></p>
+  <div class="date-line">2026-08-28 · M=6 · S₆ · 6!=720 · bilingual reference</div>
+</header>
+
+<section id="overview">
+<h2><span class="section-num">§1</span><span class="lang-en">Definition: what is actually different in this LIF system?</span><span class="lang-zh">定義：這個 LIF 系統真正不同的是什麼？</span></h2>
+<div class="callout core"><p class="lang-en"><strong>The base LIF differential equation is standard.</strong> The system-level formulation is the distinctive part: use first-spike ordering as the state, treat the resulting permutation as an element of \(S_M\), and use an \(M-1\)-dimensional Navigator to gradient-address a small set of LIF timing controls.</p><p class="lang-zh"><strong>基本 LIF 微分方程不是新的。</strong>真正不同的是系統層做法：把 first-spike ordering 本身當 state，讓 permutation 成為 \(S_M\) 的元素，再用 \(M-1\) 維 Navigator 對少量 LIF timing controls 做 gradient addressing。</p></div>
+<div class="flow">
+  <div class="flow-row"><div class="flow-key">target</div><div class="flow-val">\(\pi^*\in S_M\)</div></div>
+  <div class="flow-row"><div class="flow-key">Navigator</div><div class="flow-val">\(g\in\mathbb R^{M-1}\)</div></div>
+  <div class="flow-row"><div class="flow-key">loss</div><div class="flow-val">\(L_{\rm order}(g)\)</div></div>
+  <div class="flow-row"><div class="flow-key">gradient</div><div class="flow-val">\(\nabla_{\theta}L\) where \(\theta\in\{I,\tau,V_{th},R,W\}\)</div></div>
+  <div class="flow-row"><div class="flow-key">physical state</div><div class="flow-val">\(t^*=(t_1^*,\ldots,t_M^*)\)</div></div>
+  <div class="flow-row"><div class="flow-key">hard state</div><div class="flow-val">\(\pi=\operatorname{argsort}(t^*)\)</div></div>
+</div>
+<p class="lang-en">For M6 the smallest formally validated variants use only six adjustable values per run, while the Navigator has five dimensions. No 720-way classifier or 720-entry lookup is required.</p>
+<p class="lang-zh">M6 目前最小且正式通過的版本，每次 run 只需要 6 個可調數字，而 Navigator 只有 5 維；沒有 720-way classifier，也沒有 720-entry lookup。</p>
+</section>
+
+<section id="equation">
+<h2><span class="section-num">§2</span><span class="lang-en">The continuous LIF equation used in 3.0–3.2</span><span class="lang-zh">3.0–3.2 使用的 continuous LIF 方程</span></h2>
+<div class="formula-row"><div class="label">ODE</div><div class="formula">\[\tau_i\frac{dV_i}{dt}=-V_i+R_iI_i\]</div></div>
+<p class="lang-en">For the clean first-spike experiments, set \(V_i(0)=0\), take \(V_{rest}=0\), and hold \(I_i\) constant before the first spike.</p>
+<p class="lang-zh">乾淨的 first-spike 實驗先令 \(V_i(0)=0\)、\(V_{rest}=0\)，並在 first spike 前令 \(I_i\) 為常數。</p>
+<div class="formula-row"><div class="label">voltage</div><div class="formula">\[V_i(t)=R_iI_i\left(1-e^{-t/\tau_i}\right)\]</div></div>
+<div class="formula-row"><div class="label">threshold</div><div class="formula">\[V_i(t_i^*)=V_{{\rm th},i}\]</div></div>
+<p class="lang-en">Because the representation uses only the first spike, post-spike reset is irrelevant to the 3.0–3.2 ordering definition.</p>
+<p class="lang-zh">因為 representation 只讀第一個 spike，所以 3.0–3.2 的 ordering 定義不依賴 first spike 後的 reset。</p>
+</section>
+
+<section id="variables">
+<h2><span class="section-num">§3</span><span class="lang-en">Every variable in the function</span><span class="lang-zh">函式裡每一個東西的意思</span></h2>
+<div class="tbl-wrap"><table class="tbl"><thead><tr><th>symbol</th><th><span class="lang-en">meaning</span><span class="lang-zh">意思</span></th><th><span class="lang-en">if increased</span><span class="lang-zh">變大時</span></th></tr></thead><tbody>
+<tr><td>\(V_i(t)\)</td><td><span class="lang-en">membrane potential; dynamic state</span><span class="lang-zh">membrane potential；動態 state</span></td><td>—</td></tr>
+<tr><td>\(I_i\)</td><td><span class="lang-en">input current / external drive</span><span class="lang-zh">input current / 外部 drive</span></td><td>\(t_i^*\downarrow\)</td></tr>
+<tr><td>\(\tau_i\)</td><td><span class="lang-en">membrane time constant</span><span class="lang-zh">membrane time constant；膜時間尺度</span></td><td>\(t_i^*\uparrow\)</td></tr>
+<tr><td>\(V_{{th},i}\)</td><td><span class="lang-en">spike threshold</span><span class="lang-zh">spike threshold；發射門檻</span></td><td>\(t_i^*\uparrow\)</td></tr>
+<tr><td>\(R_i\)</td><td><span class="lang-en">membrane resistance; current-to-voltage gain</span><span class="lang-zh">membrane resistance；current→voltage 增益</span></td><td>\(t_i^*\downarrow\)</td></tr>
+<tr><td>\(t_i^*\)</td><td><span class="lang-en">first-spike time</span><span class="lang-zh">第一次碰 threshold 的時間</span></td><td><span class="lang-en">smaller = earlier</span><span class="lang-zh">越小越早</span></td></tr>
+</tbody></table></div>
+<div class="callout warn"><p class="lang-en"><strong>Notation warning:</strong> here \(R_i\) means membrane resistance. In the snnTorch documentation, the symbol \(R\) inside the discrete recurrence denotes a reset indicator/mechanism, not resistance.</p><p class="lang-zh"><strong>符號警告：</strong>本文的 \(R_i\) 是 membrane resistance。snnTorch 官方離散 recurrence 裡也寫 \(R\)，但那個 \(R\) 是 reset indicator / mechanism，不是 resistance。</p></div>
+<div class="matrix">earlier spike = I ↑, R ↑, Vth ↓, τ ↓\nlate spike    = I ↓, R ↓, Vth ↑, τ ↑</div>
+</section>
+
+<section id="first-spike">
+<h2><span class="section-num">§4</span><span class="lang-en">Exact first-spike solution and exact gradients</span><span class="lang-zh">Exact first-spike 解與 exact gradients</span></h2>
+<div class="formula-row"><div class="label">first spike</div><div class="formula">\[\boxed{t_i^*=-\tau_i\ln\left(1-\frac{V_{{th},i}}{R_iI_i}\right)},\qquad R_iI_i>V_{{th},i}\]</div></div>
+<p class="lang-en">This is why 3.0–3.2 can differentiate first-spike time directly instead of differentiating a hard binary spike.</p>
+<p class="lang-zh">這就是 3.0–3.2 可以直接對 first-spike time 微分，而不需要對 hard binary spike 微分的原因。</p>
+<div class="tbl-wrap"><table class="tbl"><thead><tr><th>parameter</th><th>exact derivative</th><th>sign</th></tr></thead><tbody>
+<tr><td>\(I\)</td><td>\(\displaystyle \frac{\partial t^*}{\partial I}=-\frac{\tau V_{th}}{I(RI-V_{th})}\)</td><td>negative</td></tr>
+<tr><td>\(\tau\)</td><td>\(\displaystyle \frac{\partial t^*}{\partial \tau}=-\ln\left(1-\frac{V_{th}}{RI}\right)\)</td><td>positive</td></tr>
+<tr><td>\(V_{th}\)</td><td>\(\displaystyle \frac{\partial t^*}{\partial V_{th}}=\frac{\tau}{RI-V_{th}}\)</td><td>positive</td></tr>
+<tr><td>\(R\)</td><td>\(\displaystyle \frac{\partial t^*}{\partial R}=-\frac{\tau V_{th}}{R(RI-V_{th})}\)</td><td>negative</td></tr>
+</tbody></table></div>
+<p class="lang-en">Concrete point: with \(I=2,\tau=1,V_{th}=1,R=1\), \(t^*=0.6931\), while the derivatives are \(-0.5,\ 0.6931,\ 1,\ -1\) respectively.</p>
+<p class="lang-zh">具體數字：若 \(I=2,\tau=1,V_{th}=1,R=1\)，則 \(t^*=0.6931\)，四個 derivative 分別是 \(-0.5,\ 0.6931,\ 1,\ -1\)。</p>
+</section>
+
+<section id="ordering">
+<h2><span class="section-num">§5</span><span class="lang-en">Factorial first-spike ordering space</span><span class="lang-zh">Factorial first-spike ordering space</span></h2>
+<div class="formula-row"><div class="label">hard state</div><div class="formula">\[\pi=\operatorname{argsort}(t_1^*,\ldots,t_M^*)\in S_M\]</div></div>
+<div class="formula-row"><div class="label">nominal capacity</div><div class="formula">\[C_{\rm nominal}=M!\]</div></div>
+<div class="kpi-grid"><div class="kpi"><div class="v">6</div><div class="k">neurons</div></div><div class="kpi"><div class="v">720</div><div class="k">6! states</div></div><div class="kpi"><div class="v">9.49</div><div class="k">nominal bits</div></div></div>
+<p class="lang-en">The state is relational: no single neuron “is” the class. A state is the complete relative temporal order among all neurons.</p>
+<p class="lang-zh">state 是 relational：不是某一顆 neuron 代表 class，而是全部 neurons 的相對 first-spike 次序共同代表一個 state。</p>
+</section>
+
+<section id="navigator">
+<h2><span class="section-num">§6</span><span class="lang-en">The 5-D Navigator</span><span class="lang-zh">5-D Navigator</span></h2>
+<p class="lang-en">We call the target-adjacent first-spike gaps the <strong>Navigator</strong>. For M6 it has exactly five dimensions.</p>
+<p class="lang-zh">我們把 target order 裡相鄰的 first-spike gaps 正式叫 <strong>Navigator</strong>。M6 剛好只有五維。</p>
+<div class="formula-row"><div class="label">definition</div><div class="formula">\[\boxed{g_k=t^*_{\pi^*_{k+1}}-t^*_{\pi^*_k}},\qquad k=1,\ldots,M-1\]</div></div>
+<p class="lang-en">Example target \(\pi^*=(2,3,1,4,5,6)\) requires \(t_2<t_3<t_1<t_4<t_5<t_6\), so:</p>
+<p class="lang-zh">例如 target \(\pi^*=(2,3,1,4,5,6)\)，要求 \(t_2<t_3<t_1<t_4<t_5<t_6\)，因此：</p>
+<div class="formula-row"><div class="label">M6 Navigator</div><div class="formula">\[g=\begin{bmatrix}t_3-t_2\\t_1-t_3\\t_4-t_1\\t_5-t_4\\t_6-t_5\end{bmatrix}\in\mathbb R^5\]</div></div>
+<div class="formula-row"><div class="label">strict margin</div><div class="formula">\[\boxed{\min_k g_k\ge\delta},\qquad \delta=0.1\]</div></div>
+<div class="callout good"><p class="lang-en">Only \(M-1\) adjacent inequalities are needed to specify a complete target order. Transitivity supplies the remaining pair relations.</p><p class="lang-zh">指定完整 target permutation 只需要 \(M-1\) 個 adjacent inequalities；其他 pair relations 由傳遞性自動得到。</p></div>
+<div class="callout core"><p class="lang-en"><strong>The Navigator is not a learned neural module.</strong> It is a deterministic target-relative measurement computed from the current first-spike times and the known training target permutation. What learns/changes is the selected physical control family.</p><p class="lang-zh"><strong>Navigator 本身不是 learnable neural module。</strong>它是由目前 first-spike times 和 training 時已知的 target permutation 確定性算出的 target-relative measurement。真正被更新的是選定的 physical control family。</p></div>
+</section>
+
+<section id="loss">
+<h2><span class="section-num">§7</span><span class="lang-en">Navigator loss</span><span class="lang-zh">Navigator loss</span></h2>
+<div class="formula-row"><div class="label">per-gap penalty</div><div class="formula">\[e_k=T\log\left(1+\exp\frac{\delta-g_k}{T}\right)=T\,\operatorname{softplus}\left(\frac{\delta-g_k}{T}\right)\]</div></div>
+<div class="formula-row"><div class="label">scalar loss</div><div class="formula">\[\boxed{L_{\rm order}=\frac1{M-1}\sum_{k=1}^{M-1}e_k}\]</div></div>
+<div class="formula-row"><div class="label">gradient</div><div class="formula">\[\boxed{\frac{\partial L}{\partial g_k}=-\frac1{M-1}\sigma\left(\frac{\delta-g_k}{T}\right)}\]</div></div>
+<p class="lang-en">The gradient is negative, so reducing loss means increasing every target-adjacent gap \(g_k\). If a pair is reversed, the loss produces a strong correction; if it is correct but too close to the boundary, it still receives a margin correction.</p>
+<p class="lang-zh">這個 gradient 永遠是負的，所以降低 loss 就是把 target-adjacent gap \(g_k\) 推大。pair 如果反了，修正很強；pair 雖然順序對但太靠近 boundary，仍會收到 margin correction。</p>
+<div class="callout warn"><p class="lang-en">A successful run need not end at zero loss. The formal 3.0 stopping rule stops at first strict-margin success, and softplus remains positive near the margin boundary.</p><p class="lang-zh">成功不要求 final loss=0。3.0 formal run 在第一次達到 strict margin 時停止，而且 softplus 在 margin 附近仍為正。</p></div>
+</section>
+
+<section id="gradient">
+<h2><span class="section-num">§8</span><span class="lang-en">Full gradient path: target → physical LIF parameter</span><span class="lang-zh">完整梯度鏈：target → physical LIF parameter</span></h2>
+<div class="proof-chain">
+<div class="proof-step">\(\pi^*\rightarrow g_k=t_{\pi^*_{k+1}}-t_{\pi^*_k}\)</div>
+<div class="proof-step">\(g\rightarrow L_{\rm order}\)</div>
+<div class="proof-step">\(\displaystyle \frac{\partial L}{\partial t_i^*}=\sum_k\frac{\partial L}{\partial g_k}\frac{\partial g_k}{\partial t_i^*}\)</div>
+<div class="proof-step">\(\displaystyle \frac{\partial L}{\partial \theta_i}=\frac{\partial L}{\partial t_i^*}\frac{\partial t_i^*}{\partial \theta_i}\)</div>
+<div class="proof-step">\(\theta_i\leftarrow\theta_i-\text{optimizer update}\)</div>
+<div class="proof-step">\(\theta'\rightarrow t^{*'}\rightarrow\pi'\)</div>
+</div>
+<p class="lang-en">For a target-adjacent pair, \(g_k=t_b-t_a\). Therefore \(\partial g_k/\partial t_a=-1\) and \(\partial g_k/\partial t_b=+1\). A violated target relation directly pushes the earlier neuron earlier and/or the later neuron later.</p>
+<p class="lang-zh">對 target-adjacent pair，\(g_k=t_b-t_a\)，所以 \(\partial g_k/\partial t_a=-1\)、\(\partial g_k/\partial t_b=+1\)。如果 target relation 錯了，gradient 會直接把該早的 neuron 推早、該晚的 neuron 推晚。</p>
+<p class="lang-en">Physical values can be bounded by an unconstrained variable \(a_i\):</p><p class="lang-zh">physical value 可用 unconstrained variable \(a_i\) 做 bounded map：</p>
+<div class="formula-row"><div class="label">bounded parameter</div><div class="formula">\[\theta_i=\theta_{min}+(\theta_{max}-\theta_{min})\sigma(a_i)\]</div></div>
+<div class="formula-row"><div class="label">chain rule</div><div class="formula">\[\frac{\partial L}{\partial a_i}=\frac{\partial L}{\partial\theta_i}(\theta_{max}-\theta_{min})\sigma(a_i)(1-\sigma(a_i))\]</div></div>
+<div class="callout core"><p class="lang-en"><strong>This is the learning mechanism:</strong> the Navigator does not classify 720 states; it creates a continuous temporal error whose gradient directly changes the LIF timing controls until the hard permutation flips into the target chamber. The optimizer only turns that gradient into numerical parameter updates; it is not the state-addressing representation.</p><p class="lang-zh"><strong>這就是 learning mechanism：</strong>Navigator 不是做 720-class classification；它產生 continuous temporal error，gradient 直接改 LIF timing controls，直到 hard permutation 跨 boundary 進入 target chamber。optimizer 只負責把 gradient 變成數值更新，它不是 state-addressing representation 本身。</p></div>
+</section>
+
+<section id="controls">
+<h2><span class="section-num">§9</span><span class="lang-en">What is actually learnable?</span><span class="lang-zh">到底什麼是 learnable？</span></h2>
+<div class="tbl-wrap"><table class="tbl"><thead><tr><th>arm</th><th class="num">learnable values/run</th><th><span class="lang-en">meaning</span><span class="lang-zh">意義</span></th></tr></thead><tbody>
+<tr><td>current</td><td class="num">6 × \(I_i\)</td><td><span class="lang-en">learnable external drive</span><span class="lang-zh">learnable external drive；嚴格說不是 intrinsic neuron parameter</span></td></tr>
+<tr><td>tau</td><td class="num">6 × \(\tau_i\)</td><td><span class="lang-en">intrinsic membrane time scale</span><span class="lang-zh">intrinsic membrane time scale</span></td></tr>
+<tr><td>threshold</td><td class="num">6 × \(V_{{th},i}\)</td><td><span class="lang-en">intrinsic firing threshold</span><span class="lang-zh">intrinsic firing threshold</span></td></tr>
+<tr><td>resistance</td><td class="num">6 × \(R_i\)</td><td><span class="lang-en">intrinsic current-to-voltage gain</span><span class="lang-zh">intrinsic current→voltage gain</span></td></tr>
+</tbody></table></div>
+<div class="callout warn"><p class="lang-en"><strong>3.2 does not jointly train 24 values.</strong> It uses four separate matched arms. Each arm has only six trainable values. A joint \(I+\tau+V_{th}+R\) model would have 24 values, but that joint model has not been established.</p><p class="lang-zh"><strong>3.2 不是同時學 24 個數字。</strong>它是四個獨立 matched arms；每個 arm 只有 6 個可學數字。若未來 joint \(I+\tau+V_{th}+R\) 才會是 24，但這個 joint model 尚未被建立。</p></div>
+<p class="lang-en">“Learnable LIF parameter” means that the gradient directly updates a physical neuron parameter such as \(\tau_i,V_{th,i},R_i\). It does <strong>not</strong> yet mean that a reusable train-once addressing function has been learned.</p>
+<p class="lang-zh">「LIF parameter 可學」的精確意思是：gradient 直接更新 \(\tau_i,V_{th,i},R_i\) 這類 physical neuron parameter。它<strong>還不等於</strong>已經學會一個 train-once、可重複使用的 addressing function。</p>
+</section>
+
+<section id="exp30">
+<h2><span class="section-num">§10</span><span class="lang-en">Experiment 3.0 — Direct Navigator addressing</span><span class="lang-zh">Experiment 3.0 — Navigator 直接 addressing</span></h2>
+<p class="lang-en">Question: can a frozen bounded-current LIF be pushed into an arbitrary target permutation using only the 5-D Navigator and gradient descent?</p>
+<p class="lang-zh">問題：固定 bounded-current LIF，只給 target permutation 與 5-D Navigator，能不能用 gradient descent 直接推進任意 target chamber？</p>
+<div class="tbl-wrap"><table class="tbl"><thead><tr><th>stage</th><th class="num">runs</th><th class="num">hard permutation</th><th class="num">min g ≥ 0.1</th><th class="num">median steps</th><th class="num">median loss</th></tr></thead><tbody>
+<tr><td>3.0.0 pilot</td><td class="num">400</td><td class="num">100%</td><td class="num">100%</td><td class="num">64</td><td class="num">0.016274</td></tr>
+<tr><td>3.0.1 exact coverage</td><td class="num">7,200</td><td class="num">100%</td><td class="num">100%</td><td class="num">62</td><td class="num">0.015158</td></tr>
+</tbody></table></div>
+<p class="lang-en">3.0.1 covers all 720 target permutations with 10 initializations per target. All 7,200 runs pass both hard ordering and the strict \(\delta=0.1\) margin.</p>
+<p class="lang-zh">3.0.1 覆蓋全部 720 targets，每個 target 10 個 initializations；7,200/7,200 都通過 hard ordering 與 strict \(\delta=0.1\) margin。</p>
+<div class="callout good"><p class="lang-en">Formal integrity: 5/5 equation/autodiff tests passed; independent recomputation of \((I,t,g,L)\) from final \(a\) matched to roughly \(10^{-15}\)-scale error. The formal mechanism used no NN/MLP, JEPA, oracle, double forward, factorial head, lookup, auxiliary loss, or weight decay.</p><p class="lang-zh">Formal integrity：5/5 equation/autodiff tests 通過；從 final \(a\) 獨立重算 \((I,t,g,L)\) 的誤差約在 \(10^{-15}\) 等級。formal mechanism 沒有 NN/MLP、JEPA、oracle、double forward、factorial head、lookup、auxiliary loss 或 weight decay。</p></div>
+</section>
+
+<section id="exp31">
+<h2><span class="section-num">§11</span><span class="lang-en">Experiment 3.1 — Direct state-to-state navigation</span><span class="lang-zh">Experiment 3.1 — 直接 state-to-state navigation</span></h2>
+<div class="formula-row"><div class="label">ordered pairs</div><div class="formula">\[720\times720=\boxed{518{,}400}\]</div></div>
+<p class="lang-en">3.1 starts from a valid canonical source state and changes the target without resetting to a random initialization. All 518,400 ordered source→target transitions pass hard ordering and margin.</p>
+<p class="lang-zh">3.1 從合法 canonical source state 出發，不 reset 成 random initialization，直接換 target；518,400 個 ordered source→target transitions 全部通過 hard ordering 與 margin。</p>
+<div class="kpi-grid"><div class="kpi"><div class="v">518,400</div><div class="k">exact transitions</div></div><div class="kpi"><div class="v">64</div><div class="k">median steps</div></div><div class="kpi"><div class="v">163</div><div class="k">max steps</div></div></div>
+<p class="lang-en">This is exact reachability without a supplied symbolic swap path, but not a shortest-path theorem. Only 291,039 / 517,680 nonidentity transitions (56.2199%) had sampled path length equal to Kendall shortest distance; 43.7801% had extra flips. Mean efficiency was 0.887137 and the minimum was 1/3.</p>
+<p class="lang-zh">這證明「不用 supplied symbolic swap path 也能 exact reach target」，但不是 shortest-path theorem。517,680 個 nonidentity transitions 中只有 291,039（56.2199%）的 sampled path length 等於 Kendall 最短距離；43.7801% 有額外 flips。mean efficiency=0.887137，最低=1/3。</p>
+<p class="lang-en">The sampled Kendall distance was non-increasing at every sampled step in 0.586572 of transitions, so gradient navigation is exact but often non-monotone in hard permutation space.</p>
+<p class="lang-zh">sampled Kendall distance 每一步都不增加的比例只有 0.586572，所以 gradient navigation 最終 exact，但在 hard permutation space 裡常會繞路。</p>
+</section>
+
+<section id="exp32">
+<h2><span class="section-num">§12</span><span class="lang-en">Experiment 3.2 — Intrinsic parameter controllability</span><span class="lang-zh">Experiment 3.2 — intrinsic parameter controllability</span></h2>
+<p class="lang-en">The Navigator and loss are unchanged. Only the physical parameter receiving the gradient is changed.</p><p class="lang-zh">Navigator 與 loss 完全不變，只改「gradient 最後更新哪一個 physical parameter family」。</p>
+<div class="tbl-wrap"><table class="tbl"><thead><tr><th>arm</th><th class="num">exact runs</th><th class="num">hard + margin</th><th class="num">median steps</th><th class="num">median final loss</th></tr></thead><tbody>
+<tr><td>current reference</td><td class="num">3,600</td><td class="num">1.0 / 1.0</td><td class="num">62</td><td class="num">0.01582082</td></tr>
+<tr><td>tau</td><td class="num">3,600</td><td class="num">1.0 / 1.0</td><td class="num">36</td><td class="num">0.01799402</td></tr>
+<tr><td>threshold</td><td class="num">3,600</td><td class="num">1.0 / 1.0</td><td class="num">36</td><td class="num">0.01627986</td></tr>
+<tr><td>resistance</td><td class="num">3,600</td><td class="num">1.0 / 1.0</td><td class="num">57</td><td class="num">0.01791745</td></tr>
+</tbody></table></div>
+<p class="lang-en">Each arm is 720 targets × 5 initializations = 3,600 runs. All four arms pass every target/initialization combination.</p>
+<p class="lang-zh">每個 arm 都是 720 targets × 5 initializations = 3,600 runs；四個 arms 全部通過。</p>
+<div class="tbl-wrap"><table class="tbl"><thead><tr><th>family</th><th><span class="lang-en">mean value by target rank 1→6</span><span class="lang-zh">target rank 1→6 mean</span></th><th><span class="lang-en">direction</span><span class="lang-zh">方向</span></th></tr></thead><tbody>
+<tr><td>current</td><td>4.451, 3.283, 2.528, 2.064, 1.756, 1.513</td><td>decreasing</td></tr>
+<tr><td>tau</td><td>0.631, 0.932, 1.130, 1.323, 1.546, 1.919</td><td>increasing</td></tr>
+<tr><td>threshold</td><td>0.479, 0.722, 0.877, 1.027, 1.185, 1.398</td><td>increasing</td></tr>
+<tr><td>resistance</td><td>1.287, 1.103, 0.966, 0.856, 0.769, 0.688</td><td>decreasing</td></tr>
+</tbody></table></div>
+<div class="callout good"><p class="lang-en">These directions exactly match the analytical derivatives: early ranks require larger \(I,R\) and smaller \(\tau,V_{th}\).</p><p class="lang-zh">這些 rank-direction 和 exact derivative 完全一致：early rank 要 \(I,R\) 大、\(\tau,V_{th}\) 小。</p></div>
+</section>
+
+<section id="exp33">
+<h2><span class="section-num">§13</span><span class="lang-en">Experiment 3.3 — Signed voltage-mediated coupling</span><span class="lang-zh">Experiment 3.3 — signed voltage-mediated coupling</span></h2>
+<p class="lang-en">3.3 freezes current and intrinsic parameters and learns only cross-node coupling:</p><p class="lang-zh">3.3 固定 current 與 intrinsic parameters，只學 cross-node coupling：</p>
+<div class="formula-row"><div class="label">simulator</div><div class="formula">\[\boxed{\frac{dV_i}{dt}=-V_i+1.6+\sum_{j\neq i}W_{ij}\operatorname{clamp}(V_j,0,1)}\]</div></div>
+<p class="lang-en">Formal settings: \(dt=0.02\), horizon \(=2.5\), \(|W_{ij}|<0.08\).</p><p class="lang-zh">formal 設定：\(dt=0.02\)、horizon \(=2.5\)、\(|W_{ij}|<0.08\)。</p>
+<div class="tbl-wrap"><table class="tbl"><thead><tr><th>arm</th><th class="num">params/run</th><th class="num">exact runs</th><th class="num">hard + margin</th><th class="num">median steps</th></tr></thead><tbody>
+<tr><td>row_shared</td><td class="num">6</td><td class="num">2,160</td><td class="num">1.0 / 1.0</td><td class="num">42</td></tr>
+<tr><td>directed</td><td class="num">30</td><td class="num">2,160</td><td class="num">1.0 / 1.0</td><td class="num">42</td></tr>
+</tbody></table></div>
+<div class="tbl-wrap"><table class="tbl"><thead><tr><th>target rank</th><th class="num">row_shared incoming sum</th><th class="num">directed incoming sum</th></tr></thead><tbody>
+<tr><td>1</td><td class="num">+0.29943</td><td class="num">+0.30174</td></tr>
+<tr><td>2</td><td class="num">+0.06805</td><td class="num">+0.07038</td></tr>
+<tr><td>3</td><td class="num">−0.08717</td><td class="num">−0.08493</td></tr>
+<tr><td>4</td><td class="num">−0.19592</td><td class="num">−0.19369</td></tr>
+<tr><td>5</td><td class="num">−0.27491</td><td class="num">−0.27254</td></tr>
+<tr><td>6</td><td class="num">−0.33481</td><td class="num">−0.33210</td></tr>
+</tbody></table></div>
+<p class="lang-en">The evidence therefore supports rank-coded net incoming balance, not yet source-specific topology discovery. The 30-edge arm does not outperform the six-value row-shared arm in optimization speed. Across final directed edges, the reported sign fractions were about 0.32647 positive, 0.67352 negative, and 0.000015 near zero.</p>
+<p class="lang-zh">所以目前 evidence 支持的是 rank-coded net incoming balance，不是 source-specific topology discovery；30-edge arm 沒有比 6-value row-shared arm 更快。directed arm 的 final edge sign 比例約為 positive 0.32647、negative 0.67352、near-zero 0.000015。</p>
+<div class="callout warn"><p class="lang-en">Unlike 3.0–3.2, 3.3 does not have the same simple closed-form \(t^*(W)\). Gradients propagate through the numerical voltage-trajectory computational graph; this document does not invent an unsupported closed-form \(\partial t^*/\partial W\).</p><p class="lang-zh">3.3 不像 3.0–3.2 有簡單 closed-form \(t^*(W)\)。gradient 沿 numerical voltage trajectory 的 computational graph 回傳；本文不虛構不存在的 \(\partial t^*/\partial W\) closed form。</p></div>
+</section>
+
+<section id="snntorch">
+<h2><span class="section-num">§14</span><span class="lang-en">What snnTorch snn.Leaky actually implements</span><span class="lang-zh">snnTorch 的 snn.Leaky 到底在做什麼</span></h2>
+<p class="lang-en">The official snnTorch 1.0.0 documentation describes <code>snn.Leaky</code> as a discrete-time first-order LIF. With reset-by-subtraction:</p>
+<p class="lang-zh">官方 snnTorch 1.0.0 文件把 <code>snn.Leaky</code> 定義成 discrete-time first-order LIF。reset-by-subtraction 時：</p>
+<div class="formula-row"><div class="label">recurrence</div><div class="formula">\[U[t+1]=\beta U[t]+I_{in}[t+1]-R_{reset}U_{thr}\]</div></div>
+<div class="formula-row"><div class="label">spike</div><div class="formula">\[S[t]=H(U[t]-U_{thr})\]</div></div>
+<p class="lang-en">Each call advances one timestep, so a normal forward simulation explicitly loops over time. The neuron returns spike and membrane state. The API supports <code>learn_beta=True</code> and <code>learn_threshold=True</code>.</p>
+<p class="lang-zh">每 call 一次只前進一個 timestep，所以一般 forward 會明確 loop over time；neuron 回傳 spike 與 membrane state。API 支援 <code>learn_beta=True</code> 與 <code>learn_threshold=True</code>。</p>
+<div class="callout warn"><p class="lang-en">Because the hard spike is a Heaviside step, typical snnTorch training uses a surrogate derivative in backward. The documentation uses ATan by default and shows alternatives such as fast sigmoid.</p><p class="lang-zh">因為 hard spike 是 Heaviside step，典型 snnTorch training 會在 backward 用 surrogate derivative。官方文件預設使用 ATan，也示範 fast sigmoid 等替代方法。</p></div>
+<p class="lang-en">Therefore “learnable decay” or “learnable threshold” alone is not the novelty of Gary's system; snnTorch already supports those ideas.</p>
+<p class="lang-zh">所以「decay 可學」或「threshold 可學」本身不是 Gary's system 的 novelty；snnTorch 已經支援。</p>
+</section>
+
+<section id="comparison">
+<h2><span class="section-num">§15</span><span class="lang-en">Deep comparison: Gary's system vs snnTorch Leaky</span><span class="lang-zh">深度比較：Gary's system vs snnTorch Leaky</span></h2>
+<div class="tbl-wrap"><table class="tbl"><thead><tr><th><span class="lang-en">aspect</span><span class="lang-zh">面向</span></th><th>Gary's LIF Ordering System</th><th>snnTorch <code>Leaky</code></th></tr></thead><tbody>
+<tr><td><span class="lang-en">time</span><span class="lang-zh">時間</span></td><td>continuous exact first-spike in 3.0–3.2</td><td>discrete timestep recurrence</td></tr>
+<tr><td><span class="lang-en">primary output</span><span class="lang-zh">主要輸出</span></td><td>\(t^*\rightarrow\operatorname{argsort}(t^*)\)</td><td><code>spk, mem</code> per timestep</td></tr>
+<tr><td><span class="lang-en">representation</span><span class="lang-zh">representation</span></td><td>first-spike permutation state, nominal \(M!\)</td><td>spike trains / membrane dynamics; no built-in factorial state interpretation</td></tr>
+<tr><td><span class="lang-en">gradient through spike</span><span class="lang-zh">spike gradient</span></td><td>3.0–3.2 bypass binary spike and differentiate exact \(t^*\)</td><td>typically surrogate gradient for \(dS/dU\)</td></tr>
+<tr><td>decay</td><td>continuous \(\tau_i\)</td><td>discrete \(\beta_i\), optionally learnable</td></tr>
+<tr><td>threshold</td><td>\(V_{th,i}\), formally validated learnable arm</td><td><code>threshold</code>, optionally learnable</td></tr>
+<tr><td><span class="lang-en">membrane resistance</span><span class="lang-zh">membrane resistance</span></td><td>explicit \(R_i\), formally validated arm</td><td><span class="lang-en">no explicit membrane-resistance API parameter; its effect is generally absorbed into input/current scaling</span><span class="lang-zh">沒有 explicit membrane-resistance API parameter；效果通常吸收到 input/current scaling</span></td></tr>
+<tr><td>current</td><td><span class="lang-en">can itself be optimized as six values</span><span class="lang-zh">可直接作為 6-value optimization arm</span></td><td><span class="lang-en">input injection, often produced by previous weights/data</span><span class="lang-zh">input injection，常由前層 weights/data 產生</span></td></tr>
+<tr><td>reset</td><td><span class="lang-en">irrelevant after the first spike for 3.0–3.2 ordering</span><span class="lang-zh">3.0–3.2 first spike 後 reset 不影響 ordering</span></td><td>subtract / zero / none are explicit recurrence options</td></tr>
+<tr><td>target</td><td>\(\pi^*\rightarrow\) Navigator</td><td><span class="lang-en">user-defined task target/loss</span><span class="lang-zh">由使用者 task 定義</span></td></tr>
+<tr><td>loss</td><td>adjacent-margin softplus ordering loss</td><td><span class="lang-en">no built-in Navigator loss</span><span class="lang-zh">沒有內建 Navigator loss</span></td></tr>
+<tr><td><span class="lang-en">typical use</span><span class="lang-zh">典型用途</span></td><td><span class="lang-en">navigate a factorial relational state substrate</span><span class="lang-zh">導航 factorial relational state substrate</span></td><td><span class="lang-en">build SNN layers/networks for task learning</span><span class="lang-zh">建立 SNN layers/networks 做 task learning</span></td></tr>
+</tbody></table></div>
+<div class="callout core"><p class="lang-en"><strong>Core difference:</strong> snnTorch is a library for constructing and training spiking networks; Gary's current research asks whether first-spike ordering itself can be a factorial state substrate with a small differentiable addressing interface.</p><p class="lang-zh"><strong>核心差異：</strong>snnTorch 是用來建立與訓練 spiking networks 的 library；Gary's system 現在研究的是 first-spike ordering 本身能不能成為 factorial state substrate，並由很小的 differentiable interface 去 address。</p></div>
+<p class="lang-en">A conceptual relation between continuous time constant and discrete decay is \(\beta\approx e^{-\Delta t/\tau}\), but the exact physical mapping depends on discretization and input scaling, so they should not be treated as identical parameterizations.</p>
+<p class="lang-zh">continuous time constant 和 discrete decay 的概念關係常寫成 \(\beta\approx e^{-\Delta t/\tau}\)，但 exact physical mapping 取決於 discretization 與 input scaling，所以不能把兩者當逐項完全一樣。</p>
+</section>
+
+<section id="rleaky">
+<h2><span class="section-num">§16</span><span class="lang-en">snnTorch RLeaky vs Experiment 3.3</span><span class="lang-zh">snnTorch RLeaky vs Experiment 3.3</span></h2>
+<p class="lang-en">The official <code>snn.RLeaky</code> recurrence adds a recurrent function of output spikes:</p><p class="lang-zh">官方 <code>snn.RLeaky</code> recurrence 加的是 output spikes 的 recurrent function：</p>
+<div class="formula-row"><div class="label">RLeaky</div><div class="formula">\[U[t+1]=\beta U[t]+I_{in}[t+1]+V(S_{out}[t])-R_{reset}U_{thr}\]</div></div>
+<p class="lang-en">Experiment 3.3 instead couples subthreshold membrane voltages:</p><p class="lang-zh">Experiment 3.3 則是 coupling subthreshold membrane voltages：</p>
+<div class="formula-row"><div class="label">3.3</div><div class="formula">\[\frac{dV_i}{dt}=-V_i+1.6+\sum_{j\neq i}W_{ij}\operatorname{clamp}(V_j,0,1)\]</div></div>
+<div class="tbl-wrap"><table class="tbl"><thead><tr><th><span class="lang-en">difference</span><span class="lang-zh">差異</span></th><th>3.3</th><th>RLeaky</th></tr></thead><tbody>
+<tr><td>coupling source</td><td>membrane voltage \(V_j\)</td><td>output spike \(S_{out}\)</td></tr>
+<tr><td><span class="lang-en">interaction before first spike?</span><span class="lang-zh">first spike 前可互相影響？</span></td><td><strong>yes</strong></td><td><span class="lang-en">pure spike-feedback term has no spike feedback before anyone spikes</span><span class="lang-zh">pure spike-feedback term 在所有人都還沒 spike 前沒有 spike feedback</span></td></tr>
+<tr><td><span class="lang-en">can alter first winner?</span><span class="lang-zh">可改第一名？</span></td><td><strong>yes</strong>, through pre-spike voltage coupling</td><td><span class="lang-en">not through the spike-feedback term before a first spike exists</span><span class="lang-zh">在第一個 spike 出現前，spike-feedback term 本身不能</span></td></tr>
+<tr><td>learnable recurrence</td><td>6 row balances or 30 signed directed edges</td><td>all-to-all linear/conv recurrence or elementwise recurrent weight; learnable recurrent weights supported</td></tr>
+</tbody></table></div>
+<div class="callout good"><p class="lang-en">So 3.3 is not just “RLeaky with a new name.” It specifically studies voltage-mediated pre-spike coupling as a controller of first-spike ordering.</p><p class="lang-zh">所以 3.3 不是「RLeaky 換名字」；它研究的是 voltage-mediated pre-spike coupling 如何控制 first-spike ordering。</p></div>
+</section>
+
+<section id="claims">
+<h2><span class="section-num">§17</span><span class="lang-en">Parameter counts and claim boundary</span><span class="lang-zh">參數量與 claim boundary</span></h2>
+<div class="tbl-wrap"><table class="tbl"><thead><tr><th>mechanism</th><th class="num">M6 learnable values/run</th><th><span class="lang-en">formal status</span><span class="lang-zh">formal status</span></th></tr></thead><tbody>
+<tr><td>current-only</td><td class="num">6</td><td><span class="tag ok">PASS</span></td></tr>
+<tr><td>tau-only</td><td class="num">6</td><td><span class="tag ok">PASS</span></td></tr>
+<tr><td>Vth-only</td><td class="num">6</td><td><span class="tag ok">PASS</span></td></tr>
+<tr><td>R-only</td><td class="num">6</td><td><span class="tag ok">PASS</span></td></tr>
+<tr><td>joint I+tau+Vth+R</td><td class="num">24</td><td><span class="tag open">NOT ESTABLISHED</span></td></tr>
+<tr><td>3.3 row_shared</td><td class="num">6</td><td><span class="tag ok">PASS</span></td></tr>
+<tr><td>3.3 directed</td><td class="num">30</td><td><span class="tag ok">PASS</span></td></tr>
+</tbody></table></div>
+<div class="formula-row"><div class="label">cleanest M6 result</div><div class="formula">\[\boxed{5\text{-D Navigator}\ \longrightarrow\ 6\text{ learnable LIF control values}\ \longrightarrow\ 720\text{ target orderings}}\]</div></div>
+<h3><span class="lang-en">Established</span><span class="lang-zh">已建立</span></h3>
+<ul class="issue-list">
+<li><span class="status resolved">established</span><span class="lang-en">M6 nominal factorial state substrate: 720 first-spike permutations.</span><span class="lang-zh">M6 nominal factorial state substrate：720 個 first-spike permutations。</span></li>
+<li><span class="status resolved">established</span><span class="lang-en">5-D direct gradient addressing of all 720 targets.</span><span class="lang-zh">5-D Navigator 直接 gradient-address 全部 720 targets。</span></li>
+<li><span class="status resolved">established</span><span class="lang-en">518,400 / 518,400 ordered source→target transitions, without supplied swap paths.</span><span class="lang-zh">518,400 / 518,400 ordered source→target transitions，不需 supplied swap path。</span></li>
+<li><span class="status resolved">established</span><span class="lang-en">Each of I, tau, threshold, resistance independently serves as a six-value actuator.</span><span class="lang-zh">I、tau、threshold、resistance 各自都能獨立成為 6-value actuator。</span></li>
+<li><span class="status resolved">established</span><span class="lang-en">Voltage-mediated signed coupling can also control the full M6 target set.</span><span class="lang-zh">voltage-mediated signed coupling 也能控制完整 M6 target set。</span></li>
+</ul>
+<h3><span class="lang-en">Not established</span><span class="lang-zh">尚未建立</span></h3>
+<ul class="issue-list">
+<li><span class="status open">open</span><span class="lang-en">Train-once reusable addressing function for unseen targets.</span><span class="lang-zh">train once 後對 unseen target 立即 output parameter 的 reusable addressing function。</span></li>
+<li><span class="status open">open</span><span class="lang-en">M&gt;6 optimization scaling.</span><span class="lang-zh">M&gt;6 optimization scaling。</span></li>
+<li><span class="status open">open</span><span class="lang-en">Robustness under current/parameter/noise/spike-time perturbations.</span><span class="lang-zh">current / parameter / noise / spike-time perturbation 下的 robustness。</span></li>
+<li><span class="status open">open</span><span class="lang-en">Joint-parameter identifiability or biological plasticity rule.</span><span class="lang-zh">joint-parameter identifiability 或 biological plasticity rule。</span></li>
+<li><span class="status open">open</span><span class="lang-en">A functional task that actually uses all 720 states.</span><span class="lang-zh">真正 functional task 實際利用全部 720 states。</span></li>
+</ul>
+<div class="callout core"><p class="lang-en"><strong>Recommended wording:</strong> “We establish an M6 factorial first-spike ordering substrate and an \(M-1\)-dimensional differentiable Navigator that, through per-instance gradient optimization, can control only \(M\) LIF timing values to address arbitrary target permutations.”</p><p class="lang-zh"><strong>建議說法：</strong>「我們建立了一個 M6 factorial first-spike ordering substrate，以及一個 \(M-1\) 維 differentiable Navigator；透過 per-instance gradient optimization，只控制 \(M\) 個 LIF timing values 就能 address 任意 target permutation。」</p></div>
+</section>
+
+<section id="conclusion">
+<h2><span class="section-num">§18</span><span class="lang-en">Conclusion and references</span><span class="lang-zh">小結與 references</span></h2>
+<div class="callout good"><p class="lang-en"><strong>One-sentence mental model:</strong> Gary's system is not a new base neuron equation; it is a factorial first-spike state representation plus a five-dimensional temporal Navigator that directly differentiates into small LIF physical controls.</p><p class="lang-zh"><strong>一句話心智模型：</strong>Gary's system 不是新的基本 neuron equation；它是「factorial first-spike state representation + 5-D temporal Navigator」，而 Navigator 的 gradient 直接進入少量 LIF physical controls。</p></div>
+<div class="tbl-wrap"><table class="tbl"><thead><tr><th>series</th><th>formal job</th><th><span class="lang-en">formal workload</span><span class="lang-zh">formal workload</span></th><th>audit</th></tr></thead><tbody>
+<tr><td>3.0</td><td><code>lif30-adjmargin-formal-0827-r1</code></td><td>400 pilot + 7,200 exact target runs</td><td>PASS</td></tr>
+<tr><td>3.1</td><td><code>lif31-navigation-formal-0828-r1</code></td><td>720 source builds + 100 pilot + 518,400 transitions</td><td>PASS</td></tr>
+<tr><td>3.2</td><td><code>lif32-intrinsic-formal-0828-r1</code></td><td>800 pilot + 14,400 exact arm-runs</td><td>PASS</td></tr>
+<tr><td>3.3</td><td><code>lif33-coupling-formal-0828-r1</code></td><td>200 pilot + 4,320 exact arm-runs</td><td>PASS</td></tr>
+</tbody></table></div>
+<div class="matrix">Project evidence basis:\n- SNN_LIF_M_factorial_research_compass.txt\n- current 3.0–3.3 formal summary supplied in conversation\n\nOfficial snnTorch references checked for this document:\n- https://snntorch.readthedocs.io/en/latest/snn.neurons_leaky.html\n- https://snntorch.readthedocs.io/en/latest/snn.neurons_rleaky.html\n- https://snntorch.readthedocs.io/en/latest/tutorials/tutorial_6.html</div>
+<p class="small lang-en">The snnTorch comparison was checked against the current official documentation surfaced as snnTorch 1.0.0. Software APIs can change; the links above are the authority for future revisions.</p>
+<p class="small lang-zh">snnTorch 比較已依目前官方文件（顯示為 snnTorch 1.0.0）核對。software API 之後可能變動，未來更新以官方 links 為準。</p>
+</section>
+
+</main></div>
+<script>
+(function () {
+  const body = document.body;
+  const saved = localStorage.getItem("garys-lang");
+  const lang = saved === "en" || saved === "zh" ? saved : "zh";
+  function setLang(next) {
+    body.setAttribute("data-lang", next);
+    localStorage.setItem("garys-lang", next);
+    document.querySelectorAll("[data-set-lang]").forEach(btn => {
+      btn.classList.toggle("active", btn.getAttribute("data-set-lang") === next);
+    });
+  }
+  document.querySelectorAll("[data-set-lang]").forEach(btn => {
+    btn.addEventListener("click", () => setLang(btn.getAttribute("data-set-lang")));
+  });
+  setLang(lang);
+  const links = [...document.querySelectorAll(".nav-link")];
+  const byId = new Map(links.map(a => [a.getAttribute("href").slice(1), a]));
+  const sections = [...document.querySelectorAll("main section[id]")];
+  function activate(id) {
+    links.forEach(a => a.classList.remove("active"));
+    const a = byId.get(id); if (a) a.classList.add("active");
+  }
+  const observer = new IntersectionObserver((entries) => {
+    const visible = entries.filter(e => e.isIntersecting).sort((a,b) => Math.abs(a.boundingClientRect.top) - Math.abs(b.boundingClientRect.top));
+    if (visible.length) activate(visible[0].target.id);
+  }, { rootMargin: "-12% 0px -72% 0px", threshold: [0, .1, .25] });
+  sections.forEach(s => observer.observe(s));
+  if (sections.length) activate(sections[0].id);
+})();
+</script>
 </body>
+
 </html>
