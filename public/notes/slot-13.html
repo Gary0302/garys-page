@@ -1,13 +1,984 @@
-<!DOCTYPE html>
-<html lang="en">
+from pathlib import Path
+from textwrap import dedent
+
+out = Path("/mnt/data/Garys_LIF_Ordering_System_UPDATED_3_5_2026-08-29.html")
+
+html = r'''<!DOCTYPE html>
+<html lang="zh-Hant">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Slot 13</title>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Gary's LIF Ordering System — Updated through Experiment 3.5</title>
+<style>
+:root{
+  --bg:#fefefe; --ink:#252525; --muted:#6f6f6f; --line:#e7e7e5;
+  --soft:#f7f7f5; --soft2:#fbfbfa; --accent:#2f6fdd;
+  --good:#2d7d46; --warn:#9a6700; --bad:#b42318;
+  --sidebar:200px; --main:760px;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  margin:0;background:var(--bg);color:var(--ink);
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans TC","PingFang TC",
+  "Microsoft JhengHei",Arial,sans-serif;
+  line-height:1.67;font-size:15px;
+}
+.layout{
+  display:grid;grid-template-columns:var(--sidebar) minmax(0,var(--main));
+  gap:56px;max-width:1100px;margin:0 auto;padding:0 28px 80px;
+}
+.sidebar{
+  position:sticky;top:0;height:100vh;padding:36px 0 28px;overflow:auto;
+  border-right:1px solid var(--line);
+}
+.brand{font-weight:760;font-size:14px;margin:0 18px 16px 0}
+.langbox{display:flex;gap:6px;margin:0 16px 18px 0}
+.langbox button{
+  border:1px solid var(--line);background:white;border-radius:6px;padding:5px 8px;
+  font:700 11px SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono",monospace;
+  cursor:pointer;
+}
+.langbox button.active{background:var(--ink);color:white;border-color:var(--ink)}
+.nav{display:flex;flex-direction:column;gap:2px;padding-right:16px}
+.nav a{
+  text-decoration:none;color:var(--muted);font-size:12.5px;line-height:1.3;
+  padding:6px 8px;border-radius:6px;border-left:2px solid transparent;
+}
+.nav a:hover{background:var(--soft);color:var(--ink)}
+.nav a.active{background:var(--soft);color:var(--ink);font-weight:650;border-left-color:var(--ink)}
+.main{padding-top:58px;min-width:0}
+header.title{padding-bottom:34px;border-bottom:1px solid var(--line);margin-bottom:42px}
+h1{font-size:36px;letter-spacing:-.035em;line-height:1.12;margin:0 0 10px;font-weight:780}
+.subtitle{font-size:17px;color:var(--muted);max-width:690px;margin:0 0 10px}
+.date{font:12px SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono",monospace;color:var(--muted)}
+section{scroll-margin-top:24px;margin:0 0 54px}
+h2{font-size:24px;letter-spacing:-.02em;line-height:1.25;margin:0 0 18px;font-weight:740}
+h3{font-size:17px;margin:28px 0 10px}
+p{margin:9px 0}
+strong{font-weight:730}
+code,.mono{
+  font-family:SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono",monospace;
+  font-size:.92em;
+}
+code{background:var(--soft);padding:2px 5px;border-radius:4px}
+.label{
+  display:inline-block;font:700 10px SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono",monospace;
+  letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:5px
+}
+.callout{
+  border-left:3px solid #d8d8d5;background:var(--soft2);padding:13px 15px;
+  margin:16px 0;border-radius:0 7px 7px 0
+}
+.callout.good{border-left-color:var(--good)}
+.callout.warn{border-left-color:var(--warn)}
+.callout.bad{border-left-color:var(--bad)}
+.eq{
+  overflow-x:auto;padding:10px 12px;margin:14px 0;background:var(--soft2);
+  border:1px solid var(--line);border-radius:7px;text-align:center;
+}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:15px 0}
+.card{border:1px solid var(--line);border-radius:8px;padding:14px 15px;background:white}
+.card h3{margin:0 0 7px;font-size:15px}
+.big{font-size:24px;font-weight:760;letter-spacing:-.02em}
+.small{font-size:12.5px;color:var(--muted)}
+.flow{display:flex;flex-wrap:wrap;align-items:center;gap:7px;margin:18px 0}
+.node{
+  border:1px solid #dededb;border-radius:7px;padding:8px 10px;background:white;
+  font:12px SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono",monospace;
+}
+.arrow{color:#8b8b88;font-weight:700}
+table{width:100%;border-collapse:collapse;margin:15px 0 22px;font-size:13px}
+th,td{border-bottom:1px solid var(--line);padding:8px 9px;text-align:left;vertical-align:top}
+th{
+  color:var(--muted);font:700 11px SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono",monospace;
+  background:var(--soft2)
+}
+td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
+.goodtxt{color:var(--good)} .warntxt{color:var(--warn)} .badtxt{color:var(--bad)}
+ul{padding-left:22px} li{margin:5px 0}
+.footnote{color:var(--muted);font-size:12.5px}
+hr{border:0;border-top:1px solid var(--line);margin:32px 0}
+body[data-lang="zh"] .en{display:none!important}
+body[data-lang="en"] .zh{display:none!important}
+@media(max-width:920px){
+  .layout{display:block;max-width:800px;padding:0 22px 60px}
+  .sidebar{position:relative;height:auto;border-right:0;border-bottom:1px solid var(--line);padding:20px 0 14px}
+  .nav{display:none}.main{padding-top:32px}.grid2{grid-template-columns:1fr}
+  h1{font-size:31px}
+}
+</style>
+<script>
+window.MathJax={tex:{inlineMath:[['\\(','\\)']],displayMath:[['\\[','\\]']]},
+options:{skipHtmlTags:['script','noscript','style','textarea','pre','code']}};
+</script>
+<script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
 </head>
-<body>
-  <!-- draft -->
-  <p>Draft slot 13 — replace this entire file on GitHub to publish.</p>
-  <script src="/notes/notes-nav.js" defer></script>
+<body data-lang="zh">
+<div class="layout">
+
+<aside class="sidebar">
+  <div class="brand">Gary's LIF Ordering System</div>
+  <div class="langbox">
+    <button id="btnZh" onclick="setLang('zh')">ZH</button>
+    <button id="btnEn" onclick="setLang('en')">EN</button>
+  </div>
+  <nav class="nav">
+    <a href="#s1">§1 Mechanism</a>
+    <a href="#s2">§2 LIF 函式</a>
+    <a href="#s3">§3 參數與 first spike</a>
+    <a href="#s4">§4 M! ordering</a>
+    <a href="#s5">§5 Navigator</a>
+    <a href="#s6">§6 Loss</a>
+    <a href="#s7">§7 Gradient + Adam</a>
+    <a href="#s8">§8 3.0–3.3 recap</a>
+    <a href="#s9">§9 3.4A Robustness</a>
+    <a href="#s10">§10 3.4B Recovery</a>
+    <a href="#s11">§11 3.5 Local rule</a>
+    <a href="#s12">§12 η 與 T 在哪裡</a>
+    <a href="#s13">§13 Fixed analytic rule</a>
+    <a href="#s14">§14 Train once</a>
+    <a href="#s15">§15 Unseen target 真義</a>
+    <a href="#s16">§16 Next-token 對照</a>
+    <a href="#s17">§17 snnTorch 差異</a>
+    <a href="#s18">§18 Claim boundary</a>
+    <a href="#s19">§19 下一步</a>
+  </nav>
+</aside>
+
+<main class="main">
+<header class="title">
+  <h1 class="zh">Gary's LIF：Factorial Ordering + Reusable Navigator Rule</h1>
+  <h1 class="en">Gary's LIF: Factorial Ordering + Reusable Navigator Rule</h1>
+  <p class="subtitle zh">
+    更新到 Experiment 3.5。這一版特別修正四個最容易混淆的概念：
+    Recovery 是人為指定 target 的修復測試、Adam 是外部 optimizer、
+    unseen target 不是 target-free inference，以及 \(\eta,T\) 不在 LIF 方程，而在 navigation rule。
+  </p>
+  <p class="subtitle en">
+    Updated through Experiment 3.5, with explicit corrections on recovery, Adam,
+    the true meaning of unseen targets, and the fact that \(\eta,T\) belong to the
+    navigation rule rather than the LIF neuron equation.
+  </p>
+  <div class="date">Updated 2026-08-29 · M=6 · S₆ · 6!=720</div>
+</header>
+
+<section id="s1">
+<h2>§1 <span class="zh">Mechanism 到底是什麼</span><span class="en">What “mechanism” means here</span></h2>
+
+<div class="callout good">
+<div class="label">definition</div>
+<p class="zh"><strong>Mechanism = 一套因果運作規則。</strong>不是一個 neuron，不是一個 parameter，也不是一個 loss。</p>
+<p class="en"><strong>Mechanism = a causal operating procedure.</strong> It is not a single neuron, parameter, or loss.</p>
+</div>
+
+<p class="zh">目前你的 mechanism 最簡單可以寫成：</p>
+<p class="en">The current mechanism can be written as:</p>
+
+<div class="flow">
+<div class="node">target ordering \(\pi^*\)</div><span class="arrow">→</span>
+<div class="node">first-spike times \(t^*\)</div><span class="arrow">→</span>
+<div class="node">5-D Navigator \(g\)</div><span class="arrow">→</span>
+<div class="node">update rule</div><span class="arrow">→</span>
+<div class="node">\(\tau\) changes</div><span class="arrow">→</span>
+<div class="node">new \(t^*\)</div><span class="arrow">→</span>
+<div class="node">new ordering</div>
+</div>
+
+<p class="zh">如果還沒到 target，就再做一輪。這就是 closed-loop mechanism。</p>
+<p class="en">If the target has not been reached, repeat. That repeated feedback process is the closed-loop mechanism.</p>
+</section>
+
+<section id="s2">
+<h2>§2 <span class="zh">LIF 本身的函式</span><span class="en">The LIF neuron function itself</span></h2>
+
+<p class="zh">最基本 continuous LIF：</p>
+<p class="en">Base continuous LIF:</p>
+
+<div class="eq">\[
+\tau_i\frac{dV_i}{dt}
+=
+-V_i
++
+R_i I_i
+\]</div>
+
+<p class="zh">在 \(V_i(0)=0\)、constant input 下：</p>
+<p class="en">With \(V_i(0)=0\) and constant input:</p>
+
+<div class="eq">\[
+V_i(t)
+=
+R_iI_i
+\left(
+1-e^{-t/\tau_i}
+\right)
+\]</div>
+
+<p class="zh">當 \(V_i(t)\) 碰到 \(V_{{th},i}\)，第一次 spike time：</p>
+<p class="en">When \(V_i(t)\) reaches \(V_{{th},i}\), the first-spike time is:</p>
+
+<div class="eq">\[
+\boxed{
+t_i^*
+=
+-\tau_i
+\ln
+\left(
+1-\frac{V_{{th},i}}{R_iI_i}
+\right)
+}
+\qquad
+R_iI_i>V_{{th},i}
+\]</div>
+
+<div class="callout warn">
+<div class="label">critical distinction</div>
+<p class="zh">LIF 函式裡有 \(I,\tau,V_{th},R,V,t^*\)。<strong>沒有 \(\eta\)，也沒有 \(T_{\rm rule}\)。</strong></p>
+<p class="en">The LIF function contains \(I,\tau,V_{th},R,V,t^*\). <strong>It does not contain \(\eta\) or \(T_{\rm rule}\).</strong></p>
+</div>
+</section>
+
+<section id="s3">
+<h2>§3 <span class="zh">四個 physical controls 到底在控制什麼</span><span class="en">What the four physical controls do</span></h2>
+
+<table>
+<thead><tr><th>Parameter</th><th class="zh">意思</th><th class="en">Meaning</th><th class="zh">變大時</th><th class="en">If increased</th></tr></thead>
+<tbody>
+<tr><td>\(I_i\)</td><td class="zh">input current，外部 drive</td><td class="en">input current / external drive</td><td>\(t_i^*\downarrow\)</td><td>\(t_i^*\downarrow\)</td></tr>
+<tr><td>\(\tau_i\)</td><td class="zh">膜時間常數</td><td class="en">membrane time constant</td><td>\(t_i^*\uparrow\)</td><td>\(t_i^*\uparrow\)</td></tr>
+<tr><td>\(V_{{th},i}\)</td><td class="zh">spike threshold</td><td class="en">spike threshold</td><td>\(t_i^*\uparrow\)</td><td>\(t_i^*\uparrow\)</td></tr>
+<tr><td>\(R_i\)</td><td class="zh">membrane resistance</td><td class="en">membrane resistance</td><td>\(t_i^*\downarrow\)</td><td>\(t_i^*\downarrow\)</td></tr>
+</tbody>
+</table>
+
+<div class="eq">\[
+\boxed{
+\text{earlier spike}
+=
+I\uparrow,\ R\uparrow,\ V_{th}\downarrow,\ \tau\downarrow
+}
+\]</div>
+
+<p class="zh">3.2 的四個 arm 都成功，就是因為這四種 knob 都能改 first-spike timing；但四個 arm 是分開學，不是同時學 24 個參數。</p>
+<p class="en">All four 3.2 arms succeed because each knob can alter first-spike timing; however, the arms are separate, not a joint 24-parameter fit.</p>
+</section>
+
+<section id="s4">
+<h2>§4 <span class="zh">為什麼 6 顆 neuron 形成 720 個 ordering states</span><span class="en">Why six neurons form 720 ordering states</span></h2>
+
+<div class="eq">\[
+\pi
+=
+\operatorname{argsort}
+(t_1^*,\ldots,t_M^*)
+\in S_M
+\]</div>
+
+<div class="eq">\[
+\boxed{|S_M|=M!}
+\]</div>
+
+<div class="grid2">
+<div class="card"><div class="label">M=3</div><div class="big">\(3!=6\)</div><div class="small">6 complete first-spike orders</div></div>
+<div class="card"><div class="label">M=6</div><div class="big">\(6!=720\)</div><div class="small">720 complete first-spike orders</div></div>
+</div>
+
+<p class="zh">state 是「誰先、誰後」的完整關係，不是每顆 neuron 單獨代表一個 class。</p>
+<p class="en">The state is the complete relation of who spikes before whom, not one class per neuron.</p>
+</section>
+
+<section id="s5">
+<h2>§5 <span class="zh">5-D Navigator 是什麼</span><span class="en">What the 5-D Navigator is</span></h2>
+
+<p class="zh">假設 target：</p>
+<p class="en">Suppose the target is:</p>
+
+<div class="eq">\[
+\pi^*=(2,3,1,4,5,6)
+\]</div>
+
+<p class="zh">代表：</p>
+<p class="en">Meaning:</p>
+
+<div class="eq">\[
+t_2<t_3<t_1<t_4<t_5<t_6
+\]</div>
+
+<p class="zh">Navigator 只看 target 中相鄰的 5 個 gap：</p>
+<p class="en">The Navigator uses only the five adjacent gaps in the target order:</p>
+
+<div class="eq">\[
+\boxed{
+g_k
+=
+t^*_{\pi^*_{k+1}}
+-
+t^*_{\pi^*_k},
+\qquad
+k=1,\ldots,5
+}
+\]</div>
+
+<p class="zh">M=6 所以是 5-D。這五個關係都對，就會因傳遞性得到完整 ordering。</p>
+<p class="en">For M=6 it is 5-D. If all five adjacent relations are satisfied, transitivity determines the full ordering.</p>
+
+<div class="callout">
+<div class="label">Navigator is not a predictor</div>
+<p class="zh">Navigator 不會自己猜 target。它需要已知的 \(\pi^*\) 才知道要計算哪五個 gap。</p>
+<p class="en">The Navigator does not predict the target. It needs the target \(\pi^*\) in order to know which five gaps to compute.</p>
+</div>
+</section>
+
+<section id="s6">
+<h2>§6 <span class="zh">Loss：怎麼知道 ordering 還差多少</span><span class="en">Loss: how far the ordering is from the target</span></h2>
+
+<p class="zh">strict margin 設：</p>
+<p class="en">Set a strict margin:</p>
+
+<div class="eq">\[
+\delta=0.1
+\]</div>
+
+<p class="zh">每一個 gap 的 smooth violation：</p>
+<p class="en">Smooth violation for each gap:</p>
+
+<div class="eq">\[
+e_k
+=
+T_{\rm loss}
+\operatorname{softplus}
+\left(
+\frac{\delta-g_k}{T_{\rm loss}}
+\right)
+\]</div>
+
+<p class="zh">總 loss：</p>
+<p class="en">Total loss:</p>
+
+<div class="eq">\[
+\boxed{
+L_{\rm order}
+=
+\frac15
+\sum_{k=1}^{5} e_k
+}
+\]</div>
+
+<p class="zh">如果 \(g_k<0\)，順序反了；如果 \(0<g_k<0.1\)，順序對但安全距離不夠；如果 \(g_k\gg0.1\)，這一對幾乎不用修。</p>
+<p class="en">If \(g_k<0\), the pair is reversed; if \(0<g_k<0.1\), the order is correct but the safety margin is insufficient; if \(g_k\gg0.1\), the pair needs almost no correction.</p>
+</section>
+
+<section id="s7">
+<h2>§7 <span class="zh">Gradient 與 Adam：它們到底在哪裡</span><span class="en">Gradient and Adam: where they sit in the system</span></h2>
+
+<h3 class="zh">3.2 / 3.4B 的流程</h3>
+<h3 class="en">The 3.2 / 3.4B pipeline</h3>
+
+<div class="flow">
+<div class="node">target \(\pi^*\)</div><span class="arrow">→</span>
+<div class="node">Navigator \(g\)</div><span class="arrow">→</span>
+<div class="node">\(L_{\rm order}\)</div><span class="arrow">→</span>
+<div class="node">\(\nabla_\tau L\)</div><span class="arrow">→</span>
+<div class="node">Adam</div><span class="arrow">→</span>
+<div class="node">\(\tau'\)</div>
+</div>
+
+<p class="zh"><strong>Gradient</strong> 告訴我們「往哪個方向改 parameter 會讓 loss 下降」。</p>
+<p class="en"><strong>The gradient</strong> tells us which direction should reduce the loss.</p>
+
+<p class="zh"><strong>Adam</strong> 是外部 optimizer：它讀 gradient，決定每個 parameter 實際更新多少。</p>
+<p class="en"><strong>Adam</strong> is an external optimizer: it reads the gradient and chooses the actual update size for each parameter.</p>
+
+<div class="eq">\[
+\tau_i
+\leftarrow
+\tau_i
+-
+\text{AdamUpdate}
+\left(
+\frac{\partial L}{\partial\tau_i}
+\right)
+\]</div>
+
+<div class="callout warn">
+<div class="label">not part of the neuron</div>
+<p class="zh">Adam 不是 LIF neuron 的生物/物理方程。它是我們放在外面的 optimization algorithm。</p>
+<p class="en">Adam is not part of the physical/biological LIF neuron equation. It is an external optimization algorithm.</p>
+</div>
+</section>
+
+<section id="s8">
+<h2>§8 <span class="zh">3.0–3.3：到 3.4 前我們已經知道什麼</span><span class="en">3.0–3.3: what was established before 3.4</span></h2>
+
+<table>
+<thead><tr><th>Series</th><th class="zh">主要問題</th><th class="en">Main question</th><th class="zh">結果</th><th class="en">Result</th></tr></thead>
+<tbody>
+<tr><td>3.0</td><td class="zh">5-D Navigator 能否直接 gradient-address 720 targets？</td><td class="en">Can the 5-D Navigator gradient-address all 720 targets?</td><td class="zh">7,200/7,200 exact runs；median 62 steps</td><td class="en">7,200/7,200 exact runs; median 62 steps</td></tr>
+<tr><td>3.1</td><td class="zh">任意 source→target，不給 symbolic path 能否到達？</td><td class="en">Can arbitrary source→target transitions succeed without a symbolic path?</td><td class="zh">518,400/518,400</td><td class="en">518,400/518,400</td></tr>
+<tr><td>3.2</td><td class="zh">可否直接學 intrinsic LIF parameters？</td><td class="en">Can intrinsic LIF parameters themselves be learned?</td><td class="zh">I、τ、Vth、R 四個獨立 6-value arms 全部 720 targets 成功</td><td class="en">Independent six-value I, τ, Vth, R arms all succeed on all 720 targets</td></tr>
+<tr><td>3.3</td><td class="zh">cross-node voltage coupling 可否控制 ordering？</td><td class="en">Can cross-node voltage coupling control ordering?</td><td class="zh">6-value row-shared 與 30-edge directed 都 100%</td><td class="en">Both six-value row-shared and 30-edge directed reach 100%</td></tr>
+</tbody>
+</table>
+</section>
+
+<section id="s9">
+<h2>§9 <span class="zh">3.4A — Robustness：加 noise 之後 state 還在嗎</span><span class="en">3.4A — Robustness: does the state survive noise?</span></h2>
+
+<p class="zh">直接拿 3.2 tau arm 的全部 3,600 個成功 solutions，不重新 polish。每一個 noise level 每個 solution 做 100 次 perturbation，共 360,000 trials/level：</p>
+<p class="en">Use all 3,600 successful solutions from the 3.2 tau arm without re-polishing. Each solution receives 100 perturbations per noise level, for 360,000 trials per level:</p>
+
+<div class="eq">\[
+\tau'_i
+=
+\tau_i
+(1+\sigma\epsilon_i),
+\qquad
+\epsilon_i\sim\mathcal N(0,1)
+\]</div>
+
+<table>
+<thead><tr><th>Noise</th><th class="num">Hard-order survival</th><th class="num">Strict-margin survival</th></tr></thead>
+<tbody>
+<tr><td>1%</td><td class="num goodtxt">1.000000</td><td class="num">0.574211</td></tr>
+<tr><td>2%</td><td class="num">0.999725</td><td class="num">0.380931</td></tr>
+<tr><td>5%</td><td class="num">0.898042</td><td class="num">0.173019</td></tr>
+<tr><td>10%</td><td class="num">0.515614</td><td class="num">0.074081</td></tr>
+</tbody>
+</table>
+
+<div class="callout">
+<div class="label">why 1% can be 100% vs 57%</div>
+<p class="zh">Hard order 只要求沒有 crossing；strict margin 還要求每個 adjacent gap 都至少 0.1。因為原 3.2 runner 第一次跨過 0.1 就停止，所以很多 solution 本來就貼近 margin boundary。</p>
+<p class="en">Hard order only requires no crossings; strict margin also requires every adjacent gap to remain at least 0.1. Because the 3.2 runner stopped as soon as 0.1 was crossed, many solutions naturally sit close to the margin boundary.</p>
+</div>
+</section>
+
+<section id="s10">
+<h2>§10 <span class="zh">3.4B — Recovery：壞掉後「人工指定原 target」再修回去</span><span class="en">3.4B — Recovery: restore a perturbed state using the known original target</span></h2>
+
+<div class="callout warn">
+<div class="label">critical clarification</div>
+<p class="zh"><strong>Recovery 不是系統自己發現「我錯了」。</strong>我們知道原 target \(\pi^*\)，故意加 noise，然後重新把同一個 target + 5-D Navigator + Adam 打開，看它能不能修回去。</p>
+<p class="en"><strong>Recovery does not mean the system autonomously discovers that it is wrong.</strong> We know the original target \(\pi^*\), deliberately add noise, then re-enable the same target, 5-D Navigator, and Adam to test whether the system can return.</p>
+</div>
+
+<p class="zh">所以 3.4B 測的是：</p>
+<p class="en">Therefore 3.4B measures:</p>
+
+<div class="eq">\[
+\boxed{\text{recoverability under a specified target}}
+\]</div>
+
+<p class="zh">不是：</p>
+<p class="en">Not:</p>
+
+<div class="eq">\[
+\boxed{\text{autonomous target-free error correction}}
+\]</div>
+
+<table>
+<thead><tr><th>Noise</th><th class="num">Initially broken</th><th class="num">Conditional recovery</th><th class="num">Median steps</th><th class="num">Failures</th></tr></thead>
+<tbody>
+<tr><td>1%</td><td class="num">38,250</td><td class="num goodtxt">1.000000</td><td class="num">1</td><td class="num">0</td></tr>
+<tr><td>2%</td><td class="num">55,562</td><td class="num goodtxt">1.000000</td><td class="num">1</td><td class="num">0</td></tr>
+<tr><td>5%</td><td class="num">74,387</td><td class="num goodtxt">1.000000</td><td class="num">2</td><td class="num">0</td></tr>
+<tr><td>10%</td><td class="num">83,215</td><td class="num goodtxt">0.999940</td><td class="num">4</td><td class="num">5</td></tr>
+</tbody>
+</table>
+
+<p class="zh">10% noise 下：</p>
+<p class="en">At 10% noise:</p>
+
+<div class="eq">\[
+\frac{83{,}210}{83{,}215}
+\approx
+99.994\%
+\]</div>
+
+<p class="zh">所以可以說 highly recoverable / highly self-correctable <strong>under the specified target controller</strong>，但不能說 autonomous，也不能說 10% 全部修回。</p>
+<p class="en">So the states are highly recoverable / self-correctable <strong>under the specified target controller</strong>, but this is not autonomous and 10% does not achieve perfect recovery.</p>
+</section>
+
+<section id="s11">
+<h2>§11 <span class="zh">3.5 — 把 Adam 拿掉：Shared local rule</span><span class="en">3.5 — Remove Adam: shared local rule</span></h2>
+
+<p class="zh">對每一條 target adjacent relation：</p>
+<p class="en">For each target-adjacent relation:</p>
+
+<div class="eq">\[
+\text{early}\rightarrow\text{late}
+\]</div>
+
+<p class="zh">先算 gap：</p>
+<p class="en">Compute the gap:</p>
+
+<div class="eq">\[
+g_k
+=
+t_{\rm late}
+-
+t_{\rm early}
+\]</div>
+
+<p class="zh">再算「這一對需要修多少」：</p>
+<p class="en">Then compute “how strongly this pair should be corrected”:</p>
+
+<div class="eq">\[
+\boxed{
+q_k
+=
+\sigma
+\left(
+\frac{0.1-g_k}{T_{\rm rule}}
+\right)
+}
+\]</div>
+
+<p class="zh">最後直接改 \(\tau\)：</p>
+<p class="en">Then directly update \(\tau\):</p>
+
+<div class="eq">\[
+\boxed{
+\tau_{\rm early}
+\leftarrow
+\tau_{\rm early}
+-
+\eta q_k
+}
+\]</div>
+
+<div class="eq">\[
+\boxed{
+\tau_{\rm late}
+\leftarrow
+\tau_{\rm late}
++
+\eta q_k
+}
+\]</div>
+
+<p class="zh">因為：</p>
+<p class="en">Because:</p>
+
+<div class="eq">\[
+\tau\downarrow\Rightarrow t^*\downarrow
+\qquad
+\tau\uparrow\Rightarrow t^*\uparrow
+\]</div>
+
+<p class="zh">所以 early neuron 變快、late neuron 變慢。</p>
+<p class="en">Thus the early neuron is accelerated and the late neuron is delayed.</p>
+
+<div class="callout good">
+<div class="label">what changed from 3.2</div>
+<p class="zh">3.2 是「loss → gradient → Adam → \(\tau\)」。3.5 是「Navigator → 固定 local rule → \(\tau\)」。test-time 不再需要 Adam。</p>
+<p class="en">3.2 uses “loss → gradient → Adam → \(\tau\).” 3.5 uses “Navigator → fixed local rule → \(\tau\).” Adam is no longer needed at test time.</p>
+</div>
+</section>
+
+<section id="s12">
+<h2>§12 <span class="zh">\(\eta\) 和 \(T_{\rm rule}\) 到底在哪裡</span><span class="en">Where exactly \(\eta\) and \(T_{\rm rule}\) live</span></h2>
+
+<div class="grid2">
+<div class="card">
+<h3 class="zh">LIF neuron dynamics</h3><h3 class="en">LIF neuron dynamics</h3>
+<div class="eq">\[
+t_i^*
+=
+-\tau_i
+\ln
+\left(
+1-\frac{V_{th,i}}{R_iI_i}
+\right)
+\]</div>
+<p class="zh">決定「現在這顆 neuron 何時 spike」。</p>
+<p class="en">Determines when the neuron spikes right now.</p>
+</div>
+
+<div class="card">
+<h3 class="zh">Navigation / plasticity dynamics</h3><h3 class="en">Navigation / plasticity dynamics</h3>
+<div class="eq">\[
+q_k
+=
+\sigma\left(\frac{\delta-g_k}{T_{\rm rule}}\right)
+\]</div>
+<div class="eq">\[
+\Delta\tau
+\sim
+\eta q_k
+\]</div>
+<p class="zh">決定「下一輪 \(\tau\) 要怎麼改」。</p>
+<p class="en">Determines how \(\tau\) changes for the next round.</p>
+</div>
+</div>
+
+<table>
+<thead><tr><th>Symbol</th><th class="zh">角色</th><th class="en">Role</th><th class="zh">是不是 LIF physical parameter？</th><th class="en">LIF physical parameter?</th></tr></thead>
+<tbody>
+<tr><td>\(\tau\)</td><td class="zh">膜時間常數</td><td class="en">membrane time constant</td><td>Yes</td><td>Yes</td></tr>
+<tr><td>\(V_{th}\)</td><td class="zh">threshold</td><td class="en">threshold</td><td>Yes</td><td>Yes</td></tr>
+<tr><td>\(R\)</td><td class="zh">membrane resistance</td><td class="en">membrane resistance</td><td>Yes</td><td>Yes</td></tr>
+<tr><td>\(I\)</td><td class="zh">input drive</td><td class="en">input drive</td><td class="zh">通常視為 control/input</td><td class="en">usually a control/input</td></tr>
+<tr><td>\(\eta\)</td><td class="zh">每一輪改多大步</td><td class="en">update step size</td><td class="badtxt">No</td><td class="badtxt">No</td></tr>
+<tr><td>\(T_{\rm rule}\)</td><td class="zh">rule 對 gap violation 的敏感度</td><td class="en">sensitivity of the rule to gap violation</td><td class="badtxt">No</td><td class="badtxt">No</td></tr>
+</tbody>
+</table>
+
+<div class="callout good">
+<div class="label">recommended vocabulary</div>
+<p class="zh">之後最好分成兩類：<strong>LIF physical parameters</strong> = \(I,\tau,V_{th},R\)；<strong>navigation-rule parameters</strong> = \(\eta,T_{\rm rule}\)。</p>
+<p class="en">Use two categories: <strong>LIF physical parameters</strong> = \(I,\tau,V_{th},R\); <strong>navigation-rule parameters</strong> = \(\eta,T_{\rm rule}\).</p>
+</div>
+</section>
+
+<section id="s13">
+<h2>§13 <span class="zh">3.5.0 — Fixed analytic rule</span><span class="en">3.5.0 — Fixed analytic rule</span></h2>
+
+<p class="zh">完全不 learn rule，直接固定：</p>
+<p class="en">Do not learn the rule; simply fix:</p>
+
+<div class="eq">\[
+\eta=0.2,
+\qquad
+T_{\rm rule}=0.05
+\]</div>
+
+<table>
+<thead><tr><th class="zh">設定</th><th class="en">Setting</th><th class="num">Result</th></tr></thead>
+<tbody>
+<tr><td class="zh">targets</td><td class="en">targets</td><td class="num">720</td></tr>
+<tr><td class="zh">starts / target</td><td class="en">starts / target</td><td class="num">20</td></tr>
+<tr><td class="zh">episodes</td><td class="en">episodes</td><td class="num">14,400</td></tr>
+<tr><td class="zh">hard + strict-margin</td><td class="en">hard + strict-margin</td><td class="num goodtxt">14,400 / 14,400</td></tr>
+<tr><td class="zh">median steps</td><td class="en">median steps</td><td class="num">8</td></tr>
+<tr><td class="zh">max steps</td><td class="en">max steps</td><td class="num">16</td></tr>
+</tbody>
+</table>
+
+<div class="callout good">
+<div class="label">scientific meaning</div>
+<p class="zh">這一步已經證明：<strong>per-instance Adam 不是必要條件。</strong>一條固定的 shared local rule 已足以完成 M6 target ordering navigation。</p>
+<p class="en">This establishes that <strong>per-instance Adam is not necessary.</strong> A fixed shared local rule is sufficient for M6 target-order navigation.</p>
+</div>
+</section>
+
+<section id="s14">
+<h2>§14 <span class="zh">3.5.1 — Train once：只學兩個 global numbers</span><span class="en">3.5.1 — Train once: learn only two global numbers</span></h2>
+
+<p class="zh">這裡 training 不再為每個 target 學 6 個 \(\tau_i\)。只學整套 rule 共用的：</p>
+<p class="en">Training no longer learns six \(\tau_i\)'s per target. It learns only the two globally shared rule parameters:</p>
+
+<div class="eq">\[
+\boxed{
+\eta,\quad T_{\rm rule}
+}
+\]</div>
+
+<p class="zh">學到：</p>
+<p class="en">Learned values:</p>
+
+<div class="eq">\[
+\eta
+=
+0.1778688405099881
+\]</div>
+
+<div class="eq">\[
+T_{\rm rule}
+=
+0.10680125587013735
+\]</div>
+
+<p class="zh">然後 freeze。</p>
+<p class="en">Then freeze them.</p>
+
+<div class="callout">
+<div class="label">what “train once” means</div>
+<p class="zh">「train once」只表示 \(\eta,T\) 用 training set 調一次，之後 test 不再改。它不表示系統已學會在沒有 target 的情況下自己決定 target。</p>
+<p class="en">“Train once” only means \(\eta,T\) are fit once on the training set and then remain fixed at test time. It does not mean the system can determine the target without being given one.</p>
+</div>
+</section>
+
+<section id="s15">
+<h2>§15 <span class="zh">3.5.2 — Unseen target 的真正含義</span><span class="en">3.5.2 — What “unseen target” really means</span></h2>
+
+<p class="zh">720 個 target permutations：</p>
+<p class="en">Out of 720 target permutations:</p>
+
+<div class="eq">\[
+500\text{ train}
++
+220\text{ held-out}
+=
+720
+\]</div>
+
+<p class="zh">220 個 held-out target 在 training 時完全沒有用來調 \(\eta,T\)。這就是「unseen target」。</p>
+<p class="en">The 220 held-out targets are never used to fit \(\eta,T\). That is the meaning of “unseen target.”</p>
+
+<div class="callout bad">
+<div class="label">but test still supplies the target</div>
+<p class="zh"><strong>Test 時仍然人工提供 target permutation。</strong>例如 test target 是 \(526143\)，Navigator 就直接根據 \(526143\) 建立五個 adjacent relations。</p>
+<p class="en"><strong>The target permutation is still explicitly supplied at test time.</strong> If the test target is \(526143\), the Navigator directly constructs the five adjacent relations implied by \(526143\).</p>
+</div>
+
+<p class="zh">所以 3.5.2 證明：</p>
+<p class="en">Therefore 3.5.2 establishes:</p>
+
+<div class="eq">\[
+\boxed{
+\text{the navigation rule generalizes to target labels not used to fit the rule}
+}
+\]</div>
+
+<p class="zh">它沒有證明：</p>
+<p class="en">It does not establish:</p>
+
+<div class="eq">\[
+\boxed{
+\text{the system can infer the correct target from input alone}
+}
+\]</div>
+
+<table>
+<thead><tr><th>Test</th><th class="num">Episodes</th><th class="num">Success</th><th class="num">Median steps</th><th class="num">Max</th></tr></thead>
+<tbody>
+<tr><td>220 held-out targets × 20 unseen starts</td><td class="num">4,400</td><td class="num goodtxt">4,400 / 4,400</td><td class="num">9</td><td class="num">17</td></tr>
+</tbody>
+</table>
+
+<p class="zh">test-time autograd = 無；test-time optimizer = 無；target-specific learned values = 0。</p>
+<p class="en">Test-time autograd = none; test-time optimizer = none; target-specific learned values = 0.</p>
+</section>
+
+<section id="s16">
+<h2>§16 <span class="zh">和 next-token prediction 的真正差別</span><span class="en">The real difference from next-token prediction</span></h2>
+
+<div class="grid2">
+<div class="card">
+<h3 class="zh">目前 3.5</h3><h3 class="en">Current 3.5</h3>
+<div class="eq">\[
+\boxed{
+\pi^*
+\rightarrow
+Navigator
+\rightarrow
+rule
+\rightarrow
+LIF
+}
+\]</div>
+<p class="zh">test 時已知道正確 target \(\pi^*\)。研究問題是：</p>
+<div class="eq zh">\[
+\text{“HOW do I move there?”}
+\]</div>
+<p class="en">The correct target \(\pi^*\) is known at test time. The question is “HOW do I move there?”</p>
+</div>
+
+<div class="card">
+<h3 class="zh">Next-token inference</h3><h3 class="en">Next-token inference</h3>
+<div class="eq">\[
+\boxed{
+x
+\rightarrow
+\text{model}
+\rightarrow
+\hat y
+}
+\]</div>
+<p class="zh">test 時沒有正確 \(y\)。模型必須自己從 context \(x\) 決定應該輸出什麼。</p>
+<p class="en">At test time the correct \(y\) is absent. The model must infer the output from context \(x\).</p>
+</div>
+</div>
+
+<p class="zh">例如 training 時：</p>
+<p class="en">For example, during training:</p>
+
+<div class="eq">\[
+\text{“The cat sat on the”}
+\rightarrow
+\text{“mat”}
+\]</div>
+
+<p class="zh">可以用正確 next token 算 loss。但 freeze 後 user 真的打 prompt 時，模型沒有「mat」這個答案餵進去。</p>
+<p class="en">The correct next token can be used to compute training loss. After freezing, however, the answer “mat” is not supplied when a real user provides the prompt.</p>
+
+<div class="callout good">
+<div class="label">the open problem</div>
+<p class="zh">所以現在我們已經很接近解完 <strong>HOW to navigate</strong>；還沒解的是 <strong>WHERE should the system go?</strong></p>
+<p class="en">We are close to solving <strong>HOW to navigate</strong>; the unsolved part is <strong>WHERE should the system go?</strong></p>
+</div>
+
+<p class="zh">真正 next-token-like 的未來版本應該是：</p>
+<p class="en">A truly next-token-like future version should be:</p>
+
+<div class="eq">\[
+\boxed{
+x
+\rightarrow
+\text{task-derived navigation pressure}
+\rightarrow
+LIF
+\rightarrow
+\pi
+}
+\]</div>
+
+<p class="zh">test 時不再直接提供 \(\pi^*\)。</p>
+<p class="en">At test time, \(\pi^*\) is no longer directly supplied.</p>
+</section>
+
+<section id="s17">
+<h2>§17 <span class="zh">和 snnTorch LIF 的差異（更新版）</span><span class="en">Difference from snnTorch LIF (updated)</span></h2>
+
+<table>
+<thead><tr><th class="zh">面向</th><th class="en">Aspect</th><th>Gary's current system</th><th>snnTorch <code>Leaky</code></th></tr></thead>
+<tbody>
+<tr><td class="zh">核心表示</td><td class="en">Representation</td><td>first-spike permutation \(\pi\)</td><td>spike / membrane state per discrete timestep</td></tr>
+<tr><td class="zh">時間</td><td class="en">Time</td><td>continuous / exact first-spike in 3.0–3.2</td><td>discrete recurrence</td></tr>
+<tr><td class="zh">典型 gradient</td><td class="en">Typical gradient</td><td class="zh">3.0–3.2 可直接對 exact \(t^*\) 微分</td><td class="zh">hard spike 通常配 surrogate gradient</td><td class="en">3.0–3.2 differentiate exact \(t^*\) directly</td></tr>
+<tr><td class="zh">learnable decay</td><td class="en">Learnable decay</td><td>\(\tau_i\)</td><td>\(\beta_i\), supported by API</td></tr>
+<tr><td class="zh">learnable threshold</td><td class="en">Learnable threshold</td><td>\(V_{th,i}\)</td><td>supported by API</td></tr>
+<tr><td class="zh">特殊點</td><td class="en">Distinctive point</td><td class="zh">把 \(M!\) first-spike ordering 當 state substrate，並用 Navigator / local rule 導航</td><td class="zh">library 本身不定義這種 factorial ordering-navigation objective</td><td class="en">treats \(M!\) first-spike ordering as the state substrate and navigates it with a Navigator/local rule</td></tr>
+</tbody>
+</table>
+
+<div class="callout warn">
+<div class="label">novelty boundary</div>
+<p class="zh">「LIF parameter 可以 learn」不是新發明。真正不同的是 first-spike permutation state + \(M-1\)-D Navigator + small reusable navigation rule 這個組合。</p>
+<p class="en">“LIF parameters can be learned” is not new. The distinctive contribution is the combination of first-spike permutation state, an \(M-1\)-D Navigator, and a small reusable navigation rule.</p>
+</div>
+</section>
+
+<section id="s18">
+<h2>§18 <span class="zh">目前最精確的 Claim boundary</span><span class="en">Current claim boundary</span></h2>
+
+<h3 class="zh">已建立</h3><h3 class="en">Established</h3>
+<ul>
+<li class="zh">M=6 nominal ordering space 為 \(6!=720\)。</li>
+<li class="en">For M=6, the nominal ordering space is \(6!=720\).</li>
+<li class="zh">5-D Navigator 可以 per-instance gradient-address 全部 720 targets。</li>
+<li class="en">The 5-D Navigator can per-instance gradient-address all 720 targets.</li>
+<li class="zh">全部 518,400 ordered source→target transitions 可達。</li>
+<li class="en">All 518,400 ordered source→target transitions are reachable.</li>
+<li class="zh">單獨控制 \(I,\tau,V_{th},R\) 任一 family 都可完成全部 target addressing。</li>
+<li class="en">Any one of \(I,\tau,V_{th},R\) alone can support all target addressing.</li>
+<li class="zh">3.4 建立 tested perturbation 下的 hard/margin survival curves 與指定 target 下的 conditional recovery。</li>
+<li class="en">3.4 establishes hard/margin survival curves and target-specified conditional recovery under the tested perturbations.</li>
+<li class="zh">3.5 建立不用 per-instance Adam 的固定 local rule。</li>
+<li class="en">3.5 establishes a fixed local rule without per-instance Adam.</li>
+<li class="zh">只學兩個 global rule values 後 freeze，可對 220 held-out permutation labels 與 unseen starts 完成 4,400/4,400 navigation episodes。</li>
+<li class="en">After learning and freezing only two global rule values, the system succeeds on 4,400/4,400 episodes involving 220 held-out permutation labels and unseen starts.</li>
+</ul>
+
+<h3 class="zh">尚未建立</h3><h3 class="en">Not established</h3>
+<ul>
+<li class="zh"><strong>Target-free inference：</strong>test 時目前仍直接提供 \(\pi^*\)。</li>
+<li class="en"><strong>Target-free inference:</strong> \(\pi^*\) is still supplied at test time.</li>
+<li class="zh">semantic / task generalization。</li>
+<li class="en">Semantic / task generalization.</li>
+<li class="zh">next-token-style「只有 context，自己決定應去哪個 ordering」能力。</li>
+<li class="en">Next-token-style inference where only context is given and the target ordering must be inferred.</li>
+<li class="zh">autonomous biological plasticity / STDP。</li>
+<li class="en">Autonomous biological plasticity / STDP.</li>
+<li class="zh">M&gt;6 scaling。</li>
+<li class="en">Scaling beyond M=6.</li>
+<li class="zh">observation noise、spike jitter、joint intrinsic/coupling noise。</li>
+<li class="en">Observation noise, spike jitter, and joint intrinsic/coupling noise.</li>
+</ul>
+
+<div class="callout good">
+<div class="label">recommended sentence</div>
+<p class="zh">「M=6 的 tau-controlled LIF ordering substrate 可由一條 shared、two-endpoint、permutation-equivariant local rule，在 test time 不使用 gradient/optimizer 的情況下，導航到明確指定的未見 target permutation；但 target 本身仍由外部提供。」</p>
+<p class="en">“The M=6 tau-controlled LIF ordering substrate can be navigated to an explicitly specified unseen target permutation by a shared two-endpoint permutation-equivariant local rule without test-time gradients or an optimizer; however, the target itself is still externally supplied.”</p>
+</div>
+</section>
+
+<section id="s19">
+<h2>§19 <span class="zh">下一步：現在真正分成兩條線</span><span class="en">Next step: the research now splits into two clean lines</span></h2>
+
+<div class="grid2">
+<div class="card">
+<h3 class="zh">3.6 — Scaling</h3><h3 class="en">3.6 — Scaling</h3>
+<p class="zh">看同一條 local rule 是否能從 M=6 擴展到 M=4,8,10。</p>
+<div class="eq">\[
+M=4,6,8,10
+\]</div>
+<div class="eq">\[
+|S_M|=M!,
+\qquad
+\dim(\text{Navigator})=M-1
+\]</div>
+<p class="zh">特別重要：直接 freeze M6 的 \(\eta,T\) 去 M8/M10，測 rule 是否真的與 M 無關。</p>
+</div>
+
+<div class="card">
+<h3 class="zh">3.7 — Functional / target-free</h3><h3 class="en">3.7 — Functional / target-free</h3>
+<p class="zh">把「人工提供 \(\pi^*\)」拿掉。</p>
+<div class="eq">\[
+x
+\rightarrow
+\text{task signal}
+\rightarrow
+\text{navigation pressure}
+\rightarrow
+LIF
+\rightarrow
+\pi
+\]</div>
+<p class="zh">這才真正接近 next-token prediction 類型的 inference：training 有答案，freeze 後 test 沒答案。</p>
+</div>
+</div>
+
+<div class="callout good">
+<div class="label">current research position</div>
+<p class="zh">目前已很強地回答 <strong>HOW to move through the factorial LIF ordering space</strong>；下一個真正大的未解問題是 <strong>WHERE should the system move when the target is not supplied?</strong></p>
+<p class="en">The current work strongly addresses <strong>HOW to move through the factorial LIF ordering space</strong>. The next major open problem is <strong>WHERE should the system move when the target is not supplied?</strong></p>
+</div>
+</section>
+
+</main>
+</div>
+
+<script>
+function setLang(lang){
+  document.body.setAttribute('data-lang',lang);
+  localStorage.setItem('garyLifLang',lang);
+  document.documentElement.lang=lang==='zh'?'zh-Hant':'en';
+  document.getElementById('btnZh').classList.toggle('active',lang==='zh');
+  document.getElementById('btnEn').classList.toggle('active',lang==='en');
+}
+setLang(localStorage.getItem('garyLifLang')||'zh');
+
+const links=[...document.querySelectorAll('.nav a')];
+const sections=links.map(a=>document.querySelector(a.getAttribute('href'))).filter(Boolean);
+const observer=new IntersectionObserver(entries=>{
+  const visible=entries.filter(e=>e.isIntersecting).sort((a,b)=>b.intersectionRatio-a.intersectionRatio)[0];
+  if(!visible)return;
+  links.forEach(a=>a.classList.toggle('active',a.getAttribute('href')==='#'+visible.target.id));
+},{rootMargin:'-18% 0px -70% 0px',threshold:[0,.2,.5,1]});
+sections.forEach(s=>observer.observe(s));
+</script>
 </body>
 </html>
+'''
+
+out.write_text(html, encoding="utf-8")
+
+# Lightweight structural validation without external dependencies.
+text = out.read_text(encoding="utf-8")
+checks = {
+    "file_exists": out.exists(),
+    "mathjax": "tex-chtml.js" in text,
+    "language_toggle": "localStorage" in text and "setLang" in text,
+    "sidebar_200": "--sidebar:200px" in text,
+    "main_760": "--main:760px" in text,
+    "sections_19": all(f'id="s{i}"' in text for i in range(1,20)),
+    "key_recovery": "83,215" in text and "83,210" in text,
+    "key_unseen": "4,400 / 4,400" in text,
+    "eta_t_outside_lif": "It does not contain" in text and "T_{\\rm rule}" in text,
+}
+print(f"Created: {out}")
+print(f"Size: {out.stat().st_size/1024:.1f} KB")
+print(checks)
